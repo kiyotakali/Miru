@@ -1,0 +1,72 @@
+name: Deploy Project Page to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "index.html"
+      - "_page/**"
+      - "scripts/deploy_project_page_vps.sh"
+      - ".github/workflows/deploy-project-page-vps.yml"
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Optional deployment note"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: miru-project-page-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate static page
+        run: |
+          set -euo pipefail
+          test -f index.html
+          test -d _page
+          test -f _page/css/main.css
+          test -f _page/js/main.js
+          grep -q '_page/' index.html
+
+      - name: Prepare SSH key
+        env:
+          MIRU_PAGE_SSH_HOST: ${{ secrets.MIRU_PAGE_SSH_HOST }}
+          MIRU_PAGE_SSH_KEY: ${{ secrets.MIRU_PAGE_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MIRU_PAGE_SSH_HOST:-}" ]; then
+            echo "::error::Missing secret MIRU_PAGE_SSH_HOST, for example root@<server-ip>"
+            exit 1
+          fi
+          if [ -z "${MIRU_PAGE_SSH_KEY:-}" ]; then
+            echo "::error::Missing secret MIRU_PAGE_SSH_KEY"
+            exit 1
+          fi
+          install -m 700 -d "$RUNNER_TEMP/miru-page-ssh"
+          printf '%s\n' "$MIRU_PAGE_SSH_KEY" > "$RUNNER_TEMP/miru-page-ssh/deploy_key"
+          chmod 600 "$RUNNER_TEMP/miru-page-ssh/deploy_key"
+
+      - name: Deploy
+        env:
+          MIRU_PAGE_SSH_HOST: ${{ secrets.MIRU_PAGE_SSH_HOST }}
+          MIRU_PAGE_SSH_PORT: ${{ vars.MIRU_PAGE_SSH_PORT }}
+          MIRU_PAGE_REMOTE_DIR: ${{ vars.MIRU_PAGE_REMOTE_DIR }}
+          MIRU_PAGE_PUBLIC_URL: ${{ vars.MIRU_PAGE_PUBLIC_URL }}
+          MIRU_PAGE_SSH_KEY_PATH: ${{ runner.temp }}/miru-page-ssh/deploy_key
+        run: |
+          set -euo pipefail
+          export MIRU_PAGE_SSH_PORT="${MIRU_PAGE_SSH_PORT:-22}"
+          export MIRU_PAGE_REMOTE_DIR="${MIRU_PAGE_REMOTE_DIR:-/opt/miru/project_page}"
+          export MIRU_PAGE_PUBLIC_URL="${MIRU_PAGE_PUBLIC_URL:-https://mirulife.top/}"
+          bash scripts/deploy_project_page_vps.sh

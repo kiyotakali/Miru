@@ -19,9 +19,9 @@ Miru（見る）的项目主页——「花会落，她记得。」
 任何静态服务器都可以：
 
 ```bash
-cd miru-page
-python -m http.server 8899
-# 打开 http://localhost:8899/
+cd Miru
+python3 -m http.server 8765 -d .
+# 打开 http://127.0.0.1:8765/
 ```
 
 或直接双击 `index.html`（file:// 协议下 sessionStorage 可能受浏览器限制，序章每次都会播放）。
@@ -30,9 +30,9 @@ python -m http.server 8899
 
 ```
 index.html      # 单页全部结构与文案
-css/main.css    # 樱花色系设计令牌 + 全部样式（含响应式 / reduced-motion）
-js/main.js      # 序章、花瓣引擎、横向卷轴、时刻度盘导航、滚动揭示
-assets/         # 立绘 / 海报 / logo / 图标（源自 Miru 主仓库 + 定制海报）
+_page/css/main.css    # 樱花色系设计令牌 + 全部样式（含响应式 / reduced-motion）
+_page/js/main.js      # 序章、花瓣引擎、横向卷轴、时刻度盘导航、滚动揭示
+_page/assets/         # 立绘 / 海报 / logo / 图标（源自 Miru 主仓库 + 定制海报）
 ```
 
 ## 调试参数
@@ -57,13 +57,26 @@ assets/         # 立绘 / 海报 / logo / 图标（源自 Miru 主仓库 + 定�
 ## 部署
 
 任意静态托管（GitHub Pages / Netlify / Vercel / VPS nginx）直接指向本目录即可。
-注意 `og:image` 使用相对路径，部署后如需社交分享卡生效，请把
-`<meta property="og:image">` 改为线上绝对 URL。
+本仓库页面资源使用 `/_page/*` 命名空间，避免和 Miru App 后端的
+`/assets/live2d/*` 等运行时资源冲突。
+
+当前正式站 `https://mirulife.top/` 由 GitHub Actions 部署到 VPS：
+
+```text
+/opt/miru/project_page/releases/<github_sha>
+/opt/miru/project_page/current -> releases/<github_sha>
+```
+
+Miru 后端会优先读取 `project_page/current/index.html`，并通过 `/_page/*`
+服务本仓库静态资源；如果外部页面不存在，则回退到后端自带的旧
+`templates/landing.html`。
+
+协作者流程见 `docs/COLLABORATOR_PROJECT_PAGE.md`。
 
 ## 素材说明
 
-- `assets/miru-poster.png`：Miru 宣传海报（高马尾）。页面中以"电影式裁切"用于
+- `_page/assets/miru-poster.png`：Miru 宣传海报（高马尾）。页面中以"电影式裁切"用于
   Hero 首屏与人物章的实体宣传单，原图带有的 "VTUBER DEBUT!" 字样已用
   「SHE REMEMBERS!」贴纸在视觉上覆盖/替换（Miru 不是 VTuber）。
-- `assets/miru-hero.png`：长发安静立绘 = 深夜的她，用于 00:00 记忆章（照片化处理）。
-- `assets/miru-avatar.png`：Q 版头像 = 全站功能性贴纸。
+- `_page/assets/miru-hero.png`：长发安静立绘 = 深夜的她，用于 00:00 记忆章（照片化处理）。
+- `_page/assets/miru-avatar.png`：Q 版头像 = 全站功能性贴纸。
