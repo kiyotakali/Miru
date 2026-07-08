@@ -2,7 +2,7 @@
 # Deploy the public Miru project page to the Miru VPS external homepage slot.
 #
 # Required:
-#   MIRU_PAGE_SSH_HOST      SSH login, e.g. root@203.0.113.10
+#   MIRU_PAGE_SSH_HOST      SSH login stored as a GitHub secret
 #   MIRU_PAGE_SSH_KEY_PATH  Private key file written by GitHub Actions
 #
 # Optional:
@@ -51,6 +51,7 @@ SSH_OPTS=(
   -o PasswordAuthentication=no
   -o ConnectTimeout=20
   -o ServerAliveInterval=15
+  -o LogLevel=ERROR
 )
 
 quote() { printf "%q" "$1"; }
@@ -59,7 +60,7 @@ REMOTE_BASE_Q="$(quote "$REMOTE_BASE")"
 RELEASE_DIR_Q="$(quote "$RELEASE_DIR")"
 CURRENT_LINK_Q="$(quote "$CURRENT_LINK")"
 
-echo "[miru-page] Deploying ${SHA} to ${SSH_HOST}:${RELEASE_DIR}"
+echo "[miru-page] Deploying release ${SHA}"
 
 ssh "${SSH_OPTS[@]}" "$SSH_HOST" "mkdir -p ${RELEASE_DIR_Q}"
 

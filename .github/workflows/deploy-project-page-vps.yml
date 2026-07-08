@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${MIRU_PAGE_SSH_HOST:-}" ]; then
-            echo "::error::Missing secret MIRU_PAGE_SSH_HOST, for example root@<server-ip>"
+            echo "::error::Missing secret MIRU_PAGE_SSH_HOST"
             exit 1
           fi
           if [ -z "${MIRU_PAGE_SSH_KEY:-}" ]; then
