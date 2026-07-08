@@ -1,0 +1,6 @@
+# Claude Code 本地配置，不进仓库
+.claude/
+
+# 系统杂物
+.DS_Store
+Thumbs.db

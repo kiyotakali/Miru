@@ -1,0 +1,43 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Miru logo</title>
+  <desc id="desc">A minimal line-art cat peeking from a window, with warm glowing eyes and a small bookmark accent.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="72%">
+      <stop offset="0%" stop-color="#FFF9EF"/>
+      <stop offset="64%" stop-color="#FFF2E3"/>
+      <stop offset="100%" stop-color="#F8E1D4"/>
+    </radialGradient>
+    <filter id="eyeGlow" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#F8E1D4"/>
+  <rect x="24" y="24" width="976" height="976" rx="214" fill="url(#bg)"/>
+
+  <path d="M200 724V374C200 292 260 232 342 232H682C764 232 824 292 824 374V724"
+        stroke="#4A3A30" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M278 706C254 640 280 596 300 570C288 506 319 433 366 417C395 408 432 469 461 517C493 496 534 496 566 519C596 470 660 406 694 424C738 447 751 515 739 569C766 605 781 652 759 706"
+        stroke="#4A3A30" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M708 714H760V824L734 798L708 824V714Z"
+        fill="#D77F75" stroke="#4A3A30" stroke-width="30" stroke-linejoin="round"/>
+
+  <path d="M176 724H848"
+        stroke="#4A3A30" stroke-width="42" stroke-linecap="round"/>
+
+  <g filter="url(#eyeGlow)">
+    <circle cx="456" cy="640" r="28" fill="#D99A2B"/>
+    <circle cx="568" cy="640" r="28" fill="#D99A2B"/>
+  </g>
+  <circle cx="447" cy="632" r="9" fill="#FFF9EF"/>
+  <circle cx="559" cy="632" r="9" fill="#FFF9EF"/>
+
+  <ellipse cx="405" cy="670" rx="14" ry="9" fill="#D77F75" opacity=".88"/>
+  <ellipse cx="619" cy="670" rx="14" ry="9" fill="#D77F75" opacity=".88"/>
+</svg>
