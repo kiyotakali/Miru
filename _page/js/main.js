@@ -349,6 +349,56 @@
     Array.prototype.forEach.call(fades, function (el) { el.classList.add("in"); });
   }
 
+  /* ───────────────────────── 记忆区：文档分类与整理前后切换 ───────────────────────── */
+
+  var memoryTabs = document.querySelectorAll("[data-memory-tab]");
+  var memoryPanels = document.querySelectorAll("[data-memory-panel]");
+  var memoryMode = "raw";
+
+  function applyMemoryMode(panel) {
+    var versions = panel.querySelectorAll("[data-memory-version]");
+    for (var i = 0; i < versions.length; i++) {
+      versions[i].hidden = versions[i].getAttribute("data-memory-version") !== memoryMode;
+    }
+    var modeButtons = panel.querySelectorAll("[data-memory-mode]");
+    for (var j = 0; j < modeButtons.length; j++) {
+      var on = modeButtons[j].getAttribute("data-memory-mode") === memoryMode;
+      modeButtons[j].classList.toggle("on", on);
+      modeButtons[j].setAttribute("aria-pressed", on ? "true" : "false");
+    }
+  }
+
+  function setMemoryTab(name) {
+    for (var i = 0; i < memoryTabs.length; i++) {
+      var on = memoryTabs[i].getAttribute("data-memory-tab") === name;
+      memoryTabs[i].classList.toggle("on", on);
+      memoryTabs[i].setAttribute("aria-selected", on ? "true" : "false");
+    }
+    for (var j = 0; j < memoryPanels.length; j++) {
+      var match = memoryPanels[j].getAttribute("data-memory-panel") === name;
+      memoryPanels[j].hidden = !match;
+      memoryPanels[j].classList.toggle("on", match);
+      if (match) applyMemoryMode(memoryPanels[j]);
+    }
+  }
+
+  if (memoryTabs.length && memoryPanels.length) {
+    for (var mt = 0; mt < memoryTabs.length; mt++) {
+      memoryTabs[mt].addEventListener("click", function () {
+        setMemoryTab(this.getAttribute("data-memory-tab"));
+      });
+    }
+    document.addEventListener("click", function (event) {
+      var btn = event.target.closest("[data-memory-mode]");
+      if (!btn) return;
+      memoryMode = btn.getAttribute("data-memory-mode") || "raw";
+      for (var i = 0; i < memoryPanels.length; i++) {
+        if (!memoryPanels[i].hidden) applyMemoryMode(memoryPanels[i]);
+      }
+    });
+    setMemoryTab("project");
+  }
+
   /* ───────────────────────── 调试：?off=px 位移截图 / ?probe=1 列出偏移 ───────────────────────── */
 
   var offPx = parseFloat(params.get("off") || "0");

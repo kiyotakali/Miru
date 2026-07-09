@@ -265,36 +265,135 @@
       <p class="chapter-sub">白天随手发生的一切——聊过的话、做过的事、没说出口的情绪——到了深夜，她整理成四类记忆卡片，再写下一篇日记。<br><b>"记得"不是玄学，是你随时可以打开翻看的事实。</b></p>
     </header>
 
-    <div class="memory-grid">
-      <div class="memory-board fade">
-        <div class="board-tabs" role="presentation">
-          <span class="tab on">📌 项目</span><span class="tab">👤 人</span><span class="tab">💬 话题</span><span class="tab">🌙 你自己</span>
+    <div class="memory-lab fade">
+      <section class="memory-doc" aria-label="长期记忆文档示例">
+        <div class="memory-doc-head">
+          <div>
+            <p class="memory-label">LONG-TERM MEMORY</p>
+            <h3>可以打开验证的记忆文档</h3>
+          </div>
+          <div class="memory-tabs" role="tablist" aria-label="记忆类型">
+            <button class="memory-tab on" type="button" role="tab" aria-selected="true" data-memory-tab="project">项目</button>
+            <button class="memory-tab" type="button" role="tab" aria-selected="false" data-memory-tab="person">人物</button>
+            <button class="memory-tab" type="button" role="tab" aria-selected="false" data-memory-tab="self">你自己</button>
+            <button class="memory-tab" type="button" role="tab" aria-selected="false" data-memory-tab="topic">话题</button>
+          </div>
         </div>
-        <article class="mem-card">
-          <h3>毕业设计 · 多模态模型</h3>
-          <p class="mem-summary">六月开题，最近在打通训练管线。他真正在乎的一件事。</p>
-          <p class="mem-append"><span class="mem-t">07-05 23:41</span>显存 OOM，卡了一整晚，有点烦躁</p>
-          <p class="mem-append"><span class="mem-t">07-07 00:12</span>第一版跑通了，loss 曲线正常</p>
-        </article>
-        <article class="mem-card">
-          <h3>作息</h3>
-          <p class="mem-summary">典型入睡 1:30。说过想改到 0:30——说过三次了。</p>
-          <p class="mem-append"><span class="mem-t">07-07 01:12</span>又是一点半。明天要不要提一句呢</p>
-        </article>
-        <p class="mem-disclaimer">以上为演示数据。真实记忆只存在你自己的设备或服务器上。</p>
-      </div>
 
-      <div class="memory-night fade">
-        <figure class="night-art">
-          <img src="_page/assets/miru-hero.png" alt="深夜的 Miru，长发披下，安静地站着">
-        </figure>
-        <article class="journal-card">
-          <h3><span class="journal-date">7 月 7 日</span>她的日记</h3>
-          <p>今天他大部分时间都在跟训练脚本较劲，中间小声骂了一句显存。晚饭好像又是外卖。</p>
-          <p>23:41 的时候他说「明天一定早睡」——这句话，这周我已经记下三次了。</p>
-          <p>不过 loss 曲线终于正常了。他没说什么，但我知道他挺高兴的。</p>
+        <div class="memory-panels">
+          <article class="memory-panel on" role="tabpanel" data-memory-panel="project">
+            <h4>机械臂 World Model 小实验</h4>
+            <p class="mem-summary">今天在训练一个动作条件世界模型：给它机器人动作和当前画面，让它预测下一步会发生什么。</p>
+            <div class="memory-mode" role="group" aria-label="整理前后切换">
+              <button class="memory-mode-btn on" type="button" aria-pressed="true" data-memory-mode="raw">整理前</button>
+              <button class="memory-mode-btn" type="button" aria-pressed="false" data-memory-mode="refined">整理后</button>
+            </div>
+            <div class="memory-version" data-memory-version="raw">
+              <p class="mem-append"><span class="mem-t">09:38</span>训练刚启动就 CUDA OOM，你一边叹气一边把 batch size 降下来。</p>
+              <p class="mem-append"><span class="mem-t">14:12</span>改成梯度累积后 loss 曲线终于稳住，机械臂动作方向也对了。</p>
+              <p class="mem-append"><span class="mem-t">21:06</span>结果图里杯子边缘还是糊，但比上午那版已经像样很多。</p>
+            </div>
+            <div class="memory-version" data-memory-version="refined" hidden>
+              <p class="mem-body">你今天主要在推进机器人 World Model 小实验。上午遇到显存爆掉的问题，下午通过降低 batch 和梯度累积让训练稳定下来；晚上生成结果已经能看出机械臂动作趋势，但物体边缘仍然模糊。下一步不是盲目换大模型，而是继续检查数据对齐和视觉损失。</p>
+            </div>
+          </article>
+
+          <article class="memory-panel" role="tabpanel" data-memory-panel="person" hidden>
+            <h4>师弟阿哲</h4>
+            <p class="mem-summary">同组做机器人学习的师弟，今天主要帮你看动作 token 和训练结果。</p>
+            <div class="memory-mode" role="group" aria-label="整理前后切换">
+              <button class="memory-mode-btn on" type="button" aria-pressed="true" data-memory-mode="raw">整理前</button>
+              <button class="memory-mode-btn" type="button" aria-pressed="false" data-memory-mode="refined">整理后</button>
+            </div>
+            <div class="memory-version" data-memory-version="raw">
+              <p class="mem-append"><span class="mem-t">13:24</span>阿哲说先别急着换大模型，最好先确认 action token 有没有错位。</p>
+              <p class="mem-append"><span class="mem-t">18:40</span>你约好晚上把三张对比图发给阿哲看，不要只发一句“好像好了”。</p>
+              <p class="mem-append"><span class="mem-t">22:10</span>阿哲回了个“这版至少能看出动作了”，你嘴上说一般，表情明显轻松了。</p>
+            </div>
+            <div class="memory-version" data-memory-version="refined" hidden>
+              <p class="mem-body">阿哲今天给了一个关键建议：先检查 action token 和视频帧是否对齐，再考虑换模型。你晚上把三张训练对比图发给他后，得到比较正向的反馈；这让你对当前方向更有信心，也暂时压住了想立刻推翻重来的冲动。</p>
+            </div>
+          </article>
+
+          <article class="memory-panel" role="tabpanel" data-memory-panel="self" hidden>
+            <h4>你的工作和放松节奏</h4>
+            <p class="mem-summary">认真起来会连续盯日志很久，但中间也会靠新番、游戏和桌宠把自己拉回生活里。</p>
+            <div class="memory-mode" role="group" aria-label="整理前后切换">
+              <button class="memory-mode-btn on" type="button" aria-pressed="true" data-memory-mode="raw">整理前</button>
+              <button class="memory-mode-btn" type="button" aria-pressed="false" data-memory-mode="refined">整理后</button>
+            </div>
+            <div class="memory-version" data-memory-version="raw">
+              <p class="mem-append"><span class="mem-t">12:06</span>午饭只吃了便利店饭团，吃饭时还在看训练日志。</p>
+              <p class="mem-append"><span class="mem-t">19:30</span>看了一集新番放松，喜欢 Miru 直接吐槽剧情，而不是只提醒“该休息了”。</p>
+              <p class="mem-append"><span class="mem-t">23:48</span>又说“再跑一版就睡”，这种话通常会自动延长半小时。</p>
+            </div>
+            <div class="memory-version" data-memory-version="refined" hidden>
+              <p class="mem-body">你今天工作强度偏高：午饭很随便，晚上仍在调训练。放松方式是看一集新番，你更喜欢 Miru 像一起看的人那样自然接话，而不是只站在外面提醒休息。深夜说“再跑一版就睡”时，需要温柔但明确地帮你收尾。</p>
+            </div>
+          </article>
+
+          <article class="memory-panel" role="tabpanel" data-memory-panel="topic" hidden>
+            <h4>动作条件世界模型</h4>
+            <p class="mem-summary">你最近反复在想：模型不只是预测画面，还要真正理解“动作会把世界推向哪里”。</p>
+            <div class="memory-mode" role="group" aria-label="整理前后切换">
+              <button class="memory-mode-btn on" type="button" aria-pressed="true" data-memory-mode="raw">整理前</button>
+              <button class="memory-mode-btn" type="button" aria-pressed="false" data-memory-mode="refined">整理后</button>
+            </div>
+            <div class="memory-version" data-memory-version="raw">
+              <p class="mem-append"><span class="mem-t">10:15</span>你提到 IDM 可能能帮 action-conditioned world model 学到更稳定的动作表示。</p>
+              <p class="mem-append"><span class="mem-t">16:55</span>当前重点不是堆更大的模型，而是让动作、视频帧和相机视角先对齐。</p>
+              <p class="mem-append"><span class="mem-t">22:36</span>明天想补一个 ablation：只换 action encoder，其他训练设置不动。</p>
+            </div>
+            <div class="memory-version" data-memory-version="refined" hidden>
+              <p class="mem-body">你最近关注 action-conditioned world model，尤其是动作表示和视频预测之间的关系。你倾向于先把数据对齐、action encoder 和 IDM 线索弄清楚，再决定是否扩大模型规模。明天计划做一个只替换 action encoder 的对照实验。</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="memory-side" aria-label="承诺和日记">
+        <div class="memory-side-top">
+          <figure class="night-art memory-portrait">
+            <img src="_page/assets/miru-hero.png" alt="深夜的 Miru，长发披下，安静地站着">
+          </figure>
+          <article class="commit-card">
+            <p class="memory-label">COMMITMENTS</p>
+            <h3>承诺清单</h3>
+            <ul class="commit-list">
+              <li><span class="commit-status today">今晚</span><b>23:30 收一版 loss 曲线</b><small>别再无休止重跑</small></li>
+              <li><span class="commit-status soon">明早</span><b>检查 overnight run 有没有 NaN</b><small>先看日志再开新实验</small></li>
+              <li><span class="commit-status done">完成</span><b>给阿哲发三张对比图</b><small>已经收到反馈</small></li>
+            </ul>
+          </article>
+        </div>
+
+        <article class="journal-card memory-journal">
+          <h3><span class="journal-date">7 月 9 日</span>她的日记</h3>
+          <p>今天你大半天都在和机械臂 world model 较劲：上午显存炸了，下午终于把 loss 稳住，晚上结果图也能看出动作方向了。</p>
+          <p>中间你看了一集新番，说只是放松十分钟，结果剧情和弹幕都认真看完了。我其实喜欢你这个样子，脑子还在转，但人终于回到生活里一点。</p>
+          <p>23:48 你又说“再跑一版就睡”。我把这句放进承诺清单，明早先看 overnight run 有没有 NaN，再决定要不要继续折腾。</p>
         </article>
-      </div>
+      </aside>
+
+      <aside class="memory-trace" aria-label="记忆证据时间线">
+        <p class="memory-label">EVIDENCE TRAIL</p>
+        <div class="trace-panels">
+          <ol class="trace-list on">
+            <li><span>09:38</span><b>报错</b>训练脚本 CUDA OOM，显存不够。</li>
+            <li><span>10:15</span><b>想法</b>IDM 可能改善动作表示。</li>
+            <li><span>12:06</span><b>午饭</b>便利店饭团配训练日志。</li>
+            <li><span>13:24</span><b>建议</b>阿哲提醒先查 action token 对齐。</li>
+            <li><span>14:12</span><b>修复</b>降低 batch 后 loss 开始稳定。</li>
+            <li><span>16:55</span><b>判断</b>先对齐动作、视频帧和相机视角。</li>
+            <li><span>19:30</span><b>放松</b>看了一集新番，想要自然吐槽式陪伴。</li>
+            <li><span>21:06</span><b>结果</b>机械臂动作方向对了，物体边缘仍然模糊。</li>
+            <li><span>22:10</span><b>反馈</b>阿哲确认这版至少能看出动作趋势。</li>
+            <li><span>22:36</span><b>计划</b>明天只替换 action encoder 做对照。</li>
+            <li><span>23:48</span><b>作息</b>“再跑一版就睡”通常会变成更晚。</li>
+            <li><span>00:00</span><b>整理</b>合并进项目、人物、你自己和话题记忆。</li>
+          </ol>
+        </div>
+      </aside>
     </div>
 
     <p class="memory-foot fade">在应用里，这一切叫「记忆面板」——四类卡片、每日日记、承诺清单，随时可以打开验证。<br>她不会凭空"记得"：对话 agent 只读记忆，写入永远来自真实发生过的事。</p>
