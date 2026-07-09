@@ -83,8 +83,15 @@ if command -v curl >/dev/null 2>&1; then
   echo "[miru-page] Verifying ${PUBLIC_URL}"
   for attempt in 1 2 3; do
     html="$(curl -fsSL --max-time 20 "${PUBLIC_URL}" || true)"
-    css_status="$(curl -fsSIL --max-time 20 "${PUBLIC_URL%/}/_page/css/main.css" | head -1 || true)"
-    if [[ "$html" == *"Miru"* && "$css_status" == *"200"* ]]; then
+    css_href="$(printf '%s' "$html" | sed -n 's/.*href="\([^"]*_page\/css\/main\.css[^"]*\)".*/\1/p' | head -1)"
+    css_url=""
+    if [[ "$css_href" == http* ]]; then
+      css_url="$css_href"
+    elif [[ -n "$css_href" ]]; then
+      css_url="${PUBLIC_URL%/}/${css_href#./}"
+    fi
+    css="$(curl -fsSL --max-time 20 "$css_url" || true)"
+    if [[ "$html" == *"Miru"* && "$html" == *"EVIDENCE TRAIL"* && "$css" == *".memory-lab"* ]]; then
       echo "[miru-page] Public page verification passed."
       exit 0
     fi
