@@ -379,6 +379,25 @@ a:hover { text-decoration: underline; }
 }
 .panel-copy { margin-top: 1.1em; max-width: 30em; font-size: .97rem; color: #5E2038; }
 .panel:nth-child(n+5) .panel-copy { color: #FFE3EC; }
+.panel-ticket {
+  display: inline-flex; align-items: center; gap: .65em;
+  margin-bottom: 1.1em;
+  color: #fff;
+  font-size: .78rem; letter-spacing: .16em;
+}
+.panel-ticket span {
+  font-family: var(--serif);
+  letter-spacing: .08em;
+  background: rgba(255,255,255,.82);
+  color: var(--rose);
+  border-radius: 999px;
+  padding: .34em .85em .3em;
+  box-shadow: 0 8px 20px rgba(130, 35, 75, .12);
+}
+.panel-ticket b {
+  font-weight: 700;
+  color: rgba(255,255,255,.9);
+}
 .panel-tag {
   display: inline-block; margin-top: 1.6em;
   font-size: .78rem; letter-spacing: .18em; color: #fff;
@@ -420,6 +439,46 @@ a:hover { text-decoration: underline; }
   margin-right: .9em; font-size: .86em; letter-spacing: .06em;
 }
 .mock-note { font-size: .78rem; color: #B08E9C; border-top: 1px dashed #F2C9D4; padding-top: 10px; }
+.mock-note-label {
+  margin-bottom: .4em;
+  font-size: .74rem; letter-spacing: .18em;
+  color: var(--rose);
+}
+.thought-note {
+  position: relative;
+  margin: 6px -6px 20px;
+  padding: .8em .75em;
+  border: 1.5px dashed rgba(217, 79, 110, .5);
+  border-radius: 18px;
+  background: rgba(255, 250, 252, .9);
+  color: #7B3E55;
+  font-size: .84rem;
+  line-height: 1.7;
+  text-wrap: balance;
+  transform: rotate(-.4deg);
+}
+/* 心理活动 = 虚线思考泡 + 尾部冒泡点；说出口的话用实线气泡 */
+.thought-note::before, .thought-note::after,
+.morning-thought::before, .morning-thought::after,
+.commitment-thought::before, .commitment-thought::after {
+  content: "";
+  position: absolute;
+  border: 1.5px dashed rgba(217, 79, 110, .5);
+  border-radius: 50%;
+  background: rgba(255, 252, 253, .95);
+}
+.thought-note::before,
+.morning-thought::before,
+.commitment-thought::before {
+  width: 10px; height: 10px;
+  left: 16px; bottom: -10px;
+}
+.thought-note::after,
+.morning-thought::after,
+.commitment-thought::after {
+  width: 6px; height: 6px;
+  left: 6px; bottom: -19px;
+}
 .mock-todo { display: flex; justify-content: space-between; gap: 12px; }
 .mock-src { font-size: .76rem; color: #B08E9C; white-space: nowrap; }
 .mock-done { color: #B08E9C; text-decoration: line-through; }
@@ -432,6 +491,428 @@ a:hover { text-decoration: underline; }
 .mock-sync i { font-style: normal; color: var(--rose); }
 .mock-sync span { background: #FFF0F4; border-radius: 10px; padding: .5em .9em; }
 .mock-sync .mock-server { background: var(--rose); color: #fff; }
+
+.mock-phone-scene,
+.mock-workbench,
+.mock-debug,
+.mock-evening,
+.mock-night {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mock-phone-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  color: var(--ink);
+  border-bottom: 1px solid #F2C9D4;
+  padding-bottom: 10px;
+}
+.mock-phone-head span {
+  font-family: var(--serif);
+  color: var(--rose);
+  letter-spacing: .08em;
+}
+.mock-phone-head b {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+}
+.mock-phone-card {
+  background: #FFF0F4;
+  border-radius: 14px;
+  padding: 14px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.morning-card { width: min(100%, 620px); }
+.morning-card > .morning-scene {
+  position: relative;
+  min-height: 570px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+.morning-phone {
+  position: absolute;
+  z-index: 1;
+  top: 22px;
+  right: 10px;
+  width: min(70%, 318px);
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 28px 64px rgba(124, 28, 66, .23);
+  transform: rotate(-2deg);
+}
+.morning-phone::before {
+  content: "";
+  position: absolute;
+  top: -16px;
+  left: 37%;
+  width: 92px;
+  height: 24px;
+  background: rgba(244,229,199,.86);
+  box-shadow: 0 7px 16px rgba(105, 62, 40, .12);
+  transform: rotate(1.8deg);
+}
+.morning-clue {
+  margin: 14px auto 0;
+  min-height: 88px;
+  width: min(100%, 252px);
+  padding: 15px 17px;
+  border-radius: 18px;
+  background: #FFF0F4;
+  color: var(--ink);
+  line-height: 1.7;
+}
+.morning-avatar {
+  position: absolute;
+  z-index: 2;
+  top: 154px;
+  left: -116px;
+  width: 142px;
+  height: 142px;
+  border: 8px solid rgba(255,255,255,.88);
+  border-radius: 36px;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 22px 44px rgba(105, 23, 56, .24);
+  transform: rotate(-6deg);
+}
+.morning-thought,
+.morning-said {
+  position: absolute;
+  z-index: 4;
+  border-radius: 18px;
+  line-height: 1.7;
+}
+.morning-thought {
+  left: 8px;
+  top: 326px;
+  width: 284px;
+  padding: 15px 18px 16px;
+  border: 1.5px dashed rgba(217, 79, 110, .5);
+  background: rgba(255,250,252,.95);
+  color: #7B3E55;
+  box-shadow: 0 18px 34px rgba(120, 31, 66, .12);
+  transform: rotate(1.5deg);
+}
+.morning-said {
+  right: 0;
+  top: 462px;
+  width: min(72%, 348px);
+  padding: 14px 16px 16px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 20px 42px rgba(120, 31, 66, .2);
+  transform: rotate(-1.2deg);
+}
+.morning-said .bubble {
+  display: block;
+  margin-top: 5px;
+  box-shadow: inset 0 0 0 1px rgba(217, 79, 110, .08);
+}
+.commitment-card { width: min(100%, 520px); }
+.commitment-flow {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.98), rgba(255,248,251,.94));
+}
+.commitment-shot,
+.commitment-thought,
+.commitment-list {
+  position: relative;
+  border-radius: 16px;
+  line-height: 1.7;
+}
+.commitment-shot {
+  padding: 16px 18px 18px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(242, 201, 212, .72);
+}
+.commitment-chat {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #FFF0F4;
+  color: var(--ink);
+}
+.commitment-chat span {
+  display: block;
+  margin-bottom: .35em;
+  color: var(--rose);
+  font-size: .74rem;
+  letter-spacing: .14em;
+}
+.commitment-chat p {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  letter-spacing: .03em;
+}
+.commitment-thought {
+  width: 82%;
+  justify-self: end;
+  padding: 14px 16px 14px 18px;
+  border: 1.5px dashed rgba(217, 79, 110, .5);
+  background: rgba(255,250,252,.96);
+  color: #7B3E55;
+  box-shadow: 0 14px 28px rgba(120, 31, 66, .1);
+  transform: rotate(-1deg);
+}
+.commitment-list {
+  padding: 16px 18px;
+  background: #231622;
+  color: #FFE3EC;
+  box-shadow: 0 18px 38px rgba(60, 16, 42, .18);
+  transform: rotate(.8deg);
+}
+.commitment-list .mock-note-label { color: #F9B5C9; }
+.commitment-list p {
+  font-size: 1rem;
+  color: #fff;
+}
+.commitment-list span {
+  display: inline-block;
+  margin-right: .7em;
+  border-radius: 999px;
+  padding: .22em .68em;
+  background: var(--rose);
+  color: #fff;
+  font-size: .78rem;
+}
+.commitment-list small {
+  display: block;
+  margin-top: .75em;
+  color: #BCA4B4;
+  font-size: .76rem;
+}
+/* P3 · 截屏聊天记录 → 读懂 → 写入清单 */
+.commitment-shot .mock-chrome { margin-bottom: 10px; }
+.commitment-chatlog {
+  display: flex; flex-direction: column; gap: 5px;
+  margin-top: 8px;
+}
+.cmsg {
+  max-width: 88%;
+  padding: .45em .8em;
+  border-radius: 13px;
+  font-size: .88rem; line-height: 1.6;
+  color: var(--ink);
+}
+.cmsg-them { align-self: flex-start; background: #F3EDE9; border-bottom-left-radius: 4px; }
+.cmsg-you { align-self: flex-end; background: #FFF0F4; color: #6D2C44; border-bottom-right-radius: 4px; }
+.cmsg-key {
+  font-family: var(--serif);
+  font-size: 1.04rem;
+  box-shadow: 0 0 0 2px var(--rose), 0 10px 22px rgba(217, 79, 110, .16);
+}
+.cmsg-sender {
+  align-self: flex-start;
+  font-style: normal;
+  font-size: .7rem; letter-spacing: .12em;
+  color: #B08E9C;
+}
+.cmsg-sender-you { align-self: flex-end; }
+.cmsg-note {
+  align-self: flex-end;
+  margin-top: 2px;
+  font-style: normal;
+  font-size: .74rem; letter-spacing: .06em;
+  color: var(--rose);
+}
+.commitment-link {
+  justify-self: center;
+  display: flex; flex-direction: column; align-items: center;
+  margin: -7px 0;
+}
+.commitment-link i {
+  width: 2px; height: 16px;
+  background: repeating-linear-gradient(180deg, var(--rose) 0 4px, transparent 4px 8px);
+}
+.commitment-link::after {
+  content: "";
+  margin-top: -1px;
+  border: 5px solid transparent;
+  border-top-color: var(--rose);
+}
+.mock-workbench .mock-code {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  color: var(--ink);
+  background: #231622;
+  border-radius: 10px;
+  padding: .75em .9em;
+  color: #FFE3EC;
+}
+.signal-row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 4px 0 0;
+}
+.signal-row span {
+  border: 1px solid #F2C9D4;
+  border-radius: 999px;
+  padding: .28em .72em;
+  color: #8C5268;
+  background: #FFF8FA;
+  font-size: .76rem;
+}
+.mock-terminal {
+  background: #221522;
+  color: #FFE3EC;
+  border-radius: 14px;
+  padding: 14px;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: .78rem;
+  line-height: 1.65;
+}
+.mock-terminal p + p { margin-top: .35em; color: #E4B8C8; }
+.mood-curve {
+  display: flex;
+  align-items: end;
+  gap: 7px;
+  height: 52px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #FFF7FA, #FFE9EF);
+}
+.mood-curve i {
+  width: 12px;
+  height: var(--h);
+  min-height: 6px;
+  border-radius: 999px 999px 4px 4px;
+  background: linear-gradient(180deg, var(--rose), #F6AFC0);
+  box-shadow: 0 6px 12px rgba(217,79,110,.2);
+}
+.debug-mood {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mood-word {
+  font-size: .78rem;
+  color: #8C5268;
+  letter-spacing: .04em;
+}
+.miru-ping {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.miru-ping img {
+  width: 42px; height: 42px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 8px 18px rgba(120, 31, 66, .18);
+}
+.miru-ping-body { flex: 1; }
+.miru-ping-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.miru-ping-meta b {
+  font-family: var(--serif);
+  font-size: .96rem;
+  color: var(--ink);
+}
+.miru-ping-meta span {
+  font-size: .72rem;
+  color: #B08E9C;
+  letter-spacing: .08em;
+}
+.miru-ping .bubble { display: block; }
+/* P5 · 看番画面：弹幕 + 进度条 */
+.mock-anime {
+  position: relative;
+  height: 158px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #2A1830, #221522 60%, #1C1220);
+  overflow: hidden;
+}
+.anime-danmaku span {
+  position: absolute;
+  white-space: nowrap;
+  font-size: .78rem;
+  color: rgba(255, 245, 248, .92);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+}
+.anime-danmaku span:nth-child(1) { top: 18px; left: 16px; }
+.anime-danmaku span:nth-child(2) { top: 48px; right: 14px; opacity: .7; font-size: .72rem; }
+.anime-danmaku span:nth-child(3) { top: 78px; left: 36%; opacity: .85; color: #FFD6E2; }
+@media (prefers-reduced-motion: no-preference) {
+  .anime-danmaku span { animation: danmaku-drift 8s ease-in-out infinite alternate; }
+  .anime-danmaku span:nth-child(2) { animation-duration: 11s; }
+  .anime-danmaku span:nth-child(3) { animation-duration: 9.5s; }
+}
+@keyframes danmaku-drift { to { transform: translateX(-16px); } }
+.anime-bar {
+  position: absolute;
+  left: 14px; right: 14px; bottom: 34px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .22);
+}
+.anime-bar i {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 94%;
+  border-radius: 999px;
+  background: var(--rose);
+}
+.anime-bar i::after {
+  content: "";
+  position: absolute;
+  right: -4px; top: -3px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, .6);
+}
+.anime-meta {
+  position: absolute;
+  left: 14px; right: 14px; bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: #F3D7E0;
+  font-size: .74rem;
+  letter-spacing: .06em;
+}
+.anime-meta b {
+  font-family: var(--serif);
+  letter-spacing: .1em;
+  color: #FFE3EC;
+}
+.mock-player {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+  background: #221522;
+  color: #FFE3EC;
+  padding: 14px 16px;
+}
+.mock-player span {
+  font-family: var(--serif);
+  color: #FFD6E2;
+}
+.mock-player b {
+  font-weight: 700;
+}
+.mock-player i {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #221522 0 20%, transparent 21%),
+    conic-gradient(from 90deg, #FFD6E2, var(--rose), #FFD6E2);
+  box-shadow: 0 0 22px rgba(255,183,203,.45);
+}
+.mock-night .mock-note {
+  margin-top: 2px;
+}
 
 /* ───────────────────────── 21:00 · 人物 ───────────────────────── */
 
@@ -1058,6 +1539,36 @@ a:hover { text-decoration: underline; }
   .panel-intro { width: 100vw; }
   .panel-time { font-size: clamp(4.4rem, 21vw, 8rem); top: 6vh; }
   .panel-card { justify-self: start; width: 100%; margin-top: 22px; }
+  .morning-card > .morning-scene {
+    min-height: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .morning-phone,
+  .morning-avatar,
+  .morning-thought,
+  .morning-said {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    transform: none;
+  }
+  .morning-phone {
+    padding: 20px;
+  }
+  .morning-clue {
+    padding: 16px 18px;
+  }
+  .morning-avatar {
+    justify-self: start;
+    width: 116px;
+    height: 116px;
+    border-radius: 30px;
+  }
+  .morning-thought,
+  .morning-said {
+    padding: 14px 16px;
+  }
 
   .start-grid { grid-template-columns: 1fr; }
   .dl-grid { grid-template-columns: 1fr; }

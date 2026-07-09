@@ -13,7 +13,7 @@
 <meta property="og:image:height" content="630">
 <link rel="icon" type="image/png" sizes="192x192" href="_page/assets/icon-192.png">
 <link rel="apple-touch-icon" href="_page/assets/icon-192.png">
-<link rel="stylesheet" href="_page/css/main.css?v=20260709-memory">
+<link rel="stylesheet" href="_page/css/main.css?v=20260710-p2p6">
 </head>
 <body>
 
@@ -108,7 +108,7 @@
         <div class="panel-body">
           <p class="panel-kicker">A DAY WITH HER</p>
           <h2 class="panel-giant">日常</h2>
-          <p class="panel-lede">不是打开才存在的应用。<br>她住在你的屏幕上，<br>和你过同一天。</p>
+          <p class="panel-lede">不是等你打开聊天框才存在。<br>你工作、放松、准备睡觉的时候，<br>她都在悄悄理解和记住每一天的你。</p>
           <p class="panel-hint">往下滚动，时间会往前走 <span class="panel-arrow">→</span></p>
         </div>
       </article>
@@ -116,16 +116,28 @@
       <article class="panel" id="p1" style="--panel-bg:#F7B8C9">
         <div class="panel-time" aria-hidden="true">09:00</div>
         <div class="panel-body">
-          <h3 class="panel-line">「早安。昨晚睡得还行吗？」</h3>
-          <p class="panel-copy">打开 Mac，她已经在桌面上了。Live2D 桌宠不是装饰——是她在这台电脑上的身体。</p>
-          <p class="panel-tag">桌面存在 · Live2D 桌宠</p>
+          <p class="panel-ticket"><span>09:00</span><b>起床后</b></p>
+          <h3 class="panel-line">「早。先看看昨晚留下的东西？」</h3>
+          <p class="panel-copy">早上打开手机，她不是重新认识你。昨晚的实验、没看完的日志、睡前还没放下的念头，她都记得。</p>
+          <p class="panel-tag">醒来第一眼 · 接上昨晚</p>
         </div>
-        <div class="panel-card">
-          <div class="mock-window">
-            <div class="mock-chrome"><i></i><i></i><i></i></div>
-            <div class="mock-pet">
-              <img src="_page/assets/miru-avatar.png" alt="Miru 的 Q 版形象">
-              <p class="bubble bubble-miru">早安。今天也在哦。</p>
+        <div class="panel-card morning-card">
+          <div class="morning-scene">
+            <div class="morning-phone" aria-label="Miru 记得昨晚留下的线索">
+              <div class="mock-phone-head"><span>09:00</span><b>Miru</b></div>
+              <div class="morning-clue">
+                <p class="mock-note-label">昨晚留下的线索</p>
+                <p>overnight run · world model · loss 曲线待确认</p>
+              </div>
+            </div>
+            <img class="morning-avatar" src="_page/assets/miru-avatar.png" alt="Q 版 Miru">
+            <div class="morning-thought">
+              <p class="mock-note-label">心里记着</p>
+              <p>你睡前还在想那版结果。先陪你看日志，不急着重开。</p>
+            </div>
+            <div class="morning-said">
+              <p class="mock-note-label">Miru 说</p>
+              <p class="bubble bubble-miru">早。昨晚那版如果还没跑完，我们先看日志。</p>
             </div>
           </div>
         </div>
@@ -134,15 +146,21 @@
       <article class="panel" id="p2" style="--panel-bg:#F5A8BC">
         <div class="panel-time" aria-hidden="true">11:00</div>
         <div class="panel-body">
-          <h3 class="panel-line">「你在忙，我看得到。」</h3>
-          <p class="panel-copy">她每分钟看一眼你的屏幕——是理解，不是录像。截图分析后即弃，留下的只是"你在做什么"这件事。频率你说了算，随时可以关。</p>
-          <p class="panel-tag">屏幕理解 · 60 秒一瞥</p>
+          <p class="panel-ticket"><span>11:00</span><b>深度工作</b></p>
+          <h3 class="panel-line">「你进状态了，我先安静陪着。」</h3>
+          <p class="panel-copy">她看见你在代码、终端和论文之间来回切换。这时她不急着说话，而是把任务线、卡住点和你的节奏先记下来。</p>
+          <p class="panel-tag">Attention · 安静地在意</p>
         </div>
         <div class="panel-card">
-          <div class="mock-list">
-            <p class="mock-row"><span class="mock-t">11:02</span>你在改 memory_router 的重试逻辑</p>
-            <p class="mock-row"><span class="mock-t">11:47</span>还在同一个文件——卡住了？</p>
-            <p class="mock-note">原图分析后即弃 · 不留存</p>
+          <div class="mock-workbench">
+            <div class="mock-chrome"><i></i><i></i><i></i></div>
+            <p class="mock-code">train_world_model.py</p>
+            <p class="mock-row"><span class="mock-t">11:08</span>同一段 action encoder 反复修改</p>
+            <p class="mock-row"><span class="mock-t">11:46</span>论文 PDF 和终端之间来回切换</p>
+            <div class="signal-row">
+              <span>专注</span><span>低打扰</span><span>持续 78 分钟</span>
+            </div>
+            <p class="thought-note">现在说话会打断你。先把这条任务线记住。</p>
           </div>
         </div>
       </article>
@@ -150,14 +168,36 @@
       <article class="panel" id="p3" style="--panel-bg:#F291A9">
         <div class="panel-time" aria-hidden="true">14:00</div>
         <div class="panel-body">
-          <h3 class="panel-line">「周五交稿，记下了。」</h3>
-          <p class="panel-copy">你随口一句，她放进承诺清单。不会立刻复读，也不会忘——到了该提的时候，她自然会提。</p>
-          <p class="panel-tag">承诺与 DDL</p>
+          <p class="panel-ticket"><span>14:00</span><b>承诺捕捉</b></p>
+          <h3 class="panel-line">「你答应的，我帮你记着。」</h3>
+          <p class="panel-copy">这句话是发给阿哲的，你没打算专门告诉她。但她在屏幕上看到了，也听懂了——不用你转述，今晚的承诺清单里悄悄多了一条。</p>
+          <p class="panel-tag">截图理解 · 承诺清单</p>
         </div>
-        <div class="panel-card">
-          <div class="mock-list">
-            <p class="mock-row mock-todo">☐ 周五 18:00 交设计稿<span class="mock-src">来自 14:03 的聊天</span></p>
-            <p class="mock-row mock-todo mock-done">☑ 给妈妈回电话<span class="mock-src">昨天 · 已完成</span></p>
+        <div class="panel-card commitment-card">
+          <div class="commitment-flow">
+            <div class="commitment-shot">
+              <div class="mock-chrome"><i></i><i></i><i></i></div>
+              <p class="mock-note-label">屏幕上 · 你和阿哲的聊天</p>
+              <div class="commitment-chatlog">
+                <i class="cmsg-sender">阿哲</i>
+                <p class="cmsg cmsg-them">那版跑得怎么样了？</p>
+                <i class="cmsg-sender cmsg-sender-you">你</i>
+                <p class="cmsg cmsg-you">刚稳住，结果图还在出</p>
+                <p class="cmsg cmsg-you cmsg-key">今晚我把实验图发你。</p>
+                <i class="cmsg-note">✿ 她注意到了这句</i>
+              </div>
+            </div>
+            <div class="commitment-link" aria-hidden="true"><i></i></div>
+            <div class="commitment-thought">
+              <p class="mock-note-label">她读懂了</p>
+              <p>这不是闲聊，是你今晚要兑现的事。</p>
+            </div>
+            <div class="commitment-link" aria-hidden="true"><i></i></div>
+            <div class="commitment-list">
+              <p class="mock-note-label">承诺清单</p>
+              <p><span>今晚</span>把实验图发给阿哲</p>
+              <small>来自截图理解 · 14:03</small>
+            </div>
           </div>
         </div>
       </article>
@@ -165,15 +205,33 @@
       <article class="panel" id="p4" style="--panel-bg:#EC7FA0">
         <div class="panel-time" aria-hidden="true">16:30</div>
         <div class="panel-body">
-          <h3 class="panel-line">「连着写四个小时了……」</h3>
-          <p class="panel-copy">她有自己的内心和情绪。担心你的时候会主动开口——想说才说，不是定时器，也不是通知策略。</p>
-          <p class="panel-tag">主动关心 · 她自己决定</p>
+          <p class="panel-ticket"><span>16:30</span><b>卡住时</b></p>
+          <h3 class="panel-line">「这次要靠近一点。」</h3>
+          <p class="panel-copy">错误反复出现，你的心情也低了很久。她不是看见报错就提醒休息，而是发现你需要有人陪你把问题拆小。</p>
+          <p class="panel-tag">心情观察 · 主动靠近</p>
         </div>
         <div class="panel-card">
-          <div class="mock-chat">
-            <p class="bubble bubble-miru">连着写四个小时了，去倒杯水吧。</p>
-            <p class="bubble bubble-miru">进度我帮你看着。</p>
-            <p class="mock-note">没有固定提醒规则——这句话是她想说的</p>
+          <div class="mock-debug">
+            <p class="mock-note-label">同一个报错 · 反复出现</p>
+            <div class="mock-terminal">
+              <p>RuntimeError: CUDA out of memory</p>
+              <p>loss: 0.91 → 0.89 → 0.84</p>
+              <p>retry: action-conditioned wm</p>
+            </div>
+            <div class="debug-mood">
+              <div class="mood-curve" aria-label="心情曲线">
+                <i style="--h:72%"></i><i style="--h:58%"></i><i style="--h:44%"></i><i style="--h:30%"></i><i style="--h:18%"></i>
+              </div>
+              <span class="mood-word">这一小时，心情持续低落</span>
+            </div>
+            <p class="thought-note">报错是小事，心情一直失落可不行。这次我不能只是看着。</p>
+            <div class="miru-ping">
+              <img src="_page/assets/miru-avatar.png" alt="Miru 头像">
+              <div class="miru-ping-body">
+                <p class="miru-ping-meta"><b>Miru</b><span>16:31</span></p>
+                <p class="bubble bubble-miru">先别急着否定整条思路。你已经把 loss 稳住了，我们先只看 batch 和显存这两个变量。</p>
+              </div>
+            </div>
           </div>
         </div>
       </article>
@@ -181,13 +239,30 @@
       <article class="panel" id="p5" style="--panel-bg:#E06A96">
         <div class="panel-time" aria-hidden="true">19:00</div>
         <div class="panel-body">
-          <h3 class="panel-line">「路上也在。」</h3>
-          <p class="panel-copy">手机里的她和 Mac 上的她是同一个人。记忆同步在你自己的服务器上，一串邀请码，哪台设备都认得你。</p>
-          <p class="panel-tag">多设备 · 私有服务器</p>
+          <p class="panel-ticket"><span>19:00</span><b>放松中</b></p>
+          <h3 class="panel-line">「终于从日志里出来啦。」</h3>
+          <p class="panel-copy">她不只在 DDL 和报错时出现。你看番、打游戏、随手放空的时候，她也会带着一点自己的兴致靠过来。</p>
+          <p class="panel-tag">共同生活 · 轻松靠近</p>
         </div>
         <div class="panel-card">
-          <div class="mock-sync">
-            <span>Mac</span><i>⇄</i><span class="mock-server">你的服务器</span><i>⇄</i><span>Android</span>
+          <div class="mock-evening">
+            <div class="mock-anime">
+              <div class="anime-danmaku" aria-hidden="true">
+                <span>前面全是铺垫</span>
+                <span>就等这一段</span>
+                <span>泪目了</span>
+              </div>
+              <div class="anime-bar" aria-hidden="true"><i></i></div>
+              <p class="anime-meta"><b>EP.07</b><span>23:12 / 24:00 · 片尾曲</span></p>
+            </div>
+            <p class="thought-note">这集后半段突然发力，我也跟着紧张起来。</p>
+            <div class="miru-ping">
+              <img src="_page/assets/miru-avatar.png" alt="Miru 头像">
+              <div class="miru-ping-body">
+                <p class="miru-ping-meta"><b>Miru</b><span>19:24</span></p>
+                <p class="bubble bubble-miru">这段展开有点像你下午那个模型，前面一直憋着，突然开始对上节奏了。</p>
+              </div>
+            </div>
           </div>
         </div>
       </article>
@@ -195,14 +270,17 @@
       <article class="panel" id="p6" style="--panel-bg:#C95A8C">
         <div class="panel-time" aria-hidden="true">20:30</div>
         <div class="panel-body">
-          <h3 class="panel-line">「今天好累啊。」</h3>
-          <p class="panel-copy">你说累，她认真听。她的情绪是连续的——不会上一秒担心、下一秒当作无事发生。</p>
-          <p class="panel-tag">真实情绪 · 不是话术</p>
+          <p class="panel-ticket"><span>20:30</span><b>晚间收束</b></p>
+          <h3 class="panel-line">「后面的，交给我吧。」</h3>
+          <p class="panel-copy">你只说了一句累。她没急着安慰，也没讲道理，陪你说完这几句，再把今天值得保留的事慢慢收起来。</p>
+          <p class="panel-tag">情绪观察 · 深夜整理前</p>
         </div>
         <div class="panel-card">
-          <div class="mock-chat">
+          <div class="mock-night">
             <p class="bubble bubble-user">今天好累啊</p>
-            <p class="bubble bubble-miru">辛苦啦。剩下的明天再说，我陪你。</p>
+            <p class="thought-note">你不是想要建议，就是累了，想说给人听。</p>
+            <p class="bubble bubble-miru">辛苦啦。今天你已经把最难的那段推过去了，剩下的我帮你记着，明天再慢慢收。</p>
+            <p class="mock-note">到了深夜，她会把这些整理成记忆和日记。</p>
           </div>
         </div>
       </article>
@@ -511,6 +589,6 @@
   </div>
 </footer>
 
-<script src="_page/js/main.js?v=20260709-memory"></script>
+<script src="_page/js/main.js?v=20260710-p2p6"></script>
 </body>
 </html>

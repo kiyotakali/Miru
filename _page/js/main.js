@@ -279,11 +279,22 @@
   }
 
   function currentHour() {
-    // 横滑段内：09:00 → 20:30 连续推进
+    // 横滑段内：显示当前视口中心所在 panel 的时间，避免 intro 宽度导致时间错位。
     if (stripOuter && stripDistance > 0) {
       var r = stripOuter.getBoundingClientRect();
       if (r.top <= 0 && r.bottom >= window.innerHeight) {
-        return fmtHour(9 + stripProgress * 11.5);
+        var x = stripProgress * stripDistance + window.innerWidth * 0.5;
+        var panels = stripTrack ? stripTrack.querySelectorAll(".panel") : [];
+        var stripHour = stripOuter.getAttribute("data-hour") || "09:00";
+        for (var p = 0; p < panels.length; p++) {
+          var start = panels[p].offsetLeft;
+          var end = start + panels[p].offsetWidth;
+          if (x >= start && x <= end) {
+            var timeEl = panels[p].querySelector(".panel-time");
+            return timeEl ? timeEl.textContent.trim() : stripHour;
+          }
+        }
+        return stripHour;
       }
     }
     var mid = window.innerHeight * 0.5;
@@ -439,6 +450,7 @@
         y = top + stripDistance * frac;
         window.scrollTo(0, y);
         stripCurrent = stripTarget = Math.max(0, Math.min(1, frac));
+        stripProgress = stripCurrent;
         if (stripDistance > 0) stripTrack.style.transform = "translate3d(" + (-stripCurrent * stripDistance) + "px,0,0)";
       } else if (shotTarget !== "hero") {
         var el = document.getElementById(shotTarget);
