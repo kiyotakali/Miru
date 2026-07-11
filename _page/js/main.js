@@ -36,6 +36,24 @@
     setTimeout(function () { prologue.hidden = true; }, 2100);
   }
 
+  // 涟漪：歌词落水的痕迹——圆心是刚浮现的那句歌词，波纹大小随句宽
+  function spawnRipple(stepEl) {
+    if (reduceMotion || !prologue) return;
+    var rect = stepEl.getBoundingClientRect();
+    var size = Math.round(Math.max(230, Math.min(rect.width * 1.2, Math.min(window.innerWidth, window.innerHeight) * 0.85)));
+    var ripple = document.createElement("span");
+    ripple.className = "lyric-ripple";
+    ripple.style.left = (rect.left + rect.width / 2) + "px";
+    ripple.style.top = (rect.top + rect.height / 2) + "px";
+    ripple.style.width = size + "px";
+    ripple.style.height = size + "px";
+    ripple.innerHTML = "<i></i><i></i><i></i>";
+    prologue.appendChild(ripple);
+    setTimeout(function () {
+      if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+    }, 2200);
+  }
+
   function runPrologue() {
     var steps = prologue.querySelectorAll("[data-step]");
     var idx = 0;
@@ -47,6 +65,7 @@
     function showNext() {
       if (idx >= steps.length) return;
       steps[idx].classList.add("on");
+      spawnRipple(steps[idx]);
       idx++;
       if (idx >= steps.length) {
         clearInterval(timer);

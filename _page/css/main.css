@@ -99,6 +99,16 @@ a:hover { text-decoration: underline; }
 .prologue-credit .lyric-orig::before, .prologue-credit .lyric-orig::after,
 .prologue-credit .lyric-cn::before,   .prologue-credit .lyric-cn::after { content: none; }
 
+/* 跳字：每句选一枚放大的字，白纸上先透出几点樱色 */
+.lyric-em {
+  font-weight: inherit;
+  font-size: 1.6em;
+  line-height: 1;
+  color: var(--rose);
+  vertical-align: -.08em;
+}
+.lyric-em-word { font-size: 1.35em; vertical-align: baseline; }
+
 /* 之字形错落：左上 → 右中 → 左下 → 右下 */
 .pos-1 { left: 8%;  top: 14%; text-align: left; }
 .pos-2 { right: 8%; top: 34%; text-align: right; }
@@ -140,6 +150,28 @@ a:hover { text-decoration: underline; }
 .prologue.leaving .prologue-arc { transform: translate(-50%, -58%); }
 .prologue.leaving .lyric, .prologue.leaving .prologue-credit,
 .prologue.leaving .prologue-skip { opacity: 0; transition: opacity .5s ease; }
+
+/* 涟漪：歌词落进水面，从那句歌词处一圈圈荡开（画在字面之下、白纸之上） */
+.lyric-ripple {
+  position: absolute; z-index: -1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.lyric-ripple i {
+  position: absolute; inset: 0;
+  border: 1.5px solid var(--rose);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(.12);
+  animation: rippleOut 1.5s cubic-bezier(.17, .55, .3, 1) forwards;
+}
+.lyric-ripple i:nth-child(2) { animation-delay: .22s; border-color: var(--sakura); }
+.lyric-ripple i:nth-child(3) { animation-delay: .44s; border-color: var(--sakura-2); }
+@keyframes rippleOut {
+  0%   { opacity: 0; transform: scale(.12); }
+  12%  { opacity: .85; }
+  100% { opacity: 0; transform: scale(1); }
+}
 
 /* ───────────────────────── 花瓣层 ───────────────────────── */
 
