@@ -446,6 +446,7 @@ a:hover { text-decoration: underline; }
 }
 .thought-note {
   position: relative;
+  width: fit-content;
   margin: 6px -6px 20px;
   padding: .8em .75em;
   border: 1.5px dashed rgba(217, 79, 110, .5);
@@ -526,7 +527,7 @@ a:hover { text-decoration: underline; }
 .morning-card { width: min(100%, 620px); }
 .morning-card > .morning-scene {
   position: relative;
-  min-height: 570px;
+  min-height: 612px;
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -535,7 +536,7 @@ a:hover { text-decoration: underline; }
 .morning-phone {
   position: absolute;
   z-index: 1;
-  top: 22px;
+  top: 10px;
   right: 10px;
   width: min(70%, 318px);
   padding: 20px;
@@ -557,13 +558,40 @@ a:hover { text-decoration: underline; }
 }
 .morning-clue {
   margin: 14px auto 0;
-  min-height: 88px;
-  width: min(100%, 252px);
-  padding: 15px 17px;
+  width: 100%;
+  padding: 14px 16px 12px;
   border-radius: 18px;
   background: #FFF0F4;
   color: var(--ink);
   line-height: 1.7;
+}
+.morning-clue ul {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.morning-clue li {
+  font-size: .84rem;
+  line-height: 1.6;
+  color: #6D2C44;
+}
+.morning-clue li span {
+  font-family: var(--serif);
+  margin-right: .75em;
+  font-size: .86em;
+  letter-spacing: .06em;
+  color: var(--rose);
+}
+.morning-clue .clue-now { color: #B4425F; }
+.morning-clue small {
+  display: block;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px dashed #F2C9D4;
+  color: #B08E9C;
+  font-size: .74rem;
 }
 .morning-avatar {
   position: absolute;
@@ -588,7 +616,7 @@ a:hover { text-decoration: underline; }
 }
 .morning-thought {
   left: 8px;
-  top: 326px;
+  top: 344px;
   width: 284px;
   padding: 15px 18px 16px;
   border: 1.5px dashed rgba(217, 79, 110, .5);
@@ -599,7 +627,7 @@ a:hover { text-decoration: underline; }
 }
 .morning-said {
   right: 0;
-  top: 462px;
+  top: 484px;
   width: min(72%, 348px);
   padding: 14px 16px 16px;
   background: rgba(255,255,255,.94);
@@ -736,13 +764,51 @@ a:hover { text-decoration: underline; }
   border: 5px solid transparent;
   border-top-color: var(--rose);
 }
-.mock-workbench .mock-code {
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  color: var(--ink);
+/* P2 · 迷你编辑器：代码 tab + 论文 tab + 语法高亮 */
+.mock-editor {
+  border-radius: 12px;
   background: #231622;
-  border-radius: 10px;
-  padding: .75em .9em;
+  overflow: hidden;
+}
+.editor-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 10px 0;
+  background: #1A1019;
+}
+.editor-tabs span {
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: .45em .8em .4em;
+  border-radius: 8px 8px 0 0;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: .68rem;
+  color: #A98BA0;
+}
+.editor-tabs span.on {
+  background: #231622;
   color: #FFE3EC;
+}
+.editor-code {
+  margin: 0;
+  padding: 10px 12px 12px;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: .72rem;
+  line-height: 1.75;
+  color: #E9D3DE;
+  overflow-x: auto;
+}
+.editor-code .tk-kw { color: #FF9FBB; }
+.editor-code .tk-fn { color: #9FD8FF; }
+.editor-code .tk-var { color: #D8B4FF; }
+.editor-code .tk-cm { color: #8C7A88; }
+.editor-code .line-hot {
+  display: inline-block;
+  width: 100%;
+  border-radius: 4px;
+  background: rgba(255, 159, 187, .12);
 }
 .signal-row {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -792,6 +858,7 @@ a:hover { text-decoration: underline; }
   font-size: .78rem;
   color: #8C5268;
   letter-spacing: .04em;
+  text-wrap: balance;
 }
 .miru-ping {
   display: flex;
@@ -823,20 +890,45 @@ a:hover { text-decoration: underline; }
   letter-spacing: .08em;
 }
 .miru-ping .bubble { display: block; }
-/* P5 · 看番画面：弹幕 + 进度条 */
+/* P5 · 看番画面：CSS 番剧场景（晚霞 + 樱花 + 背影） + 弹幕 + 进度条 */
 .mock-anime {
   position: relative;
-  height: 158px;
+  height: 170px;
   border-radius: 14px;
   background: linear-gradient(160deg, #2A1830, #221522 60%, #1C1220);
   overflow: hidden;
 }
+.anime-scene {
+  position: absolute;
+  inset: 0;
+}
+.anime-scene svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ln-petal { animation: ln-petal-fall 7s ease-in-out infinite alternate; }
+  .ln-petal.slow { animation-duration: 9.5s; }
+}
+@keyframes ln-petal-fall { to { transform: translate(-10px, 12px) rotate(30deg); } }
+.anime-scrim {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 62px;
+  z-index: 1;
+  background: linear-gradient(180deg, transparent, rgba(64, 20, 38, .5));
+}
 .anime-danmaku span {
   position: absolute;
+  z-index: 2;
   white-space: nowrap;
-  font-size: .78rem;
-  color: rgba(255, 245, 248, .92);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+  padding: .2em .62em;
+  border-radius: 999px;
+  font-size: .76rem;
+  color: #FFF6F9;
+  background: rgba(64, 20, 38, .36);
+  text-shadow: 0 1px 3px rgba(64, 20, 38, .5);
 }
 .anime-danmaku span:nth-child(1) { top: 18px; left: 16px; }
 .anime-danmaku span:nth-child(2) { top: 48px; right: 14px; opacity: .7; font-size: .72rem; }
@@ -851,8 +943,9 @@ a:hover { text-decoration: underline; }
   position: absolute;
   left: 14px; right: 14px; bottom: 34px;
   height: 3px;
+  z-index: 2;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .22);
+  background: rgba(255, 255, 255, .3);
 }
 .anime-bar i {
   position: absolute;
@@ -873,6 +966,7 @@ a:hover { text-decoration: underline; }
 .anime-meta {
   position: absolute;
   left: 14px; right: 14px; bottom: 10px;
+  z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -884,6 +978,43 @@ a:hover { text-decoration: underline; }
   font-family: var(--serif);
   letter-spacing: .1em;
   color: #FFE3EC;
+}
+/* P6 · 深夜整理卡：这一天的时刻收进记忆 */
+.night-sort {
+  border-radius: 16px;
+  padding: 15px 17px;
+  background: #231622;
+  color: #FFE3EC;
+  box-shadow: 0 18px 38px rgba(60, 16, 42, .18);
+  transform: rotate(.6deg);
+}
+.night-sort .mock-note-label { color: #F9B5C9; }
+.night-sort ul {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+.night-sort li {
+  font-size: .84rem;
+  line-height: 1.6;
+  color: #F3D7E0;
+}
+.night-sort li span {
+  font-family: var(--serif);
+  margin-right: .8em;
+  font-size: .86em;
+  letter-spacing: .06em;
+  color: #F9B5C9;
+}
+.night-sort small {
+  display: block;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed rgba(249, 181, 201, .35);
+  color: #BCA4B4;
+  font-size: .76rem;
 }
 .mock-player {
   display: grid;
@@ -1055,7 +1186,7 @@ a:hover { text-decoration: underline; }
 
 .memory-lab {
   display: grid;
-  grid-template-columns: minmax(470px, .88fr) minmax(385px, .74fr) minmax(230px, .38fr);
+  grid-template-columns: minmax(470px, .84fr) minmax(385px, .74fr) minmax(246px, .42fr);
   gap: clamp(22px, 3vw, 46px);
   align-items: start;
   position: relative;
@@ -1341,16 +1472,16 @@ a:hover { text-decoration: underline; }
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin-top: 24px;
+  gap: 12px;
+  margin-top: 20px;
 }
 .trace-list[hidden] { display: none; }
 .trace-list li {
   position: relative;
   padding-left: 40px;
   color: rgba(201, 179, 196, .82);
-  font-size: .8rem;
-  line-height: 1.58;
+  font-size: .77rem;
+  line-height: 1.52;
 }
 .trace-list li::before {
   content: "";

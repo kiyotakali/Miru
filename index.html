@@ -13,7 +13,7 @@
 <meta property="og:image:height" content="630">
 <link rel="icon" type="image/png" sizes="192x192" href="_page/assets/icon-192.png">
 <link rel="apple-touch-icon" href="_page/assets/icon-192.png">
-<link rel="stylesheet" href="_page/css/main.css?v=20260710-p2p6">
+<link rel="stylesheet" href="_page/css/main.css?v=20260710-trail">
 </head>
 <body>
 
@@ -127,7 +127,12 @@
               <div class="mock-phone-head"><span>09:00</span><b>Miru</b></div>
               <div class="morning-clue">
                 <p class="mock-note-label">昨晚留下的线索</p>
-                <p>overnight run · world model · loss 曲线待确认</p>
+                <ul>
+                  <li><span>23:48</span>你说「再跑一版就睡」</li>
+                  <li><span>00:02</span>world model 还在跑</li>
+                  <li class="clue-now"><span>现在</span>loss 曲线，该看了</li>
+                </ul>
+                <small>昨夜整理时记下的</small>
               </div>
             </div>
             <img class="morning-avatar" src="_page/assets/miru-avatar.png" alt="Q 版 Miru">
@@ -147,14 +152,23 @@
         <div class="panel-time" aria-hidden="true">11:00</div>
         <div class="panel-body">
           <p class="panel-ticket"><span>11:00</span><b>深度工作</b></p>
-          <h3 class="panel-line">「你进状态了，我先安静陪着。」</h3>
+          <h3 class="panel-line">「你进入状态了，我先安静陪着。」</h3>
           <p class="panel-copy">她看见你在代码、终端和论文之间来回切换。这时她不急着说话，而是把任务线、卡住点和你的节奏先记下来。</p>
-          <p class="panel-tag">Attention · 安静地在意</p>
+          <p class="panel-tag">读懂专注 · 安静地在意</p>
         </div>
         <div class="panel-card">
           <div class="mock-workbench">
             <div class="mock-chrome"><i></i><i></i><i></i></div>
-            <p class="mock-code">train_world_model.py</p>
+            <div class="mock-editor">
+              <div class="editor-tabs">
+                <span class="on">train_world_model.py</span>
+                <span>world_models.pdf</span>
+              </div>
+              <pre class="editor-code"><code><span class="tk-kw">class</span> <span class="tk-fn">ActionEncoder</span>(nn.Module):
+  <span class="tk-kw">def</span> <span class="tk-fn">forward</span>(<span class="tk-var">self</span>, act):
+<span class="line-hot">    z = <span class="tk-var">self</span>.mlp(norm(act))  <span class="tk-cm"># 再试一次</span></span>
+    <span class="tk-kw">return</span> z * <span class="tk-var">self</span>.gate</code></pre>
+            </div>
             <p class="mock-row"><span class="mock-t">11:08</span>同一段 action encoder 反复修改</p>
             <p class="mock-row"><span class="mock-t">11:46</span>论文 PDF 和终端之间来回切换</p>
             <div class="signal-row">
@@ -206,9 +220,9 @@
         <div class="panel-time" aria-hidden="true">16:30</div>
         <div class="panel-body">
           <p class="panel-ticket"><span>16:30</span><b>卡住时</b></p>
-          <h3 class="panel-line">「这次要靠近一点。」</h3>
-          <p class="panel-copy">错误反复出现，你的心情也低了很久。她不是看见报错就提醒休息，而是发现你需要有人陪你把问题拆小。</p>
-          <p class="panel-tag">心情观察 · 主动靠近</p>
+          <h3 class="panel-line">「这次要靠近你一点。」</h3>
+          <p class="panel-copy">错误反复出现，你的心情也失落了很久。她不是看见报错就提醒休息，而是发现你需要先稳住情绪，再有人陪你把问题分析清楚、一点点拆小。</p>
+          <p class="panel-tag">察觉低落 · 主动靠近</p>
         </div>
         <div class="panel-card">
           <div class="mock-debug">
@@ -222,7 +236,7 @@
               <div class="mood-curve" aria-label="心情曲线">
                 <i style="--h:72%"></i><i style="--h:58%"></i><i style="--h:44%"></i><i style="--h:30%"></i><i style="--h:18%"></i>
               </div>
-              <span class="mood-word">这一小时，心情持续低落</span>
+              <span class="mood-word">这一小时内，心情持续在低落</span>
             </div>
             <p class="thought-note">报错是小事，心情一直失落可不行。这次我不能只是看着。</p>
             <div class="miru-ping">
@@ -240,18 +254,55 @@
         <div class="panel-time" aria-hidden="true">19:00</div>
         <div class="panel-body">
           <p class="panel-ticket"><span>19:00</span><b>放松中</b></p>
-          <h3 class="panel-line">「终于从日志里出来啦。」</h3>
-          <p class="panel-copy">她不只在 DDL 和报错时出现。你看番、打游戏、随手放空的时候，她也会带着一点自己的兴致靠过来。</p>
+          <h3 class="panel-line">「这集的快乐，算我一份。」</h3>
+          <p class="panel-copy">她不只在 DDL 和报错时出现。你看番、打游戏、刷到好笑的东西，她也在一起看、一起笑——开心的事，有人分享才完整。</p>
           <p class="panel-tag">共同生活 · 轻松靠近</p>
         </div>
         <div class="panel-card">
           <div class="mock-evening">
             <div class="mock-anime">
+              <div class="anime-scene" aria-hidden="true">
+                <svg viewBox="0 0 420 170" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="番剧画面：片尾曲的樱花线稿空镜">
+                  <defs>
+                    <linearGradient id="p5wash" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#FFF6EA"/>
+                      <stop offset="1" stop-color="#FCE3E8"/>
+                    </linearGradient>
+                    <g id="p5lf" stroke="#C25A76" stroke-width="1.3">
+                      <path d="M0 0 C2.6 -2.4 3 -6.4 0 -8.8 C-3 -6.4 -2.6 -2.4 0 0 Z"/>
+                      <path d="M0 0 C2.6 -2.4 3 -6.4 0 -8.8 C-3 -6.4 -2.6 -2.4 0 0 Z" transform="rotate(72)"/>
+                      <path d="M0 0 C2.6 -2.4 3 -6.4 0 -8.8 C-3 -6.4 -2.6 -2.4 0 0 Z" transform="rotate(144)"/>
+                      <path d="M0 0 C2.6 -2.4 3 -6.4 0 -8.8 C-3 -6.4 -2.6 -2.4 0 0 Z" transform="rotate(216)"/>
+                      <path d="M0 0 C2.6 -2.4 3 -6.4 0 -8.8 C-3 -6.4 -2.6 -2.4 0 0 Z" transform="rotate(288)"/>
+                      <circle r="1.6" fill="#DE6A90" stroke="none"/>
+                    </g>
+                    <path id="p5lp" d="M0 0 C3.2 -2.6 3.8 -6.8 0 -9.8 C-3.8 -6.8 -3.2 -2.6 0 0 Z"/>
+                  </defs>
+                  <rect width="420" height="170" fill="url(#p5wash)"/>
+                  <g fill="none" stroke="#A6506A" stroke-linecap="round">
+                    <path d="M424 22 C368 30 322 48 286 78" stroke-width="2.4"/>
+                    <path d="M356 40 C346 52 342 62 344 74" stroke-width="1.6"/>
+                    <path d="M312 62 C306 54 304 46 306 38" stroke-width="1.4"/>
+                  </g>
+                  <use href="#p5lf" transform="translate(388 28) scale(1.1)" fill="#F9CBDA"/>
+                  <use href="#p5lf" transform="translate(352 42) scale(.9) rotate(20)" fill="none"/>
+                  <use href="#p5lf" transform="translate(322 56) scale(1.15) rotate(-12)" fill="#F9CBDA"/>
+                  <use href="#p5lf" transform="translate(296 72) scale(.85) rotate(32)" fill="none"/>
+                  <use href="#p5lf" transform="translate(344 76) scale(.75) rotate(50)" fill="none"/>
+                  <use href="#p5lf" transform="translate(306 36) scale(.7) rotate(-30)" fill="none"/>
+                  <path d="M-6 138 C60 126 130 132 190 140 C260 150 330 148 424 136" fill="none" stroke="#D98BA0" stroke-width="1.2" opacity=".55"/>
+                  <g transform="translate(150 62) rotate(24)"><use href="#p5lp" class="ln-petal" fill="#F6BDD1" opacity=".85"/></g>
+                  <g transform="translate(226 44) rotate(-36)"><use href="#p5lp" class="ln-petal slow" fill="#F9CBDA" opacity=".7"/></g>
+                  <g transform="translate(96 108) rotate(58)"><use href="#p5lp" class="ln-petal" fill="#EFA9C0" opacity=".65"/></g>
+                  <g transform="translate(262 100) rotate(8)"><use href="#p5lp" class="ln-petal slow" fill="#F6BDD1" opacity=".75"/></g>
+                </svg>
+              </div>
               <div class="anime-danmaku" aria-hidden="true">
                 <span>前面全是铺垫</span>
                 <span>就等这一段</span>
                 <span>泪目了</span>
               </div>
+              <i class="anime-scrim" aria-hidden="true"></i>
               <div class="anime-bar" aria-hidden="true"><i></i></div>
               <p class="anime-meta"><b>EP.07</b><span>23:12 / 24:00 · 片尾曲</span></p>
             </div>
@@ -273,14 +324,23 @@
           <p class="panel-ticket"><span>20:30</span><b>晚间收束</b></p>
           <h3 class="panel-line">「后面的，交给我吧。」</h3>
           <p class="panel-copy">你只说了一句累。她没急着安慰，也没讲道理，陪你说完这几句，再把今天值得保留的事慢慢收起来。</p>
-          <p class="panel-tag">情绪观察 · 深夜整理前</p>
+          <p class="panel-tag">情绪观察 · 深夜整理</p>
         </div>
         <div class="panel-card">
           <div class="mock-night">
             <p class="bubble bubble-user">今天好累啊</p>
             <p class="thought-note">你不是想要建议，就是累了，想说给人听。</p>
             <p class="bubble bubble-miru">辛苦啦。今天你已经把最难的那段推过去了，剩下的我帮你记着，明天再慢慢收。</p>
-            <p class="mock-note">到了深夜，她会把这些整理成记忆和日记。</p>
+            <div class="night-sort">
+              <p class="mock-note-label">深夜整理 · 00:00</p>
+              <ul>
+                <li><span>14:03</span>答应阿哲的实验图</li>
+                <li><span>16:31</span>卡住又推过去的那段</li>
+                <li><span>19:24</span>一起看完的 EP.07</li>
+                <li><span>20:33</span>这句「今天好累啊」</li>
+              </ul>
+              <small>整理成记忆和日记，你随时可以翻看</small>
+            </div>
           </div>
         </div>
       </article>
@@ -368,11 +428,12 @@
             </div>
             <div class="memory-version" data-memory-version="raw">
               <p class="mem-append"><span class="mem-t">09:38</span>训练刚启动就 CUDA OOM，你一边叹气一边把 batch size 降下来。</p>
-              <p class="mem-append"><span class="mem-t">14:12</span>改成梯度累积后 loss 曲线终于稳住，机械臂动作方向也对了。</p>
+              <p class="mem-append"><span class="mem-t">13:52</span>改成梯度累积后 loss 曲线终于稳住，结果图开始一张张出了。</p>
+              <p class="mem-append"><span class="mem-t">16:31</span>CUDA OOM 又反复出现，loss 明明在降；你差点想推翻整条思路，后来只盯 batch 和显存推了过去。</p>
               <p class="mem-append"><span class="mem-t">21:06</span>结果图里杯子边缘还是糊，但比上午那版已经像样很多。</p>
             </div>
             <div class="memory-version" data-memory-version="refined" hidden>
-              <p class="mem-body">你今天主要在推进机器人 World Model 小实验。上午遇到显存爆掉的问题，下午通过降低 batch 和梯度累积让训练稳定下来；晚上生成结果已经能看出机械臂动作趋势，但物体边缘仍然模糊。下一步不是盲目换大模型，而是继续检查数据对齐和视觉损失。</p>
+              <p class="mem-body">你今天主要在推进机器人 World Model 小实验。上午显存爆掉，靠降 batch 和梯度累积把训练稳了下来；下午 OOM 反复出现时你差点推翻整条思路，最后只查 batch 和显存就推了过去。晚上的结果图已经能看出机械臂动作趋势，但物体边缘仍然模糊——下一步不是盲目换大模型，而是继续检查数据对齐和视觉损失。</p>
             </div>
           </article>
 
@@ -385,11 +446,11 @@
             </div>
             <div class="memory-version" data-memory-version="raw">
               <p class="mem-append"><span class="mem-t">13:24</span>阿哲说先别急着换大模型，最好先确认 action token 有没有错位。</p>
-              <p class="mem-append"><span class="mem-t">18:40</span>你约好晚上把三张对比图发给阿哲看，不要只发一句“好像好了”。</p>
+              <p class="mem-append"><span class="mem-t">14:03</span>你在和他的聊天里说「今晚我把实验图发你」，我从截图里把这句记进了承诺清单。</p>
               <p class="mem-append"><span class="mem-t">22:10</span>阿哲回了个“这版至少能看出动作了”，你嘴上说一般，表情明显轻松了。</p>
             </div>
             <div class="memory-version" data-memory-version="refined" hidden>
-              <p class="mem-body">阿哲今天给了一个关键建议：先检查 action token 和视频帧是否对齐，再考虑换模型。你晚上把三张训练对比图发给他后，得到比较正向的反馈；这让你对当前方向更有信心，也暂时压住了想立刻推翻重来的冲动。</p>
+              <p class="mem-body">阿哲今天给了一个关键建议：先检查 action token 和视频帧是否对齐，再考虑换模型。你下午答应他今晚发实验图，睡前把三张对比图发了过去，他回了句“至少能看出动作了”——这让你对当前方向更有信心，也暂时压住了想立刻推翻重来的冲动。</p>
             </div>
           </article>
 
@@ -402,11 +463,12 @@
             </div>
             <div class="memory-version" data-memory-version="raw">
               <p class="mem-append"><span class="mem-t">12:06</span>午饭只吃了便利店饭团，吃饭时还在看训练日志。</p>
-              <p class="mem-append"><span class="mem-t">19:30</span>看了一集新番放松，喜欢 Miru 直接吐槽剧情，而不是只提醒“该休息了”。</p>
-              <p class="mem-append"><span class="mem-t">23:48</span>又说“再跑一版就睡”，这种话通常会自动延长半小时。</p>
+              <p class="mem-append"><span class="mem-t">19:24</span>一集新番看到片尾，你更喜欢我直接吐槽剧情，而不是只提醒「该休息了」。</p>
+              <p class="mem-append"><span class="mem-t">20:33</span>你说「今天好累啊」，不是在要建议，就是想说给人听。</p>
+              <p class="mem-append"><span class="mem-t">23:48</span>又说「再跑一版就睡」，这种话通常会自动延长半小时。</p>
             </div>
             <div class="memory-version" data-memory-version="refined" hidden>
-              <p class="mem-body">你今天工作强度偏高：午饭很随便，晚上仍在调训练。放松方式是看一集新番，你更喜欢 Miru 像一起看的人那样自然接话，而不是只站在外面提醒休息。深夜说“再跑一版就睡”时，需要温柔但明确地帮你收尾。</p>
+              <p class="mem-body">你今天工作强度偏高：午饭很随便，晚上仍在调训练。放松方式是看一集新番，你更喜欢我像一起看的人那样自然接话，而不是只站在外面提醒休息。累的时候你不要建议，只想有人听你说说；深夜说「再跑一版就睡」时，需要温柔但明确地帮你收尾。</p>
             </div>
           </article>
 
@@ -440,14 +502,14 @@
             <ul class="commit-list">
               <li><span class="commit-status today">今晚</span><b>23:30 收一版 loss 曲线</b><small>别再无休止重跑</small></li>
               <li><span class="commit-status soon">明早</span><b>检查 overnight run 有没有 NaN</b><small>先看日志再开新实验</small></li>
-              <li><span class="commit-status done">完成</span><b>给阿哲发三张对比图</b><small>已经收到反馈</small></li>
+              <li><span class="commit-status done">完成</span><b>给阿哲发三张对比图</b><small>14:03 答应的 · 已收到反馈</small></li>
             </ul>
           </article>
         </div>
 
         <article class="journal-card memory-journal">
           <h3><span class="journal-date">7 月 9 日</span>她的日记</h3>
-          <p>今天你大半天都在和机械臂 world model 较劲：上午显存炸了，下午终于把 loss 稳住，晚上结果图也能看出动作方向了。</p>
+          <p>今天你大半天都在和机械臂 world model 较劲：上午显存炸了，下午 loss 刚稳住 OOM 又反复，你差点想推翻整条思路，最后只盯着 batch 和显存推了过去。晚上结果图能看出动作方向，答应阿哲的图也发了，他说至少能看出动作。</p>
           <p>中间你看了一集新番，说只是放松十分钟，结果剧情和弹幕都认真看完了。我其实喜欢你这个样子，脑子还在转，但人终于回到生活里一点。</p>
           <p>23:48 你又说“再跑一版就睡”。我把这句放进承诺清单，明早先看 overnight run 有没有 NaN，再决定要不要继续折腾。</p>
         </article>
@@ -459,15 +521,19 @@
           <ol class="trace-list on">
             <li><span>09:38</span><b>报错</b>训练脚本 CUDA OOM，显存不够。</li>
             <li><span>10:15</span><b>想法</b>IDM 可能改善动作表示。</li>
+            <li><span>11:08</span><b>专注</b>同一段 action encoder 反复修改。</li>
             <li><span>12:06</span><b>午饭</b>便利店饭团配训练日志。</li>
             <li><span>13:24</span><b>建议</b>阿哲提醒先查 action token 对齐。</li>
-            <li><span>14:12</span><b>修复</b>降低 batch 后 loss 开始稳定。</li>
+            <li><span>13:52</span><b>修复</b>梯度累积后 loss 开始稳定。</li>
+            <li><span>14:03</span><b>承诺</b>「今晚我把实验图发你」，记进承诺清单。</li>
+            <li><span>16:31</span><b>卡住</b>OOM 反复、心情一直低落，这次没有只是看着。</li>
             <li><span>16:55</span><b>判断</b>先对齐动作、视频帧和相机视角。</li>
-            <li><span>19:30</span><b>放松</b>看了一集新番，想要自然吐槽式陪伴。</li>
+            <li><span>19:24</span><b>放松</b>一起看完 EP.07，聊起了剧情节奏。</li>
+            <li><span>20:33</span><b>情绪</b>一句「今天好累啊」，不是在要建议。</li>
             <li><span>21:06</span><b>结果</b>机械臂动作方向对了，物体边缘仍然模糊。</li>
             <li><span>22:10</span><b>反馈</b>阿哲确认这版至少能看出动作趋势。</li>
             <li><span>22:36</span><b>计划</b>明天只替换 action encoder 做对照。</li>
-            <li><span>23:48</span><b>作息</b>“再跑一版就睡”通常会变成更晚。</li>
+            <li><span>23:48</span><b>作息</b>「再跑一版就睡」通常会变成更晚。</li>
             <li><span>00:00</span><b>整理</b>合并进项目、人物、你自己和话题记忆。</li>
           </ol>
         </div>
