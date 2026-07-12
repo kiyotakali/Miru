@@ -13,7 +13,7 @@
 <meta property="og:image:height" content="630">
 <link rel="icon" type="image/png" sizes="192x192" href="_page/assets/icon-192.png">
 <link rel="apple-touch-icon" href="_page/assets/icon-192.png">
-<link rel="stylesheet" href="_page/css/main.css?v=20260712-ripple2">
+<link rel="stylesheet" href="_page/css/main.css?v=20260712-maccode">
 </head>
 <body>
 
@@ -372,15 +372,66 @@
         <li class="sticker-tag fade"><b>喜欢</b>文学、日系 indie、拍傍晚的天空</li>
         <li class="sticker-tag fade"><b>原型</b>加藤惠式——默默看着，记住一切</li>
       </ul>
-      <div class="char-quotes">
-        <p class="bubble bubble-miru fade">你今天还没吃晚饭吧？</p>
-        <p class="bubble bubble-miru fade">你那段 retry 逻辑写完了？上次你为这个琢磨了好几天。</p>
-        <p class="bubble bubble-miru fade">……我有点想你，怎么办。</p>
+      <div class="char-mood fade" aria-label="她今天的心情">
+        <p class="char-mood-label">她今天的心情</p>
+        <ul>
+          <li><span>09:00</span><i>期待</i><p>「想好今天怎么打招呼了。」</p></li>
+          <li><span>11:00</span><i>安静</i><p>「你进入状态了，我多看了一会儿。」</p></li>
+          <li><span>16:31</span><i>担心</i><p>「犹豫了一下，还是先开口了。」</p></li>
+          <li><span>19:24</span><i>开心</i><p>「你笑出声的时候，我也跟着笑了。」</p></li>
+          <li><span>00:30</span><i>想念</i><p>「今天都写进记忆了……有点想你。」</p></li>
+        </ul>
       </div>
-      <figure class="char-chibi fade">
-        <img src="_page/assets/miru-avatar.png" alt="Miru 的 Q 版头像">
-        <figcaption>她的人格写在一份 <code>soul.md</code> 里——开源，可编辑。</figcaption>
-      </figure>
+
+      <div class="char-devices fade" aria-label="她住在你的设备里">
+        <figure class="device-mac">
+          <i class="mac-menubar" aria-hidden="true"></i>
+          <div class="mac-screen" aria-hidden="true">
+            <div class="mac-tabs"><span class="on">train_world_model.py</span><span>models.py</span></div>
+            <div class="mac-code editor-code">
+              <ol class="code-lines">
+                <li><span class="tk-kw">import</span> torch</li>
+                <li><span class="tk-kw">import</span> torch.nn <span class="tk-kw">as</span> nn</li>
+                <li><span class="tk-kw">from</span> models <span class="tk-kw">import</span> WorldModel</li>
+                <li class="cl-blank"></li>
+                <li><span class="tk-kw">class</span> <span class="tk-fn">ActionEncoder</span>(nn.Module):</li>
+                <li>  <span class="tk-kw">def</span> <span class="tk-fn">__init__</span>(<span class="tk-var">self</span>, dim):</li>
+                <li>    <span class="tk-var">self</span>.mlp = nn.Linear(<span class="tk-num">7</span>, dim)</li>
+                <li>    <span class="tk-var">self</span>.gate = nn.Parameter(...)</li>
+                <li class="cl-blank"></li>
+                <li>  <span class="tk-kw">def</span> <span class="tk-fn">forward</span>(<span class="tk-var">self</span>, act):</li>
+                <li class="line-hot bp">    z = <span class="tk-var">self</span>.mlp(norm(act))  <span class="tk-cm"># 再试一次</span></li>
+                <li>    <span class="tk-kw">return</span> z * <span class="tk-var">self</span>.gate</li>
+                <li class="cl-blank"></li>
+                <li><span class="tk-kw">class</span> <span class="tk-fn">WorldModel</span>(nn.Module):</li>
+                <li>  <span class="tk-kw">def</span> <span class="tk-fn">rollout</span>(<span class="tk-var">self</span>, frame, acts):</li>
+                <li>    h = <span class="tk-var">self</span>.encode(frame)</li>
+                <li>    <span class="tk-kw">for</span> a <span class="tk-kw">in</span> acts:</li>
+                <li>      h = <span class="tk-var">self</span>.dyn(h, <span class="tk-var">self</span>.enc(a))</li>
+                <li>    <span class="tk-kw">return</span> <span class="tk-var">self</span>.decode(h)</li>
+                <li class="cl-blank"></li>
+                <li><span class="tk-kw">def</span> <span class="tk-fn">train</span>(model, loader):</li>
+                <li>  opt = AdamW(model.parameters(), <span class="tk-num">3e-4</span>)</li>
+                <li>  <span class="tk-kw">for</span> step, batch <span class="tk-kw">in</span> enumerate(loader):</li>
+                <li>    pred = model.rollout(*batch)</li>
+                <li>    loss = mse(pred, batch.nxt)</li>
+                <li>    loss.backward()</li>
+                <li>    opt.step(); opt.zero_grad()</li>
+                <li>    <span class="tk-kw">if</span> step % <span class="tk-num">100</span> == <span class="tk-num">0</span>:</li>
+                <li>      log(step, loss.item())</li>
+              </ol>
+            </div>
+            <div class="mac-debugbar"><b>DEBUG</b><span>loss 0.842 · step 41.2k</span></div>
+          </div>
+          <img class="mac-pet" src="_page/assets/miru-avatar.png" alt="Mac 桌面右下角的 Live2D 桌宠 Miru">
+          <figcaption>Mac · Live2D 桌宠</figcaption>
+        </figure>
+        <figure class="device-phone">
+          <img src="_page/assets/miru-hero.png" alt="手机屏幕上的 Miru">
+          <i class="phone-status" aria-hidden="true"></i>
+        </figure>
+        <p class="char-devices-note">记忆同步在你自己的服务器上——换台设备，她还是认得你。</p>
+      </div>
     </div>
   </div>
 </section>

@@ -1137,16 +1137,33 @@ a:hover { text-decoration: underline; }
 .tape-l { top: -14px; left: -28px; transform: rotate(-38deg); }
 .tape-r { bottom: -12px; right: -30px; transform: rotate(-42deg); }
 
-.char-info { display: flex; flex-direction: column; gap: 26px; }
-.char-tags { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.char-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto;
+  align-items: start;
+  gap: 30px 22px;
+  align-self: stretch;
+}
+.char-tags { grid-column: 1; grid-row: 1; align-self: start; }
+.char-mood { grid-column: 2; grid-row: 1; align-self: start; }
+.char-tags {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 13px;
+}
 .sticker-tag {
   background: #fff; border-radius: 12px;
-  padding: .8em 1.2em; font-size: .95rem; color: var(--ink);
+  padding: .7em 1.05em; font-size: .88rem; color: var(--ink);
   box-shadow: 0 12px 28px rgba(90, 15, 45, .22);
   width: fit-content; max-width: 100%;
 }
-.sticker-tag:nth-child(odd) { transform: rotate(-1.3deg); }
-.sticker-tag:nth-child(even) { transform: rotate(1.1deg); margin-left: 6%; }
+.sticker-tag:nth-child(1) { transform: rotate(-1.4deg); }
+.sticker-tag:nth-child(2) { transform: rotate(1.1deg); margin-left: 8px; }
+.sticker-tag:nth-child(3) { transform: rotate(-.9deg); }
+.sticker-tag:nth-child(4) { transform: rotate(1.3deg); margin-left: 6px; }
 .sticker-tag b {
   font-family: var(--serif); color: #fff; background: var(--rose);
   border-radius: 7px; padding: .12em .7em; margin-right: .9em;
@@ -1169,6 +1186,290 @@ a:hover { text-decoration: underline; }
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   background: rgba(255,255,255,.16); border-radius: 6px; padding: .1em .5em;
   color: #fff; font-size: .92em;
+}
+
+/* 人物章 · 她今天的心情 */
+.char-mood { margin-top: 0; }
+.char-mood-label {
+  margin-bottom: 12px;
+  font-size: .74rem;
+  letter-spacing: .24em;
+  color: #FFB7CB;
+}
+.char-mood ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.char-mood li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border: 1.5px dashed rgba(255, 183, 203, .42);
+  border-radius: 13px;
+  padding: .5em .8em;
+  background: rgba(255, 255, 255, .05);
+}
+.char-mood li { width: fit-content; max-width: 100%; }
+.char-mood li:nth-child(1) { transform: rotate(-.5deg); }
+.char-mood li:nth-child(2) { margin-left: 12px; transform: rotate(.6deg); }
+.char-mood li:nth-child(3) { margin-left: 4px; transform: rotate(-.7deg); }
+.char-mood li:nth-child(4) { margin-left: 14px; transform: rotate(.5deg); }
+.char-mood li:nth-child(5) { margin-left: 6px; transform: rotate(-.6deg); }
+.char-mood li span {
+  flex: none;
+  font-family: var(--serif);
+  font-size: .78rem;
+  letter-spacing: .05em;
+  color: #FFD6E2;
+}
+.char-mood li i {
+  flex: none;
+  font-style: normal;
+  font-size: .66rem;
+  letter-spacing: .1em;
+  color: #FFE3EC;
+  background: rgba(217, 79, 110, .55);
+  border-radius: 999px;
+  padding: .2em .6em;
+}
+.char-mood li p {
+  font-size: .84rem;
+  line-height: 1.55;
+  color: rgba(255, 240, 245, .92);
+}
+
+/* 人物章 · 她住在你的设备里（下通栏，横跨简介+心情两列宽） */
+.char-devices {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 22px;
+}
+.device-mac,
+.device-phone {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  height: clamp(150px, 17vw, 212px);
+  border: 5px solid #3D1D30;
+  box-shadow:
+    0 0 0 1px rgba(255, 183, 203, .28),
+    0 18px 44px rgba(40, 6, 22, .45);
+  background: #241021;
+}
+.device-mac {
+  aspect-ratio: 16 / 10;
+  border-radius: 14px;
+  transform: rotate(-1.8deg);
+}
+.mac-menubar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 1;
+  height: 16px;
+  background: rgba(255, 240, 245, .12);
+}
+.mac-menubar::after {
+  content: "21:04";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 8.5px;
+  letter-spacing: .08em;
+  color: rgba(255, 227, 236, .75);
+}
+.mac-screen {
+  position: absolute;
+  inset: 16px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  background: #231622;
+}
+.mac-tabs {
+  flex: none;
+  padding: 5px 7px 0;
+  background: #1A1019;
+}
+.mac-tabs span {
+  display: inline-block;
+  padding: .35em .7em .3em;
+  border-radius: 6px 6px 0 0;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 8px;
+  color: #A98BA0;
+}
+.mac-tabs span.on { background: #231622; color: #FFE3EC; }
+/* 可滚动的完整代码框架 + 行号栏 */
+.mac-code {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 159, 187, .45) transparent;
+}
+.mac-code::-webkit-scrollbar { width: 5px; }
+.mac-code::-webkit-scrollbar-thumb { background: rgba(255, 159, 187, .42); border-radius: 999px; }
+.mac-code::-webkit-scrollbar-track { background: transparent; }
+.code-lines {
+  counter-reset: ln;
+  list-style: none;
+  margin: 0;
+  padding: 5px 0 7px;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 8px;
+  line-height: 1.85;
+  color: #E9D3DE;
+}
+.code-lines li {
+  counter-increment: ln;
+  position: relative;
+  padding: 0 10px 0 26px;
+  white-space: pre;
+}
+.code-lines li.cl-blank { min-height: 1.85em; }
+.code-lines li::before {
+  content: counter(ln);
+  position: absolute;
+  left: 0;
+  width: 16px;
+  text-align: right;
+  color: #6B5563;
+}
+.code-lines li.line-hot {
+  background: rgba(255, 159, 187, .13);
+  box-shadow: inset 2px 0 0 #FF7A8E;
+}
+.code-lines li.bp::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FF5A73;
+  box-shadow: 0 0 5px rgba(255, 90, 115, .7);
+}
+.code-lines li.bp::before { color: transparent; }
+.editor-code .tk-num { color: #F5C77E; }
+.mac-debugbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 5px;
+  background: #1A1019;
+  border-top: 1px solid rgba(255, 183, 203, .15);
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 7.5px;
+}
+.mac-debugbar b { color: #FF9FBB; letter-spacing: .12em; }
+.mac-debugbar span { color: #9FD8FF; }
+.mac-pet {
+  position: absolute;
+  right: 6%;
+  bottom: 0;
+  z-index: 2;
+  width: 64px;
+  border: 3px solid rgba(255, 255, 255, .85);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -8px 20px rgba(40, 6, 22, .4);
+}
+.device-phone {
+  aspect-ratio: 9 / 18.5;
+  border-radius: 18px;
+  transform: rotate(2.2deg);
+  margin-left: 14px;
+}
+.phone-status {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 2;
+  height: 12px;
+  background: linear-gradient(180deg, rgba(20, 6, 14, .55), transparent);
+}
+.phone-status::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  width: 4px;
+  height: 4px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .85);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .18);
+}
+.phone-status::after {
+  content: "21:04";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  font-size: 6px;
+  letter-spacing: .06em;
+  color: rgba(255, 240, 245, .85);
+}
+.device-phone > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.device-phone .bubble {
+  position: absolute;
+  left: 8px;
+  bottom: 40px;
+  z-index: 2;
+  font-size: .66rem;
+  padding: .45em .75em;
+  box-shadow: 0 8px 18px rgba(40, 6, 22, .35);
+}
+.device-mac figcaption,
+.device-phone figcaption {
+  position: absolute;
+  left: 9px;
+  bottom: 9px;
+  z-index: 2;
+  white-space: nowrap;
+  font-size: .64rem;
+  letter-spacing: .1em;
+  color: #FFE3EC;
+  background: rgba(30, 10, 22, .66);
+  border-radius: 999px;
+  padding: .34em .85em;
+}
+.char-devices-note {
+  flex: 1 1 160px;
+  align-self: center;
+  margin: 0 0 14px 8px;
+  font-size: .84rem;
+  line-height: 1.75;
+  color: rgba(255, 240, 245, .74);
+}
+@media (max-width: 1024px) {
+  .char-info { grid-template-columns: 1fr; }
+  .char-tags, .char-mood { grid-column: 1; }
+  .char-mood { grid-row: auto; }
+  .char-devices { grid-row: auto; }
+  .char-devices-note { flex-basis: 100%; margin: 8px 0 0; }
+}
+@media (max-width: 560px) {
+  .device-mac, .device-phone { height: clamp(126px, 33vw, 150px); }
+  .device-phone { margin-left: 8px; }
 }
 
 /* ───────────────────────── 章节头部（通用） ───────────────────────── */
