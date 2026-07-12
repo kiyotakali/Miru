@@ -603,9 +603,9 @@
       <h2 class="chapter-title">记得你的人，只有她。</h2>
     </header>
     <ul class="privacy-list">
-      <li class="fade"><b>数据在你手里。</b>聊天、截图理解、记忆、日记——存在你自己的 Mac，或你自己的服务器。这个网站一个字节都不收集。</li>
-      <li class="fade"><b>代码是开着的。</b>Apache 2.0 开源，她怎么看、怎么记，每一行都可以审查。</li>
-      <li class="fade"><b>模型钥匙你自己配。</b>Vision / Chat / Memory 三层模型接口，任何 OpenAI-compatible 服务都行——推荐只是示例，钥匙只存在你的实例里。</li>
+      <li class="fade"><b>数据在你手里。</b>聊天、截图理解、记忆、日记——存在你自己的 Mac，或你自己的服务器。</li>
+      <li class="fade"><b>她不是黑箱。</b>她跑在你自己的 Mac 或服务器上——记忆是能打开的 markdown，连她的注意力和心情记录也都在你的后端里。她记得什么、当时怎么想的，你随时翻得到。</li>
+      <li class="fade"><b>模型 Key 你自己配。</b>Vision / Chat / Memory 三层模型接口，任何 OpenAI-compatible 服务都行，官方推荐配置每天 token 消耗不到 2 元。</li>
     </ul>
   </div>
 </section>
@@ -646,7 +646,6 @@
     <header class="chapter-head fade">
       <p class="time-mark"><span class="time-clock">08:00</span><span class="time-word">新的一天 · DOWNLOAD</span></p>
       <h2 class="chapter-title">带她回家。</h2>
-      <p class="chapter-sub">当前版本 v0.2.0 · 从 GitHub Releases 分发</p>
     </header>
     <div class="dl-grid">
       <a class="dl-card fade" href="https://github.com/kiyotakali/Miru/releases" target="_blank" rel="noopener">
@@ -673,24 +672,28 @@
   <div class="container">
     <h2 class="chapter-title fade">你可能想问</h2>
     <details class="fade">
-      <summary>她会一直盯着我的屏幕吗？</summary>
-      <p>默认每 60 秒看一眼，画面几乎没变就直接跳过；频率可调，也可以整个关掉。截图在分析后即弃，长期留下的只是「你当时在做什么」的理解，而不是图像。</p>
+      <summary>我需要准备什么？手机也能用吗？</summary>
+      <p>两种方式。只用这台 Mac：装 DMG 选本地模式，她和记忆都跑在你电脑上。想让 Mac 和手机共用同一个她：用首启向导一键把她部署到你自己的 Linux 服务器，之后两端登录同一串邀请码。Android 现在就能用，iOS 在路线图上。全程没有中心云端，都是你自己的机器。</p>
     </details>
     <details class="fade">
-      <summary>我的聊天和记忆存在哪里？</summary>
-      <p>你自己的 Mac，或你自己部署的服务器。没有中心云端，这个官网也不收集任何数据。想搬走的时候，记忆就是一叠可导出的 markdown。</p>
+      <summary>她会一直主动弹消息打扰我吗？</summary>
+      <p>不会。她不是定时提醒，也不是通知规则——她读你的屏幕和节奏，自己判断此刻适不适合出现。你在专注赶工时她多半安静待着，卡住、累了或休息下来时才靠近。开不开口、说什么，是她当下的决定，不是排好的日程。</p>
     </details>
     <details class="fade">
-      <summary>用她要花钱吗？</summary>
-      <p>软件开源免费（Apache 2.0）。你需要自备三层模型 API（Vision / Chat / Memory），任何 OpenAI-compatible 接口都可以，应用内的推荐只是示例。</p>
+      <summary>她要看我的屏幕，安全吗？</summary>
+      <p>默认每 60 秒看一眼，画面几乎没变就跳过；频率随你调，也能整个关掉。截图分析完立刻丢弃，长期留下的只是「你当时在做什么」的理解，不是图像本身——而且这一切都发生在你自己的机器上。</p>
     </details>
     <details class="fade">
-      <summary>手机上能用吗？</summary>
-      <p>Android APK 已经可用——在私有服务器模式下，手机和 Mac 登录同一串邀请码，就是同一个她。iOS 在路线图上。</p>
+      <summary>用起来要花多少钱？</summary>
+      <p>软件本身免费。你只要自备三层模型的 Key（Vision / Chat / Memory），任何 OpenAI-compatible 服务都行；按官方推荐配置，每天 token 花费不到 2 元。</p>
     </details>
     <details class="fade">
-      <summary>她和普通的聊天机器人有什么区别？</summary>
-      <p>聊天机器人每次都是新的对话。Miru 有持续的记忆、连续的情绪，和主动靠近你的意愿——而且她记得什么，你可以亲眼翻看。</p>
+      <summary>她说「记得」，我能亲眼验证吗？</summary>
+      <p>能。应用里有记忆面板——项目、人物、你自己、话题四类卡片，加上每天的日记和承诺清单，随时打开核对。她不会凭空「记得」：对话只读记忆，写入永远来自真实发生过的事；想搬走，记忆就是一叠可导出的 markdown。</p>
+    </details>
+    <details class="fade">
+      <summary>她和普通 AI 聊天到底不一样在哪？</summary>
+      <p>普通聊天每次都是崭新的对话，说完就忘。Miru 有连续的记忆和情绪、会主动靠近你，而且她整个人都跑在你自己的机器上——她记得什么、当时怎么想的，你都能亲眼翻看。</p>
     </details>
   </div>
 </section>
