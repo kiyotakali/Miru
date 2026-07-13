@@ -107,12 +107,6 @@ Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Re
 
 If Miru resonates with you, a ⭐ genuinely helps — and lets you follow the road to iOS and full open source.
 
-## This repository
-
-This repo is the home of the Miru **project page** ([mirulife.top](https://mirulife.top/)) and the **release downloads**. The apps and server image ship through [Releases](https://github.com/kiyotakali/Miru/releases).
-
-Working on the website itself? See [`docs/PROJECT_PAGE.md`](docs/PROJECT_PAGE.md) and [`docs/COLLABORATOR_PROJECT_PAGE.md`](docs/COLLABORATOR_PROJECT_PAGE.md).
-
 ## License
 
 [Apache 2.0](LICENSE).

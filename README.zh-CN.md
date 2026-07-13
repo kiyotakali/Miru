@@ -107,12 +107,6 @@ Miru 是免费软件；你自备模型 API Key（任何 OpenAI-compatible 服务
 
 如果 Miru 打动了你，一个 ⭐ 真的很有帮助——也方便你追踪 iOS 和完整开源的进度。
 
-## 关于本仓库
-
-本仓库是 Miru **官网**（[mirulife.top](https://mirulife.top/)）和**发行下载**的所在地。App 和服务器镜像通过 [Releases](https://github.com/kiyotakali/Miru/releases) 分发。
-
-要改官网本身？见 [`docs/PROJECT_PAGE.md`](docs/PROJECT_PAGE.md) 和 [`docs/COLLABORATOR_PROJECT_PAGE.md`](docs/COLLABORATOR_PROJECT_PAGE.md)。
-
 ## 许可证
 
 [Apache 2.0](LICENSE)。
