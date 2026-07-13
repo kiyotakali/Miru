@@ -70,7 +70,7 @@ Miru is free software; you bring your own model API keys (any OpenAI-compatible 
 
 ### 🐳 Server image — advanced
 
-Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Releases, `docker load`, and run it on any Linux box. Same invitation-code format as the wizard.
+Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Releases, `docker load`, and run it on any Linux box (we test and deploy on **Ubuntu 20.04 LTS**; newer Ubuntu/Debian works too). Same invitation-code format as the wizard.
 
 ## How it works
 

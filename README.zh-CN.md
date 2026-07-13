@@ -70,7 +70,7 @@ Miru 是免费软件；你自备模型 API Key（任何 OpenAI-compatible 服务
 
 ### 🐳 服务器镜像 —— 进阶
 
-想手动部署？从 Releases 拿 `linux-amd64` 服务器镜像（`tar.gz`），`docker load` 后在任意 Linux 机器上运行。邀请码格式和向导完全一致。
+想手动部署？从 Releases 拿 `linux-amd64` 服务器镜像（`tar.gz`），`docker load` 后在任意 Linux 机器上运行（我们的测试机和部署机用的是 **Ubuntu 20.04 LTS**，更新的 Ubuntu/Debian 也可以）。邀请码格式和向导完全一致。
 
 ## 工作原理
 
