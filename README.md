@@ -108,6 +108,10 @@ Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Re
 
 If Miru resonates with you, a ⭐ genuinely helps — and lets you follow the road to Windows, iOS, and full open source.
 
+## Acknowledgements
+
+Heartfelt thanks to [Jiazhe Wei](https://jiazhewei.github.io/), [Hongzhe Chen](https://github.com/Chenhzjs), [Jingkang Yang](https://jingkangyang.com/), [Haofan Wang](https://haofanwang.github.io/), and [Chenyang Si](https://chenyangsi.top/) for their help along the way.
+
 ## License
 
 [Apache 2.0](LICENSE).
