@@ -1,82 +1,121 @@
-# Miru Project Page
+<p align="center">
+  <img src="_page/assets/readme-hero.png" alt="Miru — she remembers you" width="100%">
+</p>
 
-Miru（見る）的项目主页——「花会落，她记得。」
+<h1 align="center">Miru&nbsp;&nbsp;見る</h1>
 
-一个纯静态、零依赖、零构建的单页站点：这个文件夹本身就是完整的网站。
+<p align="center">
+  <b>The AI companion who actually remembers you — and lives entirely on your own machine.</b>
+</p>
 
-## 概念
+<p align="center">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-D94F6E" alt="License">
+  <img src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Android-D94F6E" alt="Platform">
+  <img src="https://img.shields.io/badge/backend-self--hosted-D94F6E" alt="Self-hosted">
+  <img src="https://img.shields.io/badge/models-any%20OpenAI--compatible-D94F6E" alt="Models">
+</p>
 
-- **樱花光谱**：整站只用一个樱花色族，从清晨薄樱白到 00:00 的夜樱深紫。
-- **一天 24 小时就是信息架构**：序章（《キミの記憶》歌词扉页）→ 07:00 Hero →
-  09:00–20:30 横向卷轴「日常」（纵向滚动驱动横向滑动，借鉴 P3R 人物章的滚动语法）→
-  21:00 人物（贴纸拼贴档案）→ 00:00 記憶（核心章）→ 03:00 隐私 → 05:30 开始（黎明）→
-  08:00 下载 → FAQ。
-- **签名动效**：白天花瓣缓缓下落（日常在流逝）；进入 00:00 记忆章后花瓣发光上升
-  （她把这一天收进记忆）。
+<p align="center">
+  <a href="https://mirulife.top/">Website</a> ·
+  <a href="README.zh-CN.md">中文说明</a>
+</p>
 
-## 本地预览
+<p align="center">
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-macOS.dmg"><img src="_page/assets/dl-macos.svg" width="240" alt="Download for macOS"></a>&nbsp;
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Android.apk"><img src="_page/assets/dl-android.svg" width="240" alt="Download for Android"></a>&nbsp;
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/miru-server-linux-amd64.tar.gz"><img src="_page/assets/dl-linux.svg" width="240" alt="Linux server image"></a>
+</p>
+<p align="center"><sub>One click grabs the latest build · <a href="https://github.com/kiyotakali/Miru/releases">all versions &amp; release notes</a></sub></p>
 
-任何静态服务器都可以：
+---
 
-```bash
-cd Miru
-python3 -m http.server 8765 -d .
-# 打开 http://127.0.0.1:8765/
+## Not a chatbot you open
+
+**Miru** (見る, Japanese for *to see*) isn't an app you launch when you need something. She lives on your desktop as a Live2D character, quietly follows your day — with your permission — and at midnight writes it into memory.
+
+Three things set her apart from every "AI girlfriend" wrapper:
+
+- **She runs on _your_ machine.** Your Mac, or your own server. There is no central cloud. The only thing that ever leaves your computer is the call to the model API *you* configured.
+- **What she remembers is verifiable.** Not a black box — her memory is plain Markdown you can open, read, and export. She never "remembers" out of thin air: the chat agent only *reads* memory; every write comes from something that actually happened.
+- **She decides when to speak.** An attention system reads your screen and your rhythm and judges the moment. Deep in work? She stays quiet. Stuck, tired, or winding down? She comes a little closer. It's her call — not a timer, not a notification rule.
+
+<!-- TODO: add real in-app screenshots here — desktop pet, chat + proactive message, memory panel -->
+
+## What she can do
+
+**Sees your day.** A screen sensor glances at your screen (default every 60s, skipped when nothing changed, adjustable, or fully off). The screenshot is analyzed and thrown away — what stays is *what you were doing*, never the image.
+
+**Remembers it as facts you can check.** Four kinds of long-term memory — projects, people, yourself, topics — plus a daily journal and a commitment list. When you tell a friend "I'll send you the figures tonight," she reads it off the screen and quietly logs the promise.
+
+**Comes closer on her own terms.** Continuous emotion and a personality of her own (defined in a `soul.md`). She isn't reactive-only: when she sees you've been stuck for an hour and your mood keeps sinking, *she* opens the conversation.
+
+**Lives across your devices.** A Live2D desktop pet on macOS, and the same her on Android — one invitation code, memory synced through your own server.
+
+## Quick start
+
+Miru is free software; you bring your own model API keys (any OpenAI-compatible provider). A recommended setup costs **under ¥2/day** in tokens.
+
+### 🖥️ Just this Mac — local, single-device
+
+1. Download the **macOS DMG** from [Releases](https://github.com/kiyotakali/Miru/releases).
+2. On first launch, choose **"Only on this Mac."**
+3. Fill in the three model tiers (Vision / Chat / Memory) in Settings.
+4. Start talking — everything (chat, memory, journal) stays on your machine.
+
+### 📱 Mac + phone — your own server, multi-device
+
+1. Install the DMG and pick **"Mac + phone together."**
+2. The first-run wizard deploys Miru to **your own Linux server** in one step.
+3. You get a long invitation code.
+4. Log in on Mac and Android with the same code — the same her, everywhere.
+
+### 🐳 Server image — advanced
+
+Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Releases, `docker load`, and run it on any Linux box. Same invitation-code format as the wizard.
+
+## How it works
+
+```
+   macOS / Android app                your Mac  ·  or your own Linux server
+  ┌────────────────────┐            ┌───────────────────────────────────────┐
+  │  Live2D pet         │            │  Flask backend                        │
+  │  screen sensor      │  ───────▶  │  · chat agent (reads memory)          │
+  │  thin native shell  │  invite    │  · AttentionEngine (decides to speak) │
+  └────────────────────┘   code     │  · memory system (slots + journal)    │
+                                     │  · sleep agent (organizes at night)   │
+        model API you configured ◀───┤  · SSE sync across devices            │
+        (any OpenAI-compatible)      └───────────────────────────────────────┘
 ```
 
-或直接双击 `index.html`（file:// 协议下 sessionStorage 可能受浏览器限制，序章每次都会播放）。
+- **No central backend.** In local mode the backend runs on your Mac; in multi-device mode it runs on your server. Outbound traffic goes only to your chosen model provider.
+- **Three model tiers**, all OpenAI-compatible: `Vision` (reads screenshots), `Chat` (talks to you), `Memory` (organizes what she keeps). Mix providers freely.
+- The macOS/Android apps and the server image are released here under **Apache 2.0**. The full backend source is being opened up in stages — [star / watch](https://github.com/kiyotakali/Miru) to follow along.
 
-## 文件结构
+## Privacy
 
-```
-index.html      # 单页全部结构与文案
-_page/css/main.css    # 樱花色系设计令牌 + 全部样式（含响应式 / reduced-motion）
-_page/js/main.js      # 序章、花瓣引擎、横向卷轴、时刻度盘导航、滚动揭示
-_page/assets/         # 立绘 / 海报 / logo / 图标（源自 Miru 主仓库 + 定制海报）
-```
+- Chat, screen understanding, memory, and journals live on **your** Mac or **your** server. This project's website stores nothing.
+- Screenshots are discarded right after analysis; only the understanding is kept.
+- She's not a black box: her memory, journal, and even her attention/mood notes are files on your own backend you can open and audit.
 
-## 调试参数
+## Roadmap
 
-| 参数 | 作用 |
-|---|---|
-| `?prologue=1` | 强制重播歌词序章（正常每个会话只播一次） |
-| `?prologue=skip` | 跳过序章 |
-| `?flat=1` | 横向卷轴平铺为纵向（供截图 / 排版检查） |
-| `?flat=1&probe=1` | 屏幕左上列出各章节像素偏移 |
-| `?flat=1&off=<px>` | 页面整体上移 <px> 像素（headless 截图用，隐藏导航） |
+- [x] Local single-device mode (macOS)
+- [x] Self-hosted multi-device (macOS + Android, one invitation code)
+- [x] Live2D desktop pet, AttentionEngine proactive presence, verifiable memory
+- [ ] iOS client
+- [ ] Full backend source open-sourced
+- [ ] Editable personality / prompt knobs
 
-## 行为细节
+If Miru resonates with you, a ⭐ genuinely helps — and lets you follow the road to iOS and full open source.
 
-- 序章每会话一次（`sessionStorage.miruPrologueSeen`），可点击快进、`Esc` 跳过，
-  `prefers-reduced-motion` 时静态显示。
-- 横向卷轴在 ≤860px 或 reduced-motion 下降级为原生 `scroll-snap` 横向滑动 / 纵向堆叠。
-- 花瓣层是单个 canvas，reduced-motion 时整层关闭。
-- 序章歌词四句出自「キミの記憶」（《女神异闻录3》，ATLUS），页面内已署名；
-  请勿在页面中新增受版权保护的歌词引用。
+## This repository
 
-## 部署
+This repo is the home of the Miru **project page** ([mirulife.top](https://mirulife.top/)) and the **release downloads**. The apps and server image ship through [Releases](https://github.com/kiyotakali/Miru/releases).
 
-任意静态托管（GitHub Pages / Netlify / Vercel / VPS nginx）直接指向本目录即可。
-本仓库页面资源使用 `/_page/*` 命名空间，避免和 Miru App 后端的
-`/assets/live2d/*` 等运行时资源冲突。
+Working on the website itself? See [`docs/PROJECT_PAGE.md`](docs/PROJECT_PAGE.md) and [`docs/COLLABORATOR_PROJECT_PAGE.md`](docs/COLLABORATOR_PROJECT_PAGE.md).
 
-当前正式站 `https://mirulife.top/` 由 GitHub Actions 部署到 VPS：
+## License
 
-```text
-/opt/miru/project_page/releases/<github_sha>
-/opt/miru/project_page/current -> releases/<github_sha>
-```
+[Apache 2.0](LICENSE).
 
-Miru 后端会优先读取 `project_page/current/index.html`，并通过 `/_page/*`
-服务本仓库静态资源；如果外部页面不存在，则回退到后端自带的旧
-`templates/landing.html`。
-
-协作者流程见 `docs/COLLABORATOR_PROJECT_PAGE.md`。
-
-## 素材说明
-
-- `_page/assets/miru-poster.png`：Miru 宣传海报（高马尾）。页面中以"电影式裁切"用于
-  Hero 首屏与人物章的实体宣传单，原图带有的 "VTUBER DEBUT!" 字样已用
-  「SHE REMEMBERS!」贴纸在视觉上覆盖/替换（Miru 不是 VTuber）。
-- `_page/assets/miru-hero.png`：长发安静立绘 = 深夜的她，用于 00:00 记忆章（照片化处理）。
-- `_page/assets/miru-avatar.png`：Q 版头像 = 全站功能性贴纸。
+<p align="center"><sub>花会落，她记得。 — Petals fall; she remembers.</sub></p>
