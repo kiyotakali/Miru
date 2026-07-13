@@ -72,8 +72,16 @@ ssh "${SSH_OPTS[@]}" "$SSH_HOST" "
   set -euo pipefail
   mkdir -p ${REMOTE_BASE_Q}
   ln -sfn ${RELEASE_DIR_Q} ${CURRENT_LINK_Q}
+  cur_target=\"\$(readlink -f ${CURRENT_LINK_Q} 2>/dev/null || true)\"
   if [ -d ${REMOTE_BASE_Q}/releases ]; then
-    find ${REMOTE_BASE_Q}/releases -mindepth 1 -maxdepth 1 -type d | sort | head -n -8 | xargs -r rm -rf
+    # Keep the newest 8 releases by modification time; never delete the one
+    # 'current' points to. (Sorting by name would sort by random commit SHA
+    # and could delete the just-deployed release, dangling 'current'.)
+    ls -1dt ${REMOTE_BASE_Q}/releases/*/ 2>/dev/null | tail -n +9 | while IFS= read -r d; do
+      d=\"\${d%/}\"
+      [ \"\$d\" = \"\$cur_target\" ] && continue
+      rm -rf \"\$d\"
+    done
   fi
 "
 
@@ -85,12 +93,15 @@ if command -v curl >/dev/null 2>&1; then
     html="$(curl -fsSL --max-time 20 "${PUBLIC_URL}" || true)"
     css_href="$(printf '%s' "$html" | sed -n 's/.*href="\([^"]*_page\/css\/main\.css[^"]*\)".*/\1/p' | head -1)"
     css_url=""
+    css=""
     if [[ "$css_href" == http* ]]; then
       css_url="$css_href"
     elif [[ -n "$css_href" ]]; then
       css_url="${PUBLIC_URL%/}/${css_href#./}"
     fi
-    css="$(curl -fsSL --max-time 20 "$css_url" || true)"
+    if [[ -n "$css_url" ]]; then
+      css="$(curl -fsSL --max-time 20 "$css_url" || true)"
+    fi
     if [[ "$html" == *"Miru"* && "$html" == *"EVIDENCE TRAIL"* && "$css" == *".memory-lab"* ]]; then
       echo "[miru-page] Public page verification passed."
       exit 0
