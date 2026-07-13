@@ -65,7 +65,7 @@ echo "[miru-page] Deploying release ${SHA}"
 ssh "${SSH_OPTS[@]}" "$SSH_HOST" "mkdir -p ${RELEASE_DIR_Q}"
 
 export COPYFILE_DISABLE=1
-tar -czf - index.html _page .nojekyll README.md | \
+tar -czf - index.html robots.txt sitemap.xml _page .nojekyll README.md | \
   ssh "${SSH_OPTS[@]}" "$SSH_HOST" "tar -xzf - -C ${RELEASE_DIR_Q}"
 
 ssh "${SSH_OPTS[@]}" "$SSH_HOST" "
