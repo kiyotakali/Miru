@@ -112,6 +112,13 @@ If Miru resonates with you, a ⭐ genuinely helps — and lets you follow the ro
 
 Heartfelt thanks to [Jiazhe Wei](https://jiazhewei.github.io/), [Hongzhe Chen](https://github.com/Chenhzjs), [Jingkang Yang](https://jingkangyang.com/), [Haofan Wang](https://haofanwang.github.io/), and [Chenyang Si](https://chenyangsi.top/) for their help along the way.
 
+## Contact
+
+For questions and collaborations, please contact:
+
+- **Ken Li**: [kiyotakali075@gmail.com](mailto:kiyotakali075@gmail.com)
+- **Chenyang Si**: [chenyangsi@smail.nju.edu.cn](mailto:chenyangsi@smail.nju.edu.cn)
+
 ## License
 
 [Apache 2.0](LICENSE).

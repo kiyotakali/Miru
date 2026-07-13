@@ -112,6 +112,13 @@ Miru 是免费软件；你自备模型 API Key（任何 OpenAI-compatible 服务
 
 衷心感谢 [Jiazhe Wei](https://jiazhewei.github.io/)、[Hongzhe Chen](https://github.com/Chenhzjs)、[Jingkang Yang](https://jingkangyang.com/)、[Haofan Wang](https://haofanwang.github.io/) 和 [Chenyang Si](https://chenyangsi.top/) 在项目上提供的帮助。
 
+## 联系
+
+如有问题或合作意向，欢迎联系：
+
+- **Ken Li**：[kiyotakali075@gmail.com](mailto:kiyotakali075@gmail.com)
+- **Chenyang Si**：[chenyangsi@smail.nju.edu.cn](mailto:chenyangsi@smail.nju.edu.cn)
+
 ## 许可证
 
 [Apache 2.0](LICENSE)。
