@@ -25,7 +25,6 @@
   <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Android.apk"><img src="_page/assets/dl-android.svg" width="240" alt="下载 Android 版"></a>&nbsp;
   <a href="https://github.com/kiyotakali/Miru/releases/latest/download/miru-server-linux-amd64.tar.gz"><img src="_page/assets/dl-linux.svg" width="240" alt="Linux 服务器镜像"></a>
 </p>
-<p align="center"><sub>点一下直接下载最新版 · <a href="https://github.com/kiyotakali/Miru/releases">全部版本与更新说明</a></sub></p>
 
 ---
 

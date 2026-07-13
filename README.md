@@ -25,7 +25,6 @@
   <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Android.apk"><img src="_page/assets/dl-android.svg" width="240" alt="Download for Android"></a>&nbsp;
   <a href="https://github.com/kiyotakali/Miru/releases/latest/download/miru-server-linux-amd64.tar.gz"><img src="_page/assets/dl-linux.svg" width="240" alt="Linux server image"></a>
 </p>
-<p align="center"><sub>One click grabs the latest build · <a href="https://github.com/kiyotakali/Miru/releases">all versions &amp; release notes</a></sub></p>
 
 ---
 
