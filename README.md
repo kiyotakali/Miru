@@ -101,11 +101,12 @@ Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Re
 - [x] Local single-device mode (macOS)
 - [x] Self-hosted multi-device (macOS + Android, one invitation code)
 - [x] Live2D desktop pet, AttentionEngine proactive presence, verifiable memory
+- [ ] Windows client
 - [ ] iOS client
 - [ ] Full backend source open-sourced
 - [ ] Editable personality / prompt knobs
 
-If Miru resonates with you, a ⭐ genuinely helps — and lets you follow the road to iOS and full open source.
+If Miru resonates with you, a ⭐ genuinely helps — and lets you follow the road to Windows, iOS, and full open source.
 
 ## License
 

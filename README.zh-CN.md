@@ -101,11 +101,12 @@ Miru 是免费软件；你自备模型 API Key（任何 OpenAI-compatible 服务
 - [x] 本地单设备模式（macOS）
 - [x] 自有服务器多设备（macOS + Android，一串邀请码）
 - [x] Live2D 桌宠、AttentionEngine 主动陪伴、可验证的记忆
+- [ ] Windows 客户端
 - [ ] iOS 客户端
 - [ ] 完整后端源码开源
 - [ ] 可编辑人格 / prompt 旋钮
 
-如果 Miru 打动了你，一个 ⭐ 真的很有帮助——也方便你追踪 iOS 和完整开源的进度。
+如果 Miru 打动了你，一个 ⭐ 真的很有帮助——也方便你追踪 Windows、iOS 和完整开源的进度。
 
 ## 许可证
 
