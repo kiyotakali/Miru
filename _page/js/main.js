@@ -229,39 +229,87 @@
     canvas.style.display = "none";
   }
 
-  /* ───────────────────────── 横向卷轴「日常」 ───────────────────────── */
+  /* ───────────────────────── 横向卷轴「日常」（逐卡停靠） ───────────────────────── */
 
   var stripOuter = document.querySelector(".strip-outer");
   var stripTrack = document.querySelector(".strip-track");
   var wideQuery = window.matchMedia("(min-width: 861px)");
-  var stripDistance = 0;
-  var stripCurrent = 0;
-  var stripTarget = 0;
-  var stripProgress = 0; // 0..1，供度盘用
+  var STEP_VH = 1.2;      // 每张卡吃掉的滚动量（视口高的倍数），越大翻页越"沉"
+  var GLIDE_MS = 1050;    // 每次翻卡的滑移时长（毫秒），越大越从容
+  var stripDistance = 0;  // 横向可平移的最大距离（px）
+  var stripStops = [];    // 每张卡居中时的横向偏移（px）
+  var stripIdx = 0;       // 当前停靠的卡
+  var stripScrollLen = 0; // 整段的竖向滚动配额（px）
+  var stripCurrent = 0;   // 当前横向位置（px，缓动中）
+  var stripGoal = 0;      // 本段滑移的终点
+  var stripFrom = 0;      // 本段滑移的起点
+  var stripT0 = 0;        // 本段滑移的起始时间戳
+  var stripProgress = 0;  // 0..1，供度盘用
 
   function stripLayout() {
     if (!stripOuter || !stripTrack) return;
     if (!wideQuery.matches || reduceMotion) {
       stripOuter.style.height = "";
       stripTrack.style.transform = "";
+      stripTrack.style.paddingLeft = "";
+      stripTrack.style.paddingRight = "";
       stripDistance = 0;
       return;
     }
-    stripDistance = stripTrack.scrollWidth - window.innerWidth;
-    stripOuter.style.height = (window.innerHeight + stripDistance) + "px";
+    var panels = stripTrack.querySelectorAll(".panel");
+    if (!panels.length) return;
+    // 首尾补白：让第一张和最后一张也有"正中央"可停
+    stripTrack.style.paddingLeft = Math.max(0, (window.innerWidth - panels[0].offsetWidth) / 2) + "px";
+    stripTrack.style.paddingRight = Math.max(0, (window.innerWidth - panels[panels.length - 1].offsetWidth) / 2) + "px";
+    // 量出每张卡居中所需的横向偏移
+    stripStops = [];
+    var trackLeft = stripTrack.getBoundingClientRect().left;
+    for (var i = 0; i < panels.length; i++) {
+      var r = panels[i].getBoundingClientRect();
+      stripStops.push(Math.round((r.left - trackLeft) + r.width / 2 - window.innerWidth / 2));
+    }
+    // 平移上限=最后一张的停靠点（flex 容器的 scrollWidth 不含尾部 padding，不可用）
+    stripDistance = Math.max(0, stripStops[stripStops.length - 1]);
+    for (var j = 0; j < stripStops.length; j++) {
+      stripStops[j] = Math.max(0, Math.min(stripDistance, stripStops[j]));
+    }
+    stripIdx = Math.min(stripIdx, stripStops.length - 1);
+    stripScrollLen = Math.round(window.innerHeight * STEP_VH) * stripStops.length;
+    stripOuter.style.height = (window.innerHeight + stripScrollLen) + "px";
   }
 
-  function stripFrame() {
-    if (stripDistance > 0) {
+  function stripFrame(now) {
+    if (stripDistance > 0 && stripStops.length) {
       var top = stripOuter.getBoundingClientRect().top + window.scrollY;
-      var raw = (window.scrollY - top) / stripDistance;
-      stripTarget = Math.max(0, Math.min(1, raw));
-      stripCurrent += (stripTarget - stripCurrent) * 0.1;
-      if (Math.abs(stripTarget - stripCurrent) < 0.0004) stripCurrent = stripTarget;
-      stripTrack.style.transform = "translate3d(" + (-stripCurrent * stripDistance) + "px,0,0)";
-      stripProgress = stripCurrent;
+      var seg = stripScrollLen / stripStops.length;
+      var pos = (window.scrollY - top) / seg; // 以"卡"为单位的进度
+      var next = Math.max(0, Math.min(stripStops.length - 1, Math.floor(pos)));
+      if (next !== stripIdx) {
+        var frac = pos - Math.floor(pos);
+        // 边界迟滞：越过分界 6% 才换卡，避免停在边界处来回抖动
+        if (Math.abs(next - stripIdx) > 1 || (next > stripIdx ? frac >= 0.06 : frac <= 0.94)) stripIdx = next;
+      }
+      var target = stripStops[stripIdx];
+      if (target !== stripGoal) { // 换了目标卡：从当前位置起一段新的滑移
+        stripGoal = target;
+        stripFrom = stripCurrent;
+        stripT0 = now;
+      }
+      if (stripCurrent !== stripGoal) {
+        var t = Math.min(1, (now - stripT0) / GLIDE_MS);
+        stripCurrent = t >= 1 ? stripGoal : stripFrom + (stripGoal - stripFrom) * easeGlide(t);
+        stripTrack.style.transform = "translate3d(" + (-stripCurrent) + "px,0,0)";
+        stripProgress = stripDistance > 0 ? stripCurrent / stripDistance : 0;
+        // 滑移期间没有 scroll 事件，度盘时间在这里跟着刷新
+        if (dialNow) dialNow.textContent = currentHour();
+      }
     }
     requestAnimationFrame(stripFrame);
+  }
+
+  // easeInOutCubic：徐徐启动、中段滑行、缓缓落定
+  function easeGlide(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
   if (stripOuter && stripTrack && !flatMode) {
@@ -309,6 +357,8 @@
           var start = panels[p].offsetLeft;
           var end = start + panels[p].offsetWidth;
           if (x >= start && x <= end) {
+            var ownHour = panels[p].getAttribute("data-panel-hour");
+            if (ownHour) return ownHour;
             var timeEl = panels[p].querySelector(".panel-time");
             return timeEl ? timeEl.textContent.trim() : stripHour;
           }
@@ -442,7 +492,7 @@
   if (params.get("probe") === "1") {
     window.addEventListener("load", function () {
       setTimeout(function () {
-        var ids = ["dawn", "p0", "p1", "p2", "p3", "p4", "p5", "p6", "character", "memory", "privacy", "start", "download", "faq"];
+        var ids = ["dawn", "p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "character", "memory", "privacy", "start", "download", "faq"];
         var lines = ids.map(function (id) {
           var el = document.getElementById(id);
           return el ? id + ": " + Math.round(el.getBoundingClientRect().top + window.scrollY) : id + ": -";
@@ -464,13 +514,16 @@
       var m = shotTarget.match(/^day(?::([\d.]+))?$/);
       if (m && stripOuter) {
         stripLayout();
-        var frac = m[1] ? parseFloat(m[1]) : 0;
+        var frac = Math.max(0, Math.min(1, m[1] ? parseFloat(m[1]) : 0));
         var top = stripOuter.getBoundingClientRect().top + window.scrollY;
-        y = top + stripDistance * frac;
+        y = top + stripScrollLen * frac;
         window.scrollTo(0, y);
-        stripCurrent = stripTarget = Math.max(0, Math.min(1, frac));
-        stripProgress = stripCurrent;
-        if (stripDistance > 0) stripTrack.style.transform = "translate3d(" + (-stripCurrent * stripDistance) + "px,0,0)";
+        if (stripStops.length) {
+          stripIdx = Math.max(0, Math.min(stripStops.length - 1, Math.floor(frac * stripStops.length)));
+          stripCurrent = stripStops[stripIdx];
+          stripProgress = stripDistance > 0 ? stripCurrent / stripDistance : 0;
+          stripTrack.style.transform = "translate3d(" + (-stripCurrent) + "px,0,0)";
+        }
       } else if (shotTarget !== "hero") {
         var el = document.getElementById(shotTarget);
         if (el) { y = el.getBoundingClientRect().top + window.scrollY + 2; window.scrollTo(0, y); }

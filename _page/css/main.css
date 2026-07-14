@@ -378,6 +378,18 @@ a:hover { text-decoration: underline; }
 }
 .panel-intro { width: 100vw; grid-template-columns: 1fr; }
 
+/* 收尾卡：一天收进「キミの記憶」 */
+.panel.panel-outro { grid-template-columns: 1fr; place-content: center; place-items: center; }
+.panel-outro .panel-body { align-self: center; padding-bottom: 0; text-align: center; }
+.outro-title {
+  font-family: var(--serif);
+  font-size: clamp(2.4rem, 6.5vw, 5.8rem);
+  line-height: 1.2;
+  letter-spacing: .04em;
+  color: #FFF0F5;
+  text-shadow: 0 8px 44px rgba(74, 16, 42, .38);
+}
+
 .panel-time {
   position: absolute; top: 9vh; left: 3.4vw;
   font-family: var(--serif);
