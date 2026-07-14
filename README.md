@@ -75,15 +75,15 @@ Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Re
 ## How it works
 
 ```
-   macOS / Android app              your Mac  ·  or your own Linux server
-  ┌─────────────────────┐           ┌────────────────────────────────────────┐
-  │  Live2D pet         │           │  Flask backend                         │
-  │  screen sensor      │  ───────> │  · chat agent (reads memory)           │
-  │  thin native shell  │  invite   │  · AttentionEngine (decides to speak)  │
-  └─────────────────────┘   code    │  · memory system (slots + journal)     │
-                                    │  · sleep agent (organizes at night)    │
-        model API you configured <──┤  · SSE sync across devices             │
-        (any OpenAI-compatible)     └────────────────────────────────────────┘
+   macOS / Android app                your Mac  ·  or your own Linux server
+  ┌────────────────────┐            ┌───────────────────────────────────────┐
+  │  Live2D pet         │            │  Flask backend                        │
+  │  screen sensor      │  ───────▶  │  · chat agent (reads memory)          │
+  │  thin native shell  │  invite    │  · AttentionEngine (decides to speak) │
+  └────────────────────┘   code     │  · memory system (slots + journal)    │
+                                     │  · sleep agent (organizes at night)   │
+        model API you configured ◀───┤  · SSE sync across devices            │
+        (any OpenAI-compatible)      └───────────────────────────────────────┘
 ```
 
 - **No central backend.** In local mode the backend runs on your Mac; in multi-device mode it runs on your server. Outbound traffic goes only to your chosen model provider.
