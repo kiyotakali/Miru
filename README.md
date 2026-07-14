@@ -30,7 +30,7 @@
 
 ## Not a chatbot you open
 
-**Miru** (見る, Japanese for *to see*) isn't an app you launch when you need something. She lives on your desktop as a Live2D character, quietly follows your day — with your permission — and at midnight writes it into memory.
+**Miru** is 見る — Japanese for *to see*. Spell it out and it says something else: **M**emory, **I** **R**emember **U**. She isn't an app you launch when you need something; she lives on your desktop as a Live2D character, quietly follows your day — with your permission — and at midnight writes it into memory.
 
 Three things set her apart from every "AI girlfriend" wrapper:
 
