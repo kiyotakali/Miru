@@ -17,7 +17,8 @@
 
 <p align="center">
   <a href="https://mirulife.top/">Website</a> ·
-  <a href="README.zh-CN.md">中文说明</a>
+  <a href="README.zh-CN.md">中文说明</a> ·
+  <a href="docs/wechat-group.md">WeChat Group</a>
 </p>
 
 <p align="center">
