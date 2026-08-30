@@ -1899,7 +1899,7 @@ a:hover { text-decoration: underline; }
 /* ───────────────────────── 08:00 · 下载 ───────────────────────── */
 
 .download { position: relative; background: var(--paper); padding: 14vh 0 12vh; }
-.dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.dl-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 .dl-card {
   display: flex; flex-direction: column; gap: 6px;
   background: #fff; border: 2px solid var(--sakura-2); border-radius: 18px;
@@ -1991,6 +1991,7 @@ a:hover { text-decoration: underline; }
     top: 86px;
   }
   .char-grid { grid-template-columns: minmax(240px, 320px) 1fr; }
+  .dl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 860px) {
