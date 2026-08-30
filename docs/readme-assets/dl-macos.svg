@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="128" viewBox="0 0 400 128" role="img" aria-label="Download Miru for macOS">
+  <defs>
+    <linearGradient id="mac-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF8FA"/>
+      <stop offset="1" stop-color="#F6DEE5"/>
+    </linearGradient>
+    <filter id="mac-shadow" x="-15%" y="-20%" width="130%" height="155%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#2E2633" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+  <rect x="5" y="4" width="390" height="116" rx="18" fill="url(#mac-bg)" stroke="#E9B9C7" stroke-width="2" filter="url(#mac-shadow)"/>
+  <text x="32" y="40" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="3.5" fill="#C64D70">DOWNLOAD</text>
+  <path d="M350 37l7 7 7-7M350 47l7 7 7-7" fill="none" stroke="#C64D70" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <g transform="translate(32,57)">
+    <path transform="scale(1.45)" fill="#C64D70" d="M17.05 12.54c-.03-3.02 2.47-4.47 2.58-4.54-1.41-2.06-3.6-2.34-4.38-2.37-1.86-.19-3.64 1.1-4.58 1.1-.95 0-2.4-1.08-3.95-1.05-2.03.03-3.9 1.18-4.94 3-2.11 3.66-.54 9.06 1.5 12.03 1 1.45 2.19 3.08 3.75 3.02 1.51-.06 2.08-.97 3.9-.97 1.82 0 2.33.97 3.92.94 1.62-.03 2.64-1.48 3.63-2.94 1.14-1.68 1.61-3.31 1.64-3.39-.04-.02-3.15-1.21-3.18-4.8zM14.53 3.9c.83-1.01 1.39-2.41 1.24-3.9-1.2.05-2.65.8-3.51 1.81-.77.89-1.44 2.31-1.26 3.67 1.34.1 2.7-.68 3.53-1.58z"/>
+  </g>
+  <text x="80" y="92" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="29" font-weight="750" fill="#4B2431">macOS</text>
+</svg>

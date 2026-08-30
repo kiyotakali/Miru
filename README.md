@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-Apache%202.0-D94F6E" alt="License">
-  <img src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Windows%20%C2%B7%20Android-D94F6E" alt="Platform">
-  <img src="https://img.shields.io/badge/backend-self--hosted-D94F6E" alt="Self-hosted">
-  <img src="https://img.shields.io/badge/models-any%20OpenAI--compatible-D94F6E" alt="Models">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-C64D70" alt="License">
+  <img src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Windows%20%C2%B7%20Android-3F74B5" alt="Platform">
+  <img src="https://img.shields.io/badge/backend-self--hosted-318B67" alt="Self-hosted">
+  <img src="https://img.shields.io/badge/models-any%20OpenAI--compatible-75618A" alt="Models">
 </p>
 
 <p align="center">
@@ -22,10 +22,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-macOS.dmg"><img src="_page/assets/dl-macos.svg" width="240" alt="Download for macOS"></a>&nbsp;
-  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Windows-x64-Setup.exe"><img src="https://img.shields.io/badge/Download-Windows%20x64-2563EB?style=for-the-badge&logo=windows11&logoColor=white" height="54" alt="Download for Windows"></a>&nbsp;
-  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Android.apk"><img src="_page/assets/dl-android.svg" width="240" alt="Download for Android"></a>&nbsp;
-  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Server-linux-amd64.tar.gz"><img src="_page/assets/dl-linux.svg" width="240" alt="Linux server image"></a>
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-macOS.dmg"><img src="docs/readme-assets/dl-macos.svg" width="300" alt="Download Miru for macOS"></a>
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Windows-x64-Setup.exe"><img src="docs/readme-assets/dl-windows.svg" width="300" alt="Download Miru for Windows x64"></a>
+  <br><br>
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Android.apk"><img src="docs/readme-assets/dl-android.svg" width="300" alt="Download Miru for Android"></a>
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Server-linux-amd64.tar.gz"><img src="docs/readme-assets/dl-linux.svg" width="300" alt="Download the Miru Linux server image"></a>
 </p>
 
 ---
