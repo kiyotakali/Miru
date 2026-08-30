@@ -123,7 +123,17 @@ Miru 是免费软件；你自备模型 API Key（任何 OpenAI-compatible 服务
 
 ## 许可证
 
-Miru 自有源码采用 [Apache 2.0](LICENSE)。第三方依赖和素材继续遵循各自许可证，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+Miru 依据 [Apache License 2.0](https://github.com/kiyotakali/Miru/blob/main/LICENSE) 发布。
+
+第三方依赖和素材继续遵循各自许可证，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+### 商业部署告知
+
+如果您将 Miru 或其修改版本作为商业产品或服务的一部分进行部署，我们诚挚希望您通过 [kiyotakali075@gmail.com](mailto:kiyotakali075@gmail.com) 告知我们。
+
+请在邮件中提供组织名称、产品或服务名称，以及 Miru 使用方式的简要说明。无需提供任何机密信息。
+
+该告知仅用于项目追踪和社区交流，不需要获得批准，不产生许可费用，也不会修改 Apache License 2.0 授予的任何权利。
 
 开发环境和四个构建目标见 [docs/BUILDING.md](docs/BUILDING.md)，贡献流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 

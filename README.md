@@ -123,7 +123,17 @@ For questions and collaborations, please contact:
 
 ## License
 
-Miru's own source code is licensed under [Apache 2.0](LICENSE). Third-party dependencies and assets remain under their respective licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Miru is released under the [Apache License 2.0](https://github.com/kiyotakali/Miru/blob/main/LICENSE).
+
+Third-party dependencies and assets remain under their respective licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+### Commercial Deployment Notification
+
+If you deploy Miru or a modified version as part of a commercial product or service, we kindly ask you to notify us at [kiyotakali075@gmail.com](mailto:kiyotakali075@gmail.com).
+
+Please include the name of your organization, the product or service name, and a brief description of how Miru is being used. No confidential information is required.
+
+This notification is requested for project tracking and community outreach purposes only. It does not require approval, impose a license fee, or modify any rights granted under the Apache License 2.0.
 
 Developer setup and all four build targets are documented in [docs/BUILDING.md](docs/BUILDING.md). Contributions are described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
