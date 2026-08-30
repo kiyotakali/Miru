@@ -10,7 +10,7 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var params = new URLSearchParams(location.search);
-  var shotTarget = params.get("shot"); // 调试：?shot=hero|day:0.5|memory|...
+  var shotTarget = params.get("shot"); // 调试：?shot=hero|day:0.5|memory|film|...
   var flatMode = params.get("flat") === "1"; // 调试：卷轴平铺，供截图/降级检查
   if (flatMode) document.documentElement.classList.add("flat");
 
@@ -375,7 +375,7 @@
     return hour;
   }
 
-  var idsInNav = ["day", "character", "memory", "privacy", "start", "download"];
+  var idsInNav = ["day", "character", "memory", "film", "privacy", "start", "download"];
 
   function onScroll() {
     var y = window.scrollY;
@@ -492,7 +492,7 @@
   if (params.get("probe") === "1") {
     window.addEventListener("load", function () {
       setTimeout(function () {
-        var ids = ["dawn", "p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "character", "memory", "privacy", "start", "download", "faq"];
+        var ids = ["dawn", "p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "character", "memory", "film", "privacy", "start", "download", "faq"];
         var lines = ids.map(function (id) {
           var el = document.getElementById(id);
           return el ? id + ": " + Math.round(el.getBoundingClientRect().top + window.scrollY) : id + ": -";

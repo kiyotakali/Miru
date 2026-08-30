@@ -1856,6 +1856,82 @@ a:hover { text-decoration: underline; }
 }
 .memory-foot { margin-top: clamp(36px, 6vh, 60px); font-size: .92rem; color: #C9B3C4; }
 
+/* ───────────────────────── 02:00 · 影片 ───────────────────────── */
+
+.film {
+  position: relative;
+  overflow: hidden;
+  padding: 14vh 0 12vh;
+  color: #EADBE4;
+  background:
+    linear-gradient(180deg, var(--night) 0%, #2D2037 48%, var(--night-2) 100%);
+}
+.film::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(255, 183, 203, .14);
+}
+.film-watermark {
+  position: absolute;
+  top: 7vh;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 183, 203, .055);
+  font-family: var(--serif);
+  font-size: clamp(3rem, 8.8vw, 8rem);
+  font-style: italic;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.film .container { position: relative; z-index: 1; }
+.film .chapter-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 34em);
+  column-gap: clamp(28px, 6vw, 88px);
+  align-items: end;
+}
+.film .time-mark { grid-column: 1 / -1; }
+.film .time-clock { color: var(--glow); }
+.film .time-word { color: rgba(232, 199, 125, .78); }
+.film .chapter-title { color: #FFF3F6; }
+.film .chapter-sub {
+  margin: 0 0 .35em;
+  color: #C9B3C4;
+  line-height: 1.9;
+}
+.film-stage { margin: 0; }
+.film-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #120D18;
+  border: 1px solid rgba(255, 183, 203, .42);
+  border-radius: 8px;
+  box-shadow:
+    0 28px 76px rgba(8, 4, 12, .42),
+    0 0 0 1px rgba(232, 199, 125, .08);
+}
+.film-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 2px 0;
+  color: rgba(201, 179, 196, .72);
+  font-size: .72rem;
+  letter-spacing: .18em;
+}
+.film-caption b {
+  color: var(--glow);
+  font-family: var(--serif);
+  font-weight: 600;
+}
+
 /* ───────────────────────── 03:00 · 隐私 ───────────────────────── */
 
 .privacy { background: var(--night-2); color: #D9C8D6; padding: 14vh 0; }
@@ -2067,6 +2143,9 @@ a:hover { text-decoration: underline; }
   }
   .memory-trace::before { display: none; }
   .trace-list li { padding-left: 24px; }
+  .film .chapter-head { grid-template-columns: 1fr; }
+  .film .time-mark { grid-column: 1; }
+  .film .chapter-sub { margin-top: 1em; }
 }
 
 @media (max-width: 560px) {
@@ -2093,6 +2172,13 @@ a:hover { text-decoration: underline; }
   .memory-doc::after,
   .memory-trace::before { display: none; }
   .trace-list { grid-template-columns: 1fr; }
+  .film { padding: 12vh 0 10vh; }
+  .film-caption {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    letter-spacing: .12em;
+  }
 }
 
 /* ───────────────────────── 调试平铺模式 ?flat=1 ───────────────────────── */
