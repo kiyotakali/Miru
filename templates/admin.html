@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Miru Admin</title>
+  <style>
+    /* ============================================================
+       Standalone admin styles — NOT shared with /app SPA on purpose.
+       Keep this file self-contained so admin can never break by a
+       user-app refactor (and vice versa).
+       ============================================================ */
+    :root {
+      --bg: #0e1014;
+      --panel: #161a21;
+      --panel-2: #1c2129;
+      --border: #2a313c;
+      --text: #e6e8eb;
+      --muted: #8a93a3;
+      --accent: #5ec8ff;
+      --accent-dim: #3a8fbf;
+      --danger: #ff6b6b;
+      --warn: #f0a73a;
+      --ok: #4cc88c;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+            "Microsoft YaHei", system-ui, sans-serif;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font: inherit;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    button:hover { background: #232932; border-color: #3a4250; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button.primary { background: var(--accent-dim); border-color: var(--accent); color: white; }
+    button.primary:hover { background: var(--accent); }
+    button.danger { background: #6b2a2a; border-color: var(--danger); }
+    button.danger:hover { background: var(--danger); }
+    input, select, textarea {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font: inherit;
+      width: 100%;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    code, pre {
+      font: 12.5px/1.45 ui-monospace, Menlo, Consolas, monospace;
+      background: var(--panel-2);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    pre { padding: 10px 12px; overflow: auto; }
+
+    /* ----- Layout ----- */
+    #shell { display: flex; min-height: 100vh; }
+    nav.side {
+      width: 200px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 18px 0;
+      display: flex;
+      flex-direction: column;
+    }
+    nav.side .brand {
+      padding: 0 20px 20px;
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: .5px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    nav.side .brand small {
+      display: block;
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 11.5px;
+      margin-top: 2px;
+    }
+    nav.side a.tab {
+      display: block;
+      padding: 10px 20px;
+      color: var(--muted);
+      border-left: 3px solid transparent;
+      cursor: pointer;
+    }
+    nav.side a.tab:hover { color: var(--text); text-decoration: none; }
+    nav.side a.tab.active {
+      color: var(--text);
+      border-left-color: var(--accent);
+      background: var(--panel-2);
+    }
+    nav.side .spacer { flex: 1; }
+    nav.side .logout-btn {
+      margin: 12px 16px;
+      text-align: center;
+    }
+
+    main {
+      flex: 1;
+      padding: 28px 36px;
+      overflow-x: hidden;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 600;
+    }
+    h1 .muted { font-weight: 400; color: var(--muted); font-size: 14px; margin-left: 10px; }
+    h2 {
+      margin: 26px 0 10px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    /* ----- Login screen ----- */
+    #login-view {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 32px 30px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .login-card h1 { margin-bottom: 4px; }
+    .login-card p.hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 6px 0 22px;
+    }
+    .login-card label { display: block; margin-bottom: 8px; color: var(--muted); }
+    .login-card .err {
+      color: var(--danger);
+      font-size: 13px;
+      margin: 10px 0 0;
+      min-height: 18px;
+    }
+    .login-card .actions { margin-top: 18px; text-align: right; }
+
+    /* ----- Stats grid ----- */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+    .stat-card .label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .stat-card .value {
+      font-size: 24px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .stat-card .delta {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    /* ----- Tables ----- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    th {
+      background: var(--panel-2);
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td.actions { text-align: right; white-space: nowrap; }
+    td.actions button {
+      padding: 4px 10px;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+    td .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+    .badge.active { background: rgba(76, 200, 140, .15); color: var(--ok); }
+    .badge.suspended { background: rgba(240, 167, 58, .15); color: var(--warn); }
+    .badge.used { background: rgba(94, 200, 255, .15); color: var(--accent); }
+    .badge.unused { background: rgba(138, 147, 163, .15); color: var(--muted); }
+    .badge.revoked { background: rgba(255, 107, 107, .15); color: var(--danger); }
+
+    /* ----- Copyable code blocks ----- */
+    code.copyable {
+      cursor: pointer;
+      transition: background .2s ease;
+      user-select: all;
+    }
+    code.copyable:hover { background: rgba(94, 200, 255, .1); }
+    code.copyable.copied {
+      background: rgba(76, 200, 140, .2);
+      color: var(--ok);
+    }
+
+    /* ----- Admin label (assigned_to) ----- */
+    .label {
+      display: inline-block;
+      background: rgba(94, 200, 255, .12);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* ----- Link-style button (inline edit) ----- */
+    button.link {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 14px;
+      margin-left: 4px;
+    }
+    button.link:hover { color: var(--accent); }
+
+    /* ----- Toolbar ----- */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .toolbar .grow { flex: 1; }
+
+    /* ----- Modal ----- */
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, .55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+      width: 100%;
+      max-width: 460px;
+    }
+    .modal h3 { margin: 0 0 8px; font-size: 16px; }
+    .modal p { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+    .modal .actions {
+      margin-top: 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal label { display: block; color: var(--muted); margin: 12px 0 6px; font-size: 13px; }
+
+    /* ----- Misc ----- */
+    .muted { color: var(--muted); }
+    .pill { display: inline-block; padding: 1px 7px; border-radius: 3px; background: var(--panel-2); color: var(--muted); font-size: 11.5px; }
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 12px 18px;
+      border-radius: 6px;
+      max-width: 320px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.4);
+      z-index: 2000;
+      animation: slideIn .2s ease-out;
+    }
+    .toast.err { border-left-color: var(--danger); }
+    .toast.ok { border-left-color: var(--ok); }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Hide scrollbars on Webkit when not needed */
+    main::-webkit-scrollbar { width: 8px; }
+    main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <!-- Login view (shown when no token) -->
+  <div id="login-view" style="display:none">
+    <div class="login-card">
+      <h1>Miru Admin</h1>
+      <p class="hint">粘贴管理员 token 即可登入。Token 在 VPS 上 <code>cat data/auth.json</code> 可见。</p>
+      <label for="login-token">Admin Token</label>
+      <input id="login-token" type="password" autocomplete="off" placeholder="粘贴 token...">
+      <div class="err" id="login-err"></div>
+      <div class="actions">
+        <button class="primary" id="login-btn">验证并登入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main shell (shown when authed) -->
+  <div id="shell" style="display:none">
+    <nav class="side">
+      <div class="brand">Miru Admin <small>独立管理后台</small></div>
+      <a class="tab" data-route="dashboard">总览</a>
+      <a class="tab" data-route="users">用户</a>
+      <a class="tab" data-route="invitations">邀请码</a>
+      <a class="tab" data-route="ai-config">AI 配置</a>
+      <a class="tab" data-route="account">账号</a>
+      <div class="spacer"></div>
+      <div class="logout-btn">
+        <button id="logout-btn">登出</button>
+      </div>
+    </nav>
+    <main id="main"></main>
+  </div>
+
+  <!-- Modal mount point -->
+  <div id="modal-root"></div>
+
+  <script>
+  // ===========================================================================
+  // Standalone admin SPA — vanilla JS, hash router, fetch only.
+  // Does NOT import any code from the user SPA on purpose.
+  // ===========================================================================
+
+  const TOKEN_KEY = "miru_admin_token";   // distinct from user-SPA's miru_auth_token
+  const API = "/api/admin";
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
+  function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+  function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+
+  // --- HTTP wrapper -----------------------------------------------------------
+
+  async function api(path, opts = {}) {
+    const headers = Object.assign({
+      "Authorization": `Bearer ${getToken()}`,
+      "Content-Type": "application/json",
+    }, opts.headers || {});
+    const init = { method: opts.method || "GET", headers };
+    if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
+    const r = await fetch(API + path, init);
+    let data = null;
+    try { data = await r.json(); } catch { data = {}; }
+    if (r.status === 401 || r.status === 403) {
+      // Token went bad — bounce back to login
+      clearToken();
+      showLogin();
+      throw new Error(data.error || "登录失效，请重新输入 token");
+    }
+    if (!r.ok) {
+      const msg = data.error || `HTTP ${r.status}`;
+      const err = new Error(msg);
+      err.status = r.status;
+      err.body = data;
+      throw err;
+    }
+    return data;
+  }
+
+  // --- Toast ------------------------------------------------------------------
+
+  function toast(msg, kind = "ok") {
+    const el = document.createElement("div");
+    el.className = "toast " + kind;
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity .25s"; }, 2300);
+    setTimeout(() => el.remove(), 2700);
+  }
+
+  // --- Modal ------------------------------------------------------------------
+
+  function modal({ title, body, confirmText = "确定", confirmKind = "primary", onConfirm, onMount }) {
+    const root = $("#modal-root");
+    root.innerHTML = "";
+    const bg = document.createElement("div");
+    bg.className = "modal-bg";
+    const m = document.createElement("div");
+    m.className = "modal";
+    m.innerHTML = `
+      <h3>${escapeHtml(title)}</h3>
+      <div class="modal-body">${body}</div>
+      <div class="actions">
+        <button class="cancel">取消</button>
+        <button class="${confirmKind} go">${escapeHtml(confirmText)}</button>
+      </div>
+    `;
+    bg.appendChild(m);
+    root.appendChild(bg);
+    const close = () => { root.innerHTML = ""; };
+    bg.addEventListener("click", e => { if (e.target === bg) close(); });
+    $(".cancel", m).addEventListener("click", close);
+    $(".go", m).addEventListener("click", async () => {
+      try {
+        const ok = onConfirm ? await onConfirm(m) : undefined;
+        if (ok !== false) close();
+      } catch (err) {
+        toast(err.message, "err");
+      }
+    });
+    if (typeof onMount === "function") {
+      try { onMount(m); } catch (e) { /* noop */ }
+    }
+    return m;
+  }
+
+  // --- Helpers ----------------------------------------------------------------
+
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[c]));
+  }
+
+  function fmtBytes(n) {
+    if (!n) return "0 B";
+    const u = ["B", "KB", "MB", "GB"];
+    let i = 0;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    return n.toFixed(i ? 1 : 0) + " " + u[i];
+  }
+
+  function fmtDate(s) {
+    if (!s) return "—";
+    return s.substring(0, 16).replace("T", " ");
+  }
+
+  // --- Router -----------------------------------------------------------------
+
+  const routes = {
+    "dashboard": renderDashboard,
+    "users":     renderUsers,
+    "invitations": renderInvitations,
+    "ai-config": renderAiConfig,
+    "account":   renderAccount,
+  };
+
+  function parseHash() {
+    const h = (location.hash || "#dashboard").slice(1);
+    const parts = h.split("/");
+    return { route: parts[0] || "dashboard", arg: parts[1] || null };
+  }
+
+  function navigate(path) {
+    location.hash = "#" + path;
+  }
+
+  async function handleRoute() {
+    if (!getToken()) { showLogin(); return; }
+    const { route, arg } = parseHash();
+    $$(".side .tab").forEach(t => t.classList.toggle("active", t.dataset.route === route));
+    const fn = routes[route] || renderDashboard;
+    $("#main").innerHTML = '<p class="muted">加载中…</p>';
+    try {
+      await fn(arg);
+    } catch (err) {
+      $("#main").innerHTML = `<div class="empty">加载失败：${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  // --- Login flow -------------------------------------------------------------
+
+  function showLogin() {
+    $("#shell").style.display = "none";
+    $("#login-view").style.display = "flex";
+    setTimeout(() => $("#login-token").focus(), 50);
+  }
+
+  function showShell() {
+    $("#login-view").style.display = "none";
+    $("#shell").style.display = "flex";
+    handleRoute();
+  }
+
+  async function tryLogin() {
+    const token = $("#login-token").value.trim();
+    const errEl = $("#login-err");
+    errEl.textContent = "";
+    if (!token) { errEl.textContent = "请输入 token"; return; }
+    $("#login-btn").disabled = true;
+    try {
+      const r = await fetch(API + "/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.ok) {
+        setToken(token);
+        showShell();
+      } else {
+        errEl.textContent = data.error || `验证失败 (${r.status})`;
+      }
+    } catch (e) {
+      errEl.textContent = "网络错误：" + e.message;
+    } finally {
+      $("#login-btn").disabled = false;
+    }
+  }
+
+  // --- Page: Dashboard --------------------------------------------------------
+
+  async function renderDashboard() {
+    const stats = await api("/stats");
+    $("#main").innerHTML = `
+      <h1>总览 <span class="muted">${escapeHtml(stats.generated_at || "")}${stats._cache_age_s ? ` · 缓存 ${stats._cache_age_s}s` : ""}</span></h1>
+      <h2>用户</h2>
+      <div class="stats">
+        ${statCard("总用户数", stats.users.total)}
+        ${statCard("活跃 (7d)", stats.users.active_7d)}
+        ${statCard("启用中", stats.users.active)}
+        ${statCard("已停用", stats.users.suspended, stats.users.suspended ? "warn" : "")}
+      </div>
+      <h2>消息 / 截图</h2>
+      <div class="stats">
+        ${statCard("聊天总数", stats.messages.total)}
+        ${statCard("今日聊天", stats.messages.today)}
+        ${statCard("本周聊天", stats.messages.this_week)}
+        ${statCard("截图总数", stats.screenshots.total)}
+        ${statCard("今日截图", stats.screenshots.today)}
+      </div>
+      <h2>资源</h2>
+      <div class="stats">
+        ${statCard("存储用量", fmtBytes(stats.storage_bytes))}
+        ${statCard("AttentionEngine 实例", stats.attention_engine_running ?? stats.care_engine_running)}
+      </div>
+      <div class="toolbar" style="margin-top:18px">
+        <button id="refresh-stats">强制刷新（绕过 60s 缓存）</button>
+      </div>
+    `;
+    $("#refresh-stats").addEventListener("click", async () => {
+      const fresh = await fetch(API + "/stats?force=1", {
+        headers: { "Authorization": `Bearer ${getToken()}` },
+      }).then(r => r.json());
+      toast("已强制刷新", "ok");
+      renderDashboard();
+    });
+  }
+
+  function statCard(label, value, kind = "") {
+    const cls = kind === "warn" ? ' style="color:var(--warn)"' : "";
+    return `<div class="stat-card"><div class="label">${escapeHtml(label)}</div><div class="value"${cls}>${escapeHtml(value)}</div></div>`;
+  }
+
+  // --- Page: Users ------------------------------------------------------------
+
+  async function renderUsers(uid) {
+    if (uid) return renderUserDetail(uid);
+    const data = await api("/users");
+    const rows = Object.entries(data.users).sort((a, b) =>
+      (b[1].created_at || "").localeCompare(a[1].created_at || "")
+    );
+    $("#main").innerHTML = `
+      <h1>用户 <span class="muted">${data.count} 个</span></h1>
+      <div class="toolbar"><button id="refresh-users">刷新</button></div>
+      ${rows.length === 0
+        ? `<div class="empty">暂无用户</div>`
+        : `<table>
+            <thead><tr>
+              <th>UID</th>
+              <th>邀请码 (完整 / 短)</th>
+              <th>标签</th>
+              <th>状态</th>
+              <th>创建时间</th>
+              <th></th>
+            </tr></thead>
+            <tbody>${rows.map(([uid, u]) => {
+              const fullCode = u.invitation_full_code || "";
+              const shortCode = u.invitation_code || "";
+              const codeCell = fullCode
+                ? `<code class="copyable" data-copy="${escapeHtml(fullCode)}" title="点击复制完整码">${escapeHtml(fullCode)}</code>`
+                : `<code>${escapeHtml(shortCode || "—")}</code>`;
+              return `
+              <tr>
+                <td><code>${escapeHtml(uid)}</code></td>
+                <td>${codeCell}</td>
+                <td>${u.assigned_to ? `<span class="label">${escapeHtml(u.assigned_to)}</span>` : '<span class="muted">—</span>'}</td>
+                <td><span class="badge ${u.status}">${escapeHtml(u.status)}</span></td>
+                <td class="muted">${escapeHtml(fmtDate(u.created_at))}</td>
+                <td class="actions">
+                  <button data-act="detail" data-uid="${escapeHtml(uid)}">详情</button>
+                  ${u.status === "active"
+                    ? `<button data-act="suspend" data-uid="${escapeHtml(uid)}">停服</button>`
+                    : `<button class="primary" data-act="activate" data-uid="${escapeHtml(uid)}">恢复</button>`}
+                  <button class="danger" data-act="delete" data-uid="${escapeHtml(uid)}">删除</button>
+                </td>
+              </tr>
+            `;}).join("")}</tbody>
+          </table>`}
+    `;
+    $("#refresh-users").addEventListener("click", () => renderUsers());
+    $$("#main button[data-act]").forEach(btn => {
+      btn.addEventListener("click", () => userAction(btn.dataset.act, btn.dataset.uid));
+    });
+    $$("#main code.copyable").forEach(el => {
+      el.addEventListener("click", () => copyToClipboard(el.dataset.copy, el));
+    });
+  }
+
+  async function userAction(act, uid) {
+    if (act === "detail") {
+      navigate("users/" + uid);
+      return;
+    }
+    if (act === "suspend") {
+      modal({
+        title: "停止用户服务？",
+        body: `<p>用户 <code>${escapeHtml(uid)}</code> 将被立即停服：<br>
+               · 后端 AttentionEngine / 截屏分析 / 记忆线程立即停止<br>
+               · 该用户的活跃 SSE 连接被强制断开<br>
+               · token 立即失效（无法登录）</p>
+               <p>这是可逆的——点「恢复」即可重新启用。</p>`,
+        confirmText: "确认停服",
+        confirmKind: "danger",
+        onConfirm: async () => {
+          await api("/users/" + uid, { method: "PATCH", body: { status: "suspended" } });
+          toast(`已停服 ${uid}`, "ok");
+          renderUsers();
+        },
+      });
+      return;
+    }
+    if (act === "activate") {
+      await api("/users/" + uid, { method: "PATCH", body: { status: "active" } });
+      toast(`已恢复 ${uid}`, "ok");
+      renderUsers();
+      return;
+    }
+    if (act === "delete") {
+      const tail = uid.slice(-6);
+      modal({
+        title: "永久删除用户？",
+        body: `<p><strong style="color:var(--danger)">此操作不可撤销！</strong></p>
+               <p>将删除用户 <code>${escapeHtml(uid)}</code> 的：</p>
+               <p>· <code>data/users/${escapeHtml(uid)}/</code> 整个目录<br>
+               · users.json 条目<br>
+               · 关联邀请码标记为 revoked（不删除条目，便于审计）</p>
+               <p>请输入 uid 末 6 位 <code>${escapeHtml(tail)}</code> 以确认：</p>
+               <input id="confirm-input" type="text" placeholder="${escapeHtml(tail)}" style="margin-top:6px">`,
+        confirmText: "永久删除",
+        confirmKind: "danger",
+        onConfirm: async (m) => {
+          const v = $("#confirm-input", m).value.trim();
+          if (v !== tail) {
+            toast("确认码错误，未删除", "err");
+            return false;
+          }
+          const r = await api("/users/" + uid, { method: "DELETE", body: { confirm: tail } });
+          toast(`已删除 ${uid}（释放 ${fmtBytes(r.bytes_freed)}）`, "ok");
+          renderUsers();
+        },
+      });
+      return;
+    }
+  }
+
+  async function renderUserDetail(uid) {
+    const detail = await api("/users/" + uid);
+    $("#main").innerHTML = `
+      <h1>用户详情 <span class="muted">${escapeHtml(uid)}</span></h1>
+      <div class="toolbar">
+        <button onclick="location.hash='#users'">← 返回列表</button>
+      </div>
+      <div class="stats">
+        ${statCard("状态", detail.status, detail.status === "suspended" ? "warn" : "")}
+        ${statCard("聊天总数", detail.messages.total)}
+        ${statCard("今日聊天", detail.messages.today)}
+        ${statCard("本周聊天", detail.messages.this_week)}
+        ${statCard("截图总数", detail.screenshots.total)}
+        ${statCard("今日截图", detail.screenshots.today)}
+        ${statCard("活跃承诺", detail.commitments.active)}
+        ${statCard("已完成承诺", detail.commitments.done)}
+        ${statCard("存储占用", fmtBytes(detail.storage_bytes))}
+      </div>
+      <h2>账户元数据</h2>
+      <table>
+        <tbody>
+          <tr><th>UID</th><td><code>${escapeHtml(detail.user_id)}</code></td></tr>
+          <tr><th>邀请码</th><td><code>${escapeHtml(detail.invitation_code || "—")}</code></td></tr>
+          <tr><th>注册时间</th><td>${escapeHtml(fmtDate(detail.created_at))}</td></tr>
+          <tr><th>最后用户消息</th><td>${escapeHtml(fmtDate(detail.last_user_message_at))}</td></tr>
+          <tr><th>最后截图</th><td>${escapeHtml(fmtDate(detail.last_screenshot_at))}</td></tr>
+        </tbody>
+      </table>
+    `;
+  }
+
+  // --- Page: Invitations ------------------------------------------------------
+
+  async function renderInvitations() {
+    const data = await api("/invitations");
+    const rows = Object.entries(data.invitations).sort((a, b) =>
+      (b[1].created_at || "").localeCompare(a[1].created_at || "")
+    );
+    $("#main").innerHTML = `
+      <h1>邀请码 <span class="muted">${data.count} 条</span></h1>
+      <div class="toolbar">
+        <button class="primary" id="new-invite">+ 生成新邀请码</button>
+        <button id="refresh-inv">刷新</button>
+      </div>
+      ${rows.length === 0
+        ? `<div class="empty">暂无邀请码。点「生成新邀请码」开始。</div>`
+        : `<table>
+            <thead><tr>
+              <th>完整码 (点击复制)</th>
+              <th>标签 / Assigned To</th>
+              <th>状态</th>
+              <th>使用者</th>
+              <th>创建/使用时间</th>
+              <th></th>
+            </tr></thead>
+            <tbody>${rows.map(([code, inv]) => {
+              const used = !!inv.used_by;
+              const revoked = !!inv.revoked;
+              const status = revoked ? "revoked" : used ? "used" : "unused";
+              const tlabel = revoked
+                ? `撤销于 ${fmtDate(inv.revoked_at)}`
+                : used
+                ? `使用于 ${fmtDate(inv.used_at)}`
+                : `创建于 ${fmtDate(inv.created_at)}`;
+              const fullCode = inv.full_code || code;
+              const labelHtml = inv.assigned_to
+                ? `<span class="label">${escapeHtml(inv.assigned_to)}</span>`
+                : `<span class="muted">—</span>`;
+              return `
+                <tr>
+                  <td>
+                    <code class="copyable" data-copy="${escapeHtml(fullCode)}" title="点击复制完整码">${escapeHtml(fullCode)}</code>
+                    <br>
+                    <small class="muted">短: ${escapeHtml(code)}</small>
+                  </td>
+                  <td>
+                    ${labelHtml}
+                    <button class="link" data-act="edit-label" data-code="${escapeHtml(code)}" data-current="${escapeHtml(inv.assigned_to || '')}" title="编辑标签">✎</button>
+                  </td>
+                  <td><span class="badge ${status}">${status}</span></td>
+                  <td>${used ? `<code>${escapeHtml(inv.used_by)}</code>` : '<span class="muted">—</span>'}</td>
+                  <td class="muted">${escapeHtml(tlabel)}</td>
+                  <td class="actions">
+                    ${(used && !revoked)
+                      ? `<span class="muted" title="使用中,先删用户才能删此码">—</span>`
+                      : `<button class="danger" data-act="del-inv" data-code="${escapeHtml(code)}" data-state="${status}">删除</button>`}
+                  </td>
+                </tr>
+              `;
+            }).join("")}</tbody>
+          </table>`}
+    `;
+    $("#refresh-inv").addEventListener("click", renderInvitations);
+    $("#new-invite").addEventListener("click", showCreateInviteModal);
+    $$("#main code.copyable").forEach(el => {
+      el.addEventListener("click", () => copyToClipboard(el.dataset.copy, el));
+    });
+    $$("#main button[data-act='del-inv']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const code = btn.dataset.code;
+        const state = btn.dataset.state || "";
+        const body = state === "revoked"
+          ? `<p>邀请码 <code>${escapeHtml(code)}</code> 是已撤销状态(对应用户已被删除),将从列表中永久移除。审计记录在 deletions.json 中保留,操作不影响审计链。</p>`
+          : `<p>邀请码 <code>${escapeHtml(code)}</code> 将被永久删除。仅未使用或已撤销的可删。</p>`;
+        modal({
+          title: "删除邀请码？",
+          body: body,
+          confirmText: "删除",
+          confirmKind: "danger",
+          onConfirm: async () => {
+            await api("/invitations/" + encodeURIComponent(code), { method: "DELETE" });
+            toast("已删除", "ok");
+            renderInvitations();
+          },
+        });
+      });
+    });
+    $$("#main button[data-act='edit-label']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const code = btn.dataset.code;
+        const current = btn.dataset.current || "";
+        modal({
+          title: "编辑标签",
+          body: `
+            <p>邀请码 <code>${escapeHtml(code)}</code> 的标签 (仅管理员可见，留空清除)：</p>
+            <input id="edit-label-input" type="text" value="${escapeHtml(current)}" placeholder="例如: 给小明">
+          `,
+          confirmText: "保存",
+          onConfirm: async (m) => {
+            const newLabel = $("#edit-label-input", m).value.trim();
+            await api("/invitations/" + encodeURIComponent(code), {
+              method: "PATCH",
+              body: { assigned_to: newLabel || null },
+            });
+            toast("已保存", "ok");
+            renderInvitations();
+          },
+        });
+      });
+    });
+  }
+
+  function showCreateInviteModal() {
+    modal({
+      title: "生成新邀请码",
+      body: `
+        <label>数量 (1-100)</label>
+        <input id="inv-count" type="number" min="1" max="100" value="1">
+        <label>标签 / 备注 (仅管理员可见，绝不暴露给用户)</label>
+        <input id="inv-assigned" type="text" placeholder="例如: 给小明 / for-mom">
+        <label>嵌入服务器 IP（可选，留空用 VPS 默认）</label>
+        <input id="inv-ip" type="text" placeholder="VPS IP, e.g. 192.0.2.1">
+        <label>端口</label>
+        <input id="inv-port" type="number" value="5001">
+      `,
+      confirmText: "生成",
+      onConfirm: async (m) => {
+        const count = parseInt($("#inv-count", m).value || "1", 10);
+        const ip = $("#inv-ip", m).value.trim() || null;
+        const port = parseInt($("#inv-port", m).value || "5001", 10);
+        const assignedTo = $("#inv-assigned", m).value.trim() || null;
+        const r = await api("/invitations", { method: "POST", body: { count, ip, port, assigned_to: assignedTo } });
+        toast(`已生成 ${r.count} 条`, "ok");
+        // Pop a second modal showing the generated full codes — copyable
+        showGeneratedCodesModal(r.codes || [], assignedTo);
+        renderInvitations();
+      },
+    });
+  }
+
+  function showGeneratedCodesModal(codes, assignedTo) {
+    if (!codes || !codes.length) return;
+    const labelLine = assignedTo
+      ? `<p class="muted">标签：<span class="label">${escapeHtml(assignedTo)}</span></p>`
+      : '';
+    const codeListHtml = codes.map(c => `
+      <div style="margin:6px 0;display:flex;gap:8px;align-items:center;">
+        <code class="copyable" data-copy="${escapeHtml(c)}" style="flex:1;padding:8px;font-size:14px;">${escapeHtml(c)}</code>
+        <button class="link" data-copy-btn="${escapeHtml(c)}">复制</button>
+      </div>
+    `).join("");
+    modal({
+      title: "邀请码已生成 — 立即复制",
+      body: `
+        ${labelLine}
+        <p>下面是 ${codes.length} 条 16 字符完整码，分发给用户：</p>
+        ${codeListHtml}
+        <p class="muted" style="font-size:12px;margin-top:14px;">
+          ⚠️ 完整码包含 server 段，必须给完整码用户才能直连 VPS。
+          标签只在管理员界面可见，用户登录时不会看到。
+        </p>
+      `,
+      confirmText: "完成",
+      onMount: (m) => {
+        $$("code.copyable, [data-copy-btn]", m).forEach(el => {
+          el.addEventListener("click", () => {
+            const text = el.dataset.copy || el.dataset.copyBtn;
+            copyToClipboard(text, el);
+          });
+        });
+      },
+    });
+  }
+
+  function copyToClipboard(text, el) {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => { toast("已复制", "ok"); flashCopied(el); },
+        () => fallbackCopy(text, el),
+      );
+    } else {
+      fallbackCopy(text, el);
+    }
+  }
+  function fallbackCopy(text, el) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); toast("已复制", "ok"); flashCopied(el); }
+    catch (e) { toast("复制失败,请手动选中", "err"); }
+    finally { document.body.removeChild(ta); }
+  }
+  function flashCopied(el) {
+    if (!el || !el.classList) return;
+    el.classList.add("copied");
+    setTimeout(() => el.classList.remove("copied"), 1200);
+  }
+
+  // --- Page: AI Config --------------------------------------------------------
+
+  const TIER_LABELS = {
+    "vision": "Vision (截屏分析)",
+    "chat":   "Chat (主对话, 多模态)",
+    "memory": "Memory (后台记忆写入, 纯文本)",
+  };
+  const TIER_HINTS = {
+    "vision": "便宜的多模态模型, 用于每次截屏的图像理解。",
+    "chat":   "性能不错的多模态模型, 用户可能上传图片。",
+    "memory": "高质量纯文本模型, Sleep Agent / Memory Router 4-pass / Diary 等后台调用。",
+  };
+
+  async function renderAiConfig() {
+    const data = await api("/ai-config");
+    const tiers = data.tiers || {};
+    let html = `
+      <h1>AI 配置</h1>
+      <p class="muted">3 层 tier 调度: vision / chat / memory。服务地址需要支持 OpenAI-compatible Chat Completions；下方 placeholder 只是推荐示例。修改保存后立即热加载,无需重启。</p>
+    `;
+    for (const tier of ["vision", "chat", "memory"]) {
+      const cfg = tiers[tier] || {};
+      const masked = cfg.api_key_masked || "(未设置)";
+      const has = cfg.has_api_key;
+      html += `
+        <section class="card" style="margin-top:18px;padding:16px">
+          <h2 style="margin:0 0 4px 0;">${TIER_LABELS[tier]}</h2>
+          <p class="muted" style="margin:0 0 12px 0;font-size:13px;">${TIER_HINTS[tier]}</p>
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 12px;align-items:center;">
+            <label>Host</label>
+            <input id="ai-${tier}-host" type="text" value="${escapeHtml(cfg.host || '')}"
+                   placeholder="${tier === 'vision' ? '推荐示例: openrouter.ai/api' : '推荐示例: api.deepseek.com'}"
+                   style="padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);">
+            <label>API Key</label>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input id="ai-${tier}-key" type="password" value=""
+                     placeholder="${has ? masked + ' (留空保留)' : '请输入 API Key'}"
+                     style="flex:1;padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);">
+              ${has ? `<button class="ghost" onclick="aiClearKey('${tier}')">清空</button>` : ''}
+            </div>
+            <label>Model</label>
+            <input id="ai-${tier}-model" type="text" value="${escapeHtml(cfg.model || '')}"
+                   placeholder="${tier === 'vision' ? '推荐示例: qwen/qwen3.5-9b' : (tier === 'chat' ? '推荐示例: deepseek-v4-pro' : '推荐示例: deepseek-v4-flash')}"
+                   style="padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);">
+            <label>Max Tokens</label>
+            <input id="ai-${tier}-mt" type="number" value="${cfg.max_tokens || 0}" min="64" max="200000"
+                   style="padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);width:120px;">
+          </div>
+          <div style="margin-top:14px;display:flex;gap:8px;">
+            <button class="primary" onclick="aiSave('${tier}')">保存</button>
+            <button onclick="aiTest('${tier}')">测试连接</button>
+            <span id="ai-${tier}-result" style="font-size:13px;align-self:center;"></span>
+          </div>
+        </section>
+      `;
+    }
+    $("#main").innerHTML = html;
+  }
+
+  window.aiClearKey = async function(tier) {
+    if (!confirm(`确认清空 ${tier} 层的 API Key?`)) return;
+    const r = await api(`/ai-config/${tier}`, {
+      method: "PATCH",
+      body: JSON.stringify({ clear_api_key: true }),
+    });
+    if (r.ok) { toast("已清空", "ok"); renderAiConfig(); }
+    else { toast(r.error || "失败", "err"); }
+  };
+
+  window.aiSave = async function(tier) {
+    const host = $(`#ai-${tier}-host`).value.trim();
+    const key = $(`#ai-${tier}-key`).value.trim();
+    const model = $(`#ai-${tier}-model`).value.trim();
+    const mt = parseInt($(`#ai-${tier}-mt`).value, 10);
+    const payload = {};
+    if (host) payload.host = host;
+    if (key) payload.api_key = key;
+    if (model) payload.model = model;
+    if (Number.isFinite(mt) && mt > 0) payload.max_tokens = mt;
+    if (Object.keys(payload).length === 0) {
+      toast("没有要保存的修改", "err");
+      return;
+    }
+    const r = await api(`/ai-config/${tier}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    if (r.ok) { toast(`${tier} 已保存`, "ok"); renderAiConfig(); }
+    else { toast(r.error || "保存失败", "err"); }
+  };
+
+  window.aiTest = async function(tier) {
+    const result = $(`#ai-${tier}-result`);
+    result.textContent = "测试中…";
+    result.style.color = "var(--muted)";
+    try {
+      const r = await api(`/ai-config/${tier}/test`, { method: "POST" });
+      if (r.ok) {
+        result.textContent = `✓ OK (${r.elapsed_ms}ms, ${r.model})`;
+        result.style.color = "var(--ok, #5fbf5f)";
+      } else {
+        result.textContent = `✗ ${r.error || '失败'}`;
+        result.style.color = "var(--err, #e85f5f)";
+      }
+    } catch (e) {
+      result.textContent = `✗ ${e.message}`;
+      result.style.color = "var(--err, #e85f5f)";
+    }
+  };
+
+  // --- Page: Account ----------------------------------------------------------
+
+  async function renderAccount() {
+    $("#main").innerHTML = `
+      <h1>账号</h1>
+      <section class="card" style="margin-top:18px;padding:16px;max-width:680px;">
+        <h2 style="margin:0 0 8px 0;">旋转 Admin Token</h2>
+        <p class="muted" style="margin:0 0 14px 0;font-size:13px;">
+          点击下面的按钮会生成一个新的 admin token, 老 token 立即失效。<br>
+          新 token 只显示一次, 请保存后重新登录。
+        </p>
+        <button class="primary" onclick="rotateAdminToken()">旋转 Admin Token</button>
+        <div id="rotate-result" style="margin-top:14px;"></div>
+      </section>
+    `;
+  }
+
+  window.rotateAdminToken = async function() {
+    if (!confirm("确认旋转 admin token? 老 token 将立即失效。")) return;
+    try {
+      const r = await api("/rotate-token", { method: "POST" });
+      if (r.ok) {
+        $("#rotate-result").innerHTML = `
+          <div class="card" style="background:var(--bg);padding:14px;border:1px solid var(--ok, #5fbf5f);">
+            <strong style="color:var(--ok, #5fbf5f);">新 Admin Token:</strong>
+            <div style="font-family:monospace;word-break:break-all;margin-top:8px;padding:10px;background:var(--card);border-radius:6px;user-select:all;">
+              ${escapeHtml(r.new_token)}
+            </div>
+            <p class="muted" style="margin:10px 0 0 0;font-size:12px;">${escapeHtml(r.warning)}</p>
+            <button class="primary" style="margin-top:10px;" onclick="setToken('${r.new_token}'); location.reload();">用新 token 重新登录</button>
+          </div>
+        `;
+      } else {
+        toast(r.error || "失败", "err");
+      }
+    } catch (e) {
+      toast(e.message, "err");
+    }
+  };
+
+  // --- Bootstrap --------------------------------------------------------------
+
+  document.addEventListener("DOMContentLoaded", () => {
+    $("#login-btn").addEventListener("click", tryLogin);
+    $("#login-token").addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
+    $("#logout-btn").addEventListener("click", () => { clearToken(); showLogin(); });
+    $$(".side .tab").forEach(tab => {
+      tab.addEventListener("click", () => navigate(tab.dataset.route));
+    });
+    window.addEventListener("hashchange", handleRoute);
+
+    if (getToken()) {
+      // Verify the stored token before showing shell — token may be revoked.
+      fetch(API + "/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: getToken() }),
+      }).then(r => r.ok ? r.json() : null).then(data => {
+        if (data && data.ok) showShell();
+        else { clearToken(); showLogin(); }
+      }).catch(() => { clearToken(); showLogin(); });
+    } else {
+      showLogin();
+    }
+  });
+  </script>
+</body>
+</html>

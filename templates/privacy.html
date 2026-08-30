@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#FFF9F2">
+<title>隐私声明 — Miru</title>
+<meta name="description" content="Miru 的隐私声明：我们收集什么、为什么收集、如何保存、如何自助删除。">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base: #FFF9F2;
+  --bg-surface: #FFFFFF;
+  --bg-card: #FDF6EE;
+  --text-primary: #3A2E2A;
+  --text-secondary: #6B5D54;
+  --text-muted: #9A8B7A;
+  --border-subtle: rgba(58,46,42,0.08);
+  --sakura: #FFB7C5;
+  --sakura-deep: #E89BAB;
+  --sakura-glow: rgba(255,183,197,0.25);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: "Noto Sans SC", "Zen Maru Gothic", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--sakura-deep); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,249,242,0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px; max-width: 860px; margin: 0 auto;
+}
+.nav-brand {
+  font-family: "Zen Maru Gothic", "Noto Serif JP", serif;
+  font-weight: 700; font-size: 20px;
+  color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-brand-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--sakura);
+  box-shadow: 0 0 12px var(--sakura-glow);
+}
+.nav-back {
+  color: var(--text-secondary); font-size: 14px;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 60px 24px 120px;
+}
+
+h1 {
+  font-family: "Zen Maru Gothic", "Noto Serif JP", serif;
+  font-size: 34px; font-weight: 700;
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
+}
+.subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 48px;
+  font-style: italic;
+}
+
+section {
+  margin-bottom: 40px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+section:last-of-type { border-bottom: none; }
+
+h2 {
+  font-family: "Zen Maru Gothic", "Noto Serif JP", serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+h2::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--sakura);
+  box-shadow: 0 0 8px var(--sakura-glow);
+  display: inline-block;
+}
+
+h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+ul {
+  color: var(--text-secondary);
+  font-size: 15px;
+  padding-left: 22px;
+  margin-bottom: 12px;
+}
+li { margin-bottom: 6px; }
+
+code {
+  background: var(--bg-card);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: "SF Mono", Menlo, Monaco, monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.callout {
+  background: var(--bg-card);
+  border-left: 3px solid var(--sakura);
+  padding: 14px 18px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 12px;
+}
+
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand"><span class="nav-brand-dot"></span>Miru</a>
+    <a href="/" class="nav-back">← 返回首页</a>
+  </div>
+</nav>
+
+<main>
+  <h1>隐私声明</h1>
+  <p class="subtitle">最近更新：2026-04-15</p>
+
+  <section>
+    <h2>我们收集什么</h2>
+    <p>Miru 是一只住在你电脑或手机里的 AI 陪伴。为了完成「记住你说过的话」「在你熬夜时担心你」这些功能，我们会在<strong>你主动授权</strong>的前提下收集：</p>
+    <ul>
+      <li><strong>聊天记录</strong>：你和 Miru 的对话，连同时间戳。</li>
+      <li><strong>屏幕截图</strong>（仅当你开启自动截屏功能时）：截图<strong>不会</strong>上传到 VPS 保存，只会实时送给 VLM 提取一段文字描述，截图本身在读取后立即删除。</li>
+      <li><strong>你主动上传的图片</strong>：保存在 <code>data/users/&lt;你的 ID&gt;/uploads/</code>，仅用于对应卡片的展示。</li>
+      <li><strong>设备心跳</strong>：最近一次连接时间、设备名、平台（Mac/Windows/Android/iOS）。</li>
+      <li><strong>你的作息活动时间戳</strong>（不含内容）：仅来自截图时间戳与聊天时间戳，用于推断你的作息节律——决定 Miru 何时主动陪你、何时保持安静。</li>
+    </ul>
+    <div class="callout">
+      我们<strong>不会</strong>收集你的位置、通讯录、通话记录、浏览器历史，也不会读取系统里其它应用的内容。
+    </div>
+  </section>
+
+  <section>
+    <h2>数据保存在哪里</h2>
+    <p>所有数据只保存在<strong>当前服务器的 per-user 目录</strong>：</p>
+    <ul>
+      <li>Web/APK 用户：保存在 Miru 官方 VPS（位于境外）的你的专属目录内，路径以你的 user_id 命名，其他用户<strong>无权访问</strong>。</li>
+      <li>Mac DMG 用户（客户端模式）：保存在你本机 <code>~/Library/Application Support/Miru/data/</code>，<strong>只在你的设备里</strong>。</li>
+    </ul>
+    <p>我们不会把你的数据卖给任何第三方。我们也不在除了官方 VPS 之外的任何地方保存备份。</p>
+  </section>
+
+  <section>
+    <h2>我们会调用哪些第三方</h2>
+    <p>Miru 依赖少量外部 API 才能理解内容：</p>
+    <ul>
+      <li><strong>VLM 大模型</strong>（由后端运维配置的第三方 LLM 服务商）：用于分析聊天、截图、生成回复。每次调用是无状态的，模型服务商不保留我们的 prompt（据其隐私政策）。</li>
+      <li><strong>Web Push 服务</strong>（浏览器各自的 push 端点，如 FCM）：仅用于发送 Miru 给你的消息提醒，不会包含内容本身。</li>
+    </ul>
+    <p>我们<strong>不使用</strong>任何统计分析（Google Analytics 等）、崩溃追踪（Sentry 等）、或广告 SDK。</p>
+  </section>
+
+  <section>
+    <h2>你能做什么</h2>
+    <h3>导出你的全部数据</h3>
+    <p>在 App 设置 → 隐私中点击 <strong>「导出我的数据」</strong>，会下载一个 JSON 文件，包含你账号下全部文本记录（聊天、卡片、记忆、情绪日志、模型设置等）。</p>
+
+    <h3>删除你的账号</h3>
+    <p>在 App 设置 → 隐私中点击 <strong>「删除我的账号」</strong>，输入二次确认后：</p>
+    <ul>
+      <li>你的 user_id 会立即从服务器用户表中移除。</li>
+      <li>你的 <code>data/users/&lt;你的 ID&gt;/</code> 目录会被递归删除，<strong>包括聊天、卡片、上传的图片、记忆、情绪日志、Live2D 个性化、全部本地缓存</strong>。</li>
+      <li>你当前使用的邀请码会被标记为「已吊销」，无法再次登录。</li>
+      <li>我们只保留一条审计日志（不含任何内容），用于排查滥用：<code>{user_id, invitation_code, created_at, deleted_at}</code>。</li>
+    </ul>
+    <div class="callout">
+      删除操作<strong>不可撤销</strong>。如果想保留数据副本，请先导出再删除。
+    </div>
+
+    <h3>撤回截屏权限</h3>
+    <p>随时在 App 设置 → 自动截屏处关闭开关；Mac DMG 还可在「系统设置 → 屏幕录制」里撤销权限，APK 则在「系统设置 → 应用 → Miru → 权限」处。</p>
+  </section>
+
+  <section>
+    <h2>联系</h2>
+    <p>如果你对隐私有任何疑问、或想请求手动协助删除：请通过 <a href="https://github.com/anthropics/claude-code/issues">GitHub Issue</a> 联系我们。</p>
+    <p>由于 Miru 目前仍以邀请制小范围使用，我们不设专用客服邮箱。</p>
+  </section>
+
+  <div class="footer">
+    Miru · 本页不会持续跟踪你的访问。
+  </div>
+</main>
+
+</body>
+</html>

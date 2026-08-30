@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>情绪可视化 · 4 套方案对比</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+:root {
+  --bg: #0E0E14;
+  --bg-2: #16161E;
+  --card: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --text: #ECECF1;
+  --text-2: #B8B8C4;
+  --text-mute: #6E6E78;
+  --accent: #FFB7C5;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(255,183,197,0.08), transparent 50%),
+    radial-gradient(circle at 80% 100%, rgba(108,155,210,0.06), transparent 50%);
+}
+.wrap { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
+header h1 {
+  font-size: 28px; font-weight: 600; margin: 0 0 6px;
+  background: linear-gradient(135deg, #FFB7C5, #C9A0DC, #6C9BD2);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+header p { color: var(--text-2); font-size: 14px; margin: 0 0 24px; }
+
+.tabs {
+  display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap;
+}
+.tab {
+  padding: 10px 18px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text-2); cursor: pointer; font-size: 14px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.tab:hover { color: var(--text); border-color: rgba(255,255,255,0.18); }
+.tab.active {
+  background: linear-gradient(135deg, rgba(255,183,197,0.2), rgba(108,155,210,0.15));
+  border-color: rgba(255,183,197,0.5);
+  color: var(--text);
+}
+.tab-meta {
+  font-size: 11px; color: var(--text-mute); margin-left: 8px;
+}
+
+.panel { display: none; animation: fadeIn 0.4s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-title {
+  font-size: 12px; color: var(--text-mute); letter-spacing: 1.5px;
+  text-transform: uppercase; margin: 28px 0 12px;
+}
+
+.grid {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+}
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 20px;
+  backdrop-filter: blur(8px);
+}
+.card-title {
+  font-size: 13px; color: var(--text-2); margin: 0 0 12px;
+  font-weight: 500; letter-spacing: 0.3px;
+}
+
+/* ============================================================
+   DEMO 1: AURORA RING — 24h 极坐标 + 多日叠加
+   ============================================================ */
+#aurora-canvas { width: 100%; aspect-ratio: 1; max-width: 540px; margin: 0 auto; display: block; }
+.aurora-legend {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 16px; justify-content: center; font-size: 11px;
+  color: var(--text-mute);
+}
+.aurora-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.aurora-legend i {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+}
+.aurora-center-info {
+  margin-top: 14px; text-align: center;
+}
+.aurora-center-info .mood-name {
+  font-size: 22px; font-weight: 600;
+  background: linear-gradient(135deg, #FFB7C5, #C9A0DC);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.aurora-center-info .meta {
+  font-size: 12px; color: var(--text-mute); margin-top: 4px;
+}
+
+/* ============================================================
+   DEMO 2: MOOD RIVER — 流动色带
+   ============================================================ */
+#river-canvas { width: 100%; height: 280px; }
+.river-axis {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text-mute);
+  padding: 0 6px; margin-top: 4px;
+}
+.river-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(100px,1fr)); gap: 10px;
+  margin-top: 16px;
+}
+.river-stat {
+  padding: 10px 12px; border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+}
+.river-stat .label { font-size: 10px; color: var(--text-mute); letter-spacing: 0.4px; }
+.river-stat .value { font-size: 18px; font-weight: 600; margin-top: 4px; }
+
+/* ============================================================
+   DEMO 3: TIDE CALENDAR — 月历每格迷你波形
+   ============================================================ */
+.tide-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+}
+.tide-weekday { font-size: 11px; color: var(--text-mute); text-align: center; padding: 4px 0; }
+.tide-cell {
+  aspect-ratio: 1; min-height: 64px;
+  border-radius: 12px; padding: 6px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.25s ease;
+  display: flex; flex-direction: column; gap: 2px;
+  position: relative; overflow: hidden;
+}
+.tide-cell:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+.tide-cell.empty { opacity: 0.3; cursor: default; }
+.tide-cell.today { box-shadow: 0 0 0 1px rgba(255,183,197,0.5) inset; }
+.tide-day-num { font-size: 12px; font-weight: 500; }
+.tide-spark { flex: 1; width: 100%; opacity: 0.75; }
+.tide-mood-dot {
+  position: absolute; bottom: 6px; right: 6px;
+  width: 6px; height: 6px; border-radius: 50%;
+}
+
+/* ============================================================
+   DEMO 4: CONSTELLATION — 情绪星座
+   ============================================================ */
+#constellation-canvas { width: 100%; aspect-ratio: 1; max-width: 540px; margin: 0 auto; display: block; }
+.const-tooltip {
+  position: absolute; pointer-events: none;
+  background: rgba(20,20,28,0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 8px 12px;
+  font-size: 12px; color: var(--text);
+  opacity: 0; transition: opacity 0.15s;
+  z-index: 100;
+  max-width: 240px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.const-tooltip.show { opacity: 1; }
+
+/* ============================================================
+   COMMON: relationship hero card (Miru emotion)
+   ============================================================ */
+.miru-hero {
+  position: relative; overflow: hidden;
+  padding: 24px;
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(255,183,197,0.18) 0%, rgba(201,160,220,0.14) 50%, rgba(108,155,210,0.16) 100%),
+    rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,183,197,0.2);
+  margin-bottom: 16px;
+}
+.miru-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at top right, rgba(255,183,197,0.18), transparent 50%);
+  pointer-events: none;
+}
+.miru-hero-content { position: relative; z-index: 1; }
+.miru-days-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.miru-days-num {
+  font-size: 36px; font-weight: 700; line-height: 1;
+  background: linear-gradient(135deg, #FFB7C5, #C9A0DC);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.miru-days-label { font-size: 13px; color: var(--text-2); }
+.miru-stage {
+  font-size: 11px; padding: 4px 12px; border-radius: 999px;
+  background: rgba(232,155,171,0.2); color: #E89BAB;
+  border: 1px solid rgba(232,155,171,0.35);
+  letter-spacing: 0.5px;
+}
+.miru-meters { display: flex; gap: 16px; margin-top: 16px; }
+.miru-meter { flex: 1; }
+.miru-meter-label { font-size: 11px; color: var(--text-mute); margin-bottom: 4px; }
+.miru-meter-bar {
+  height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.06);
+  position: relative; overflow: hidden;
+}
+.miru-meter-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #64B5F6, #FFB74D);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   Miru — current mood orb (used by all demos)
+   ============================================================ */
+.miru-orb-wrap { position: relative; display: flex; align-items: center; gap: 18px; }
+.miru-orb {
+  width: 84px; height: 84px; border-radius: 50%;
+  position: relative; flex-shrink: 0;
+  background: radial-gradient(circle at 35% 35%,
+    rgba(255,183,197,0.95), rgba(201,160,220,0.7) 50%, rgba(108,155,210,0.4) 100%);
+  box-shadow:
+    0 0 40px rgba(255,183,197,0.4),
+    0 0 80px rgba(255,183,197,0.18),
+    inset 0 -10px 20px rgba(108,155,210,0.3);
+  animation: orb-pulse 3.6s ease-in-out infinite;
+}
+@keyframes orb-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(255,183,197,0.4), 0 0 80px rgba(255,183,197,0.18), inset 0 -10px 20px rgba(108,155,210,0.3); }
+  50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(255,183,197,0.55), 0 0 120px rgba(255,183,197,0.25), inset 0 -10px 20px rgba(108,155,210,0.4); }
+}
+.miru-orb-glow {
+  position: absolute; inset: -20px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,183,197,0.25), transparent 70%);
+  pointer-events: none;
+  filter: blur(12px);
+}
+.miru-mood-info { flex: 1; min-width: 0; }
+.miru-mood-info .name {
+  font-size: 18px; font-weight: 600; margin-bottom: 4px;
+}
+.miru-mood-info .reason {
+  font-size: 13px; color: var(--text-2); line-height: 1.5;
+}
+.miru-mood-info .stats {
+  font-size: 11px; color: var(--text-mute); margin-top: 6px;
+}
+
+/* legend */
+.mood-legend {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
+}
+.mood-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; color: var(--text-2);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+}
+.mood-chip i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>情绪可视化 · 4 套方案对比</h1>
+    <p>同一份数据（一个用户的当日 + 当月情绪 + Miru 情绪）跑 4 种视觉风格，挑出你最喜欢的方向。</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-target="aurora">① Aurora 极光环<span class="tab-meta">极坐标 / 多日叠加</span></button>
+    <button class="tab" data-target="river">② Mood River 情绪河<span class="tab-meta">液态色带</span></button>
+    <button class="tab" data-target="tide">③ Tide Calendar 潮汐月历<span class="tab-meta">月历 + 迷你波形</span></button>
+    <button class="tab" data-target="constellation">④ Constellation 情绪星座<span class="tab-meta">暗夜粒子图</span></button>
+  </div>
+
+  <!-- ============================ DEMO 1: AURORA ============================ -->
+  <div class="panel active" id="panel-aurora">
+    <div class="grid" style="grid-template-columns:1.4fr 1fr">
+      <div class="card">
+        <div class="card-title">情绪极光环 · 24h × 7 天叠加</div>
+        <p style="font-size:12px;color:var(--text-mute);margin:0 0 8px">
+          内圈是今天，向外是过去 6 天。每一道光弧的色相 = 心情类别，亮度 = intensity。<br>
+          当前小时位置有脉动呼吸感。看一眼就能感受"这一周的能量分布"。
+        </p>
+        <canvas id="aurora-canvas" width="540" height="540"></canvas>
+        <div class="aurora-center-info">
+          <div class="mood-name" id="aurora-current-name">focused</div>
+          <div class="meta" id="aurora-current-meta">14:32 · valence +0.10</div>
+        </div>
+        <div class="mood-legend" id="aurora-legend"></div>
+      </div>
+      <div>
+        <div class="miru-hero">
+          <div class="miru-hero-content">
+            <div class="miru-days-row">
+              <span class="miru-days-num">62</span>
+              <span class="miru-days-label">天 · 和 Miru 在一起</span>
+              <span style="flex:1"></span>
+              <span class="miru-stage">熟悉之后</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-mute);margin-bottom:18px">🗓️ 首次相遇 2026-03-03</div>
+            <div class="miru-orb-wrap">
+              <div class="miru-orb"><div class="miru-orb-glow"></div></div>
+              <div class="miru-mood-info">
+                <div class="name">温柔挂念</div>
+                <div class="reason">你今天连续两次说"卡了"，我一直注意到。但你没找我，所以我也没打扰。</div>
+                <div class="stats">valence +0.32 · arousal 0.40</div>
+              </div>
+            </div>
+            <div class="miru-meters">
+              <div class="miru-meter">
+                <div class="miru-meter-label">亲密度 · 0.62</div>
+                <div class="miru-meter-bar"><div class="miru-meter-fill" style="width:62%"></div></div>
+              </div>
+              <div class="miru-meter">
+                <div class="miru-meter-label">信任度 · 0.74</div>
+                <div class="miru-meter-bar"><div class="miru-meter-fill" style="width:74%;background:linear-gradient(90deg,#FFB74D,#FFE082)"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Miru 情绪轨迹 · 最近 14 次</div>
+          <canvas id="miru-mini-aurora" width="320" height="120" style="width:100%;height:120px"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ DEMO 2: MOOD RIVER ============================ -->
+  <div class="panel" id="panel-river">
+    <div class="card">
+      <div class="card-title">情绪河 · 今日</div>
+      <p style="font-size:12px;color:var(--text-mute);margin:0 0 8px">
+        每条情绪记录是一片光鳞，按时间从左到右排列。色带的厚度 = intensity，颜色 = mood。
+        像液态金属一样流动，能看出全天的情绪节奏。
+      </p>
+      <canvas id="river-canvas" width="1100" height="280"></canvas>
+      <div class="river-axis">
+        <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
+      </div>
+      <div class="river-stats">
+        <div class="river-stat"><div class="label">平均愉悦</div><div class="value" style="color:#FFB7C5">+0.16</div></div>
+        <div class="river-stat"><div class="label">平均唤起</div><div class="value" style="color:#6C9BD2">0.38</div></div>
+        <div class="river-stat"><div class="label">峰值</div><div class="value" style="color:#FFD700">+0.65</div></div>
+        <div class="river-stat"><div class="label">谷底</div><div class="value" style="color:#7B9BA6">-0.22</div></div>
+        <div class="river-stat"><div class="label">记录</div><div class="value">12 条</div></div>
+      </div>
+      <div class="mood-legend" id="river-legend"></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px">
+      <div class="card">
+        <div class="card-title">Miru 当前 · 镜像</div>
+        <div style="position:relative;display:flex;align-items:center;gap:14px;padding:6px 0">
+          <div class="miru-orb" style="width:72px;height:72px"><div class="miru-orb-glow"></div></div>
+          <div class="miru-mood-info">
+            <div class="name">温柔挂念</div>
+            <div class="reason">注意到你卡了。等你抬头时再说话。</div>
+            <div class="stats">valence +0.32 · arousal 0.40 · 第 62 天</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Miru 河流 · 14 天</div>
+        <canvas id="miru-mini-river" width="320" height="100" style="width:100%;height:100px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ DEMO 3: TIDE CALENDAR ============================ -->
+  <div class="panel" id="panel-tide">
+    <div class="grid" style="grid-template-columns:1.6fr 1fr">
+      <div class="card">
+        <div class="card-title">潮汐月历 · 2026 年 5 月</div>
+        <p style="font-size:12px;color:var(--text-mute);margin:0 0 8px">
+          每一格不再是一个抽象色点，而是当天的迷你波形。背景渐变是 dominant mood 的色调。
+          一眼看出哪天起伏大、哪天平静、哪天根本没记录。鼠标悬停放大可见细节。
+        </p>
+        <div class="tide-grid">
+          <div class="tide-weekday">一</div><div class="tide-weekday">二</div><div class="tide-weekday">三</div>
+          <div class="tide-weekday">四</div><div class="tide-weekday">五</div><div class="tide-weekday">六</div><div class="tide-weekday">日</div>
+        </div>
+        <div class="tide-grid" id="tide-grid" style="margin-top:6px"></div>
+        <div class="mood-legend" id="tide-legend"></div>
+      </div>
+      <div>
+        <div class="miru-hero">
+          <div class="miru-hero-content">
+            <div class="miru-days-row">
+              <span class="miru-days-num">62</span>
+              <span class="miru-days-label">天 · 和 Miru 在一起</span>
+              <span style="flex:1"></span>
+              <span class="miru-stage">熟悉之后</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-mute);margin-bottom:18px">🗓️ 首次相遇 2026-03-03</div>
+            <div class="miru-orb-wrap">
+              <div class="miru-orb"><div class="miru-orb-glow"></div></div>
+              <div class="miru-mood-info">
+                <div class="name">温柔挂念</div>
+                <div class="reason">注意到你卡了。等你抬头时再说话。</div>
+                <div class="stats">valence +0.32 · arousal 0.40</div>
+              </div>
+            </div>
+            <div class="miru-meters">
+              <div class="miru-meter">
+                <div class="miru-meter-label">亲密度 · 0.62</div>
+                <div class="miru-meter-bar"><div class="miru-meter-fill" style="width:62%"></div></div>
+              </div>
+              <div class="miru-meter">
+                <div class="miru-meter-label">信任度 · 0.74</div>
+                <div class="miru-meter-bar"><div class="miru-meter-fill" style="width:74%;background:linear-gradient(90deg,#FFB74D,#FFE082)"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Miru · 月度起伏</div>
+          <div id="miru-month-tide" style="display:grid;grid-template-columns:repeat(15,1fr);gap:3px;margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ DEMO 4: CONSTELLATION ============================ -->
+  <div class="panel" id="panel-constellation">
+    <div class="grid" style="grid-template-columns:1.4fr 1fr">
+      <div class="card" style="position:relative">
+        <div class="card-title">情绪星座 · 今日</div>
+        <p style="font-size:12px;color:var(--text-mute);margin:0 0 8px">
+          每条情绪记录是一颗发光的星 — 角度 = 时刻，半径 = intensity，颜色 = mood。
+          按时序连成"轨迹"。鼠标悬停看 trigger，等于一张"情绪日志的天文图"。
+        </p>
+        <canvas id="constellation-canvas" width="540" height="540"></canvas>
+        <div class="const-tooltip" id="const-tooltip"></div>
+        <div class="mood-legend" id="const-legend"></div>
+      </div>
+      <div>
+        <div class="miru-hero">
+          <div class="miru-hero-content">
+            <div class="miru-days-row">
+              <span class="miru-days-num">62</span>
+              <span class="miru-days-label">天 · 和 Miru 在一起</span>
+              <span style="flex:1"></span>
+              <span class="miru-stage">熟悉之后</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-mute);margin-bottom:18px">🗓️ 首次相遇 2026-03-03</div>
+            <div class="miru-orb-wrap">
+              <div class="miru-orb"><div class="miru-orb-glow"></div></div>
+              <div class="miru-mood-info">
+                <div class="name">温柔挂念</div>
+                <div class="reason">注意到你卡了。等你抬头时再说话。</div>
+                <div class="stats">valence +0.32 · arousal 0.40</div>
+              </div>
+            </div>
+            <div class="miru-meters">
+              <div class="miru-meter">
+                <div class="miru-meter-label">亲密度 · 0.62</div>
+                <div class="miru-meter-bar"><div class="miru-meter-fill" style="width:62%"></div></div>
+              </div>
+              <div class="miru-meter">
+                <div class="miru-meter-label">信任度 · 0.74</div>
+                <div class="miru-meter-bar"><div class="miru-meter-fill" style="width:74%;background:linear-gradient(90deg,#FFB74D,#FFE082)"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Miru 共振星图 · 14 天</div>
+          <canvas id="miru-mini-constellation" width="320" height="200" style="width:100%;height:200px"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// COMMON DATA — same dataset feeds all 4 demos
+// ─────────────────────────────────────────────────────────────
+const MOOD_COLORS = {
+  joyful:'#FFB347', excited:'#FF6B6B', proud:'#DDA0DD', relieved:'#87CEEB',
+  grateful:'#98D8C8', relaxed:'#B8D4E3', amused:'#FFD700',
+  frustrated:'#CD5C5C', anxious:'#C0A0C0', tired:'#A0A0A0', sad:'#6B8E9B',
+  angry:'#DC3545', hurt:'#8B668B', bored:'#C8C8C8', lonely:'#7B9BA6',
+  focused:'#6C9BD2', neutral:'#AAAAAA',
+};
+
+// today's user emotion log (mock, but realistic shape — denser to show real ergonomic load)
+const TODAY = [
+  { t:'07:42', mood:'tired',      intensity:0.45, valence:-0.18, src:'auto_screenshot', trig:'凌晨 3 点睡的，刚醒还没缓过来' },
+  { t:'08:20', mood:'tired',      intensity:0.40, valence:-0.14, src:'auto_screenshot', trig:'刷牙时候在发呆' },
+  { t:'09:10', mood:'focused',    intensity:0.40, valence:0.10,  src:'auto_screenshot', trig:'IDE 长时间无切换，开始进入工作' },
+  { t:'09:45', mood:'focused',    intensity:0.50, valence:0.14,  src:'auto_screenshot', trig:'一个新功能写得很顺' },
+  { t:'10:25', mood:'frustrated', intensity:0.55, valence:-0.33, src:'chat',            trig:'卡了一个多小时，终端报同样的错' },
+  { t:'11:00', mood:'frustrated', intensity:0.60, valence:-0.40, src:'chat',            trig:'还是没解决，开始急了' },
+  { t:'11:48', mood:'relieved',   intensity:0.60, valence:0.40,  src:'chat',            trig:'终于发现是字段名拼错了，太蠢了' },
+  { t:'12:30', mood:'amused',     intensity:0.50, valence:0.32,  src:'chat',            trig:'室友发了个段子，笑了' },
+  { t:'13:15', mood:'focused',    intensity:0.45, valence:0.10,  src:'auto_screenshot', trig:'吃完饭继续写代码' },
+  { t:'14:20', mood:'excited',    intensity:0.65, valence:0.65,  src:'chat',            trig:'刚才那个想法 work 了！终于能跑通' },
+  { t:'14:55', mood:'proud',      intensity:0.55, valence:0.55,  src:'chat',            trig:'测试都过了，开心' },
+  { t:'15:30', mood:'focused',    intensity:0.40, valence:0.10,  src:'auto_screenshot', trig:'继续推进剩下的部分' },
+  { t:'16:10', mood:'focused',    intensity:0.45, valence:0.08,  src:'auto_screenshot', trig:'看文档，处理细节' },
+  { t:'17:00', mood:'tired',      intensity:0.40, valence:-0.16, src:'auto_screenshot', trig:'连续 4 小时高强度，开始下滑' },
+  { t:'17:45', mood:'tired',      intensity:0.35, valence:-0.12, src:'auto_screenshot', trig:'肩膀酸，撑不太住' },
+  { t:'18:45', mood:'relaxed',    intensity:0.35, valence:0.21,  src:'chat',            trig:'在做饭，B 站放轻音乐' },
+  { t:'19:30', mood:'relaxed',    intensity:0.40, valence:0.24,  src:'chat',            trig:'吃饭，慢慢的' },
+  { t:'20:20', mood:'amused',     intensity:0.45, valence:0.28,  src:'chat',            trig:'看 vlog，挺好笑' },
+  { t:'21:00', mood:'grateful',   intensity:0.55, valence:0.45,  src:'chat',            trig:'妈妈打电话来，说一切都好' },
+  { t:'22:00', mood:'focused',    intensity:0.30, valence:0.06,  src:'auto_screenshot', trig:'整理今天的 commit' },
+  { t:'22:30', mood:'focused',    intensity:0.30, valence:0.08,  src:'auto_screenshot', trig:'晚间整理今天的 PR' },
+];
+
+// last 7 days hourly summary — every hour gets at least a baseline to avoid sparse rings.
+function genHourly(seed) {
+  const arr = [];
+  for (let h = 0; h < 24; h++) {
+    const isAwake = h >= 7 && h <= 23;
+    const isWork = h >= 9 && h <= 18;
+    const isEvening = h >= 19 && h <= 22;
+    let moods, density;
+    if (h < 6) { moods = ['tired']; density = 0.2; }
+    else if (h < 9) { moods = ['tired','focused','relaxed']; density = 0.55; }
+    else if (h < 12) { moods = ['focused','focused','frustrated','relieved']; density = 0.85; }
+    else if (h < 14) { moods = ['amused','relaxed','focused','grateful']; density = 0.7; }
+    else if (h < 18) { moods = ['focused','focused','excited','tired','proud']; density = 0.85; }
+    else if (h < 22) { moods = ['relaxed','amused','grateful','focused']; density = 0.75; }
+    else { moods = ['tired','focused','relaxed']; density = 0.5; }
+    const m = moods[Math.floor(Math.random()*moods.length)];
+    arr.push({
+      h, mood: m,
+      intensity: 0.20 + Math.random() * 0.55 * density,
+      valence: (Math.random()-0.4)*0.6,
+      density: density,
+    });
+  }
+  return arr;
+}
+const WEEK = Array.from({length:7}, (_,i) => genHourly(i));
+
+// month (28 days)
+function genDay(d) {
+  // some days empty
+  if (Math.random() < 0.08) return null;
+  const numEntries = 4 + Math.floor(Math.random() * 10);
+  const entries = [];
+  for (let k = 0; k < numEntries; k++) {
+    const moods = ['focused','focused','focused','tired','relieved','amused','frustrated','relaxed','grateful','excited'];
+    const m = moods[Math.floor(Math.random()*moods.length)];
+    const minute = 60 * (7 + Math.random() * 16); // 07:00 - 23:00
+    entries.push({ minute, mood: m, intensity: 0.25 + Math.random()*0.45, valence: ({focused:0.06,tired:-0.18,relieved:0.32,amused:0.3,frustrated:-0.36,relaxed:0.22,grateful:0.4,excited:0.55}[m] || 0) + (Math.random()-0.5)*0.15 });
+  }
+  entries.sort((a,b) => a.minute - b.minute);
+  // day-level summary
+  const counts = {};
+  entries.forEach(e => counts[e.mood] = (counts[e.mood]||0)+1);
+  const dom = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+  const avgV = entries.reduce((a,b)=>a+b.valence,0)/entries.length;
+  return { entries, dom, avgV, count: entries.length };
+}
+const MONTH = Array.from({length:31}, (_,i) => genDay(i));
+
+// ─────────────────────────────────────────────────────────────
+// TAB SWITCHING — must redraw the newly visible canvas because
+// hidden panels have clientWidth = 0 at initial load time.
+// ─────────────────────────────────────────────────────────────
+function renderTab(target) {
+  // Defer one frame so layout settles after class toggle (visible panel
+  // gets its real width). requestAnimationFrame is enough.
+  requestAnimationFrame(() => {
+    if (target === 'aurora') { drawAurora(); drawMiruMiniAurora(); }
+    else if (target === 'river') { drawRiver(); drawMiruMiniRiver(); }
+    else if (target === 'tide') { buildTide(); }
+    else if (target === 'constellation') { drawConstellation(); drawMiruMiniConstellation(); }
+  });
+}
+function switchTab(target) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.target === target));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-'+target));
+  renderTab(target);
+}
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.target));
+});
+// allow #river / #constellation / etc. for headless screenshots
+const _hashTab = (window.location.hash || '').slice(1);
+if (['aurora','river','tide','constellation'].includes(_hashTab)) {
+  switchTab(_hashTab);
+}
+
+// ─────────────────────────────────────────────────────────────
+// DEMO 1: AURORA RING (canvas) — 5 rings, fully filled with mood color
+// ─────────────────────────────────────────────────────────────
+function drawAurora() {
+  const cv = document.getElementById('aurora-canvas');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const size = cv.clientWidth;
+  cv.width = size * dpr; cv.height = size * dpr;
+  ctx.scale(dpr, dpr);
+  const cx = size/2, cy = size/2;
+  const innerR = size * 0.13;
+  const outerR = size * 0.46;
+  const NUM_RINGS = 5; // today + 4 days back, more impact than 7 thin rings
+  const ringStep = (outerR - innerR) / NUM_RINGS;
+
+  // Background dark radial
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerR*1.2);
+  bg.addColorStop(0, '#1c1c28');
+  bg.addColorStop(0.7, '#0e0e16');
+  bg.addColorStop(1, '#06060a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, size, size);
+
+  // ──── Rings: outer→inner so today (innermost) draws on top ────
+  for (let dayIdx = NUM_RINGS - 1; dayIdx >= 0; dayIdx--) {
+    const data = WEEK[dayIdx];
+    const r0 = innerR + (NUM_RINGS - 1 - dayIdx) * ringStep;
+    const r1 = r0 + ringStep;
+    const rMid = (r0 + r1) / 2;
+    const thickness = ringStep - 2;
+
+    // Each hour: full arc (no gaps), color = mood, opacity = density × intensity
+    for (let h = 0; h < 24; h++) {
+      const entry = data[h];
+      const a0 = (h / 24) * Math.PI * 2 - Math.PI/2;
+      const a1 = ((h + 1) / 24) * Math.PI * 2 - Math.PI/2;
+      const color = MOOD_COLORS[entry.mood] || '#666';
+      const opacity = 0.15 + entry.intensity * 0.85;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, rMid, a0 + 0.005, a1 - 0.005);
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = opacity * (dayIdx === 0 ? 1.0 : 0.6 + dayIdx * 0.05);  // today brightest
+      ctx.lineWidth = thickness;
+      ctx.lineCap = 'butt';
+      if (dayIdx === 0) {
+        // today gets glow
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Subtle ring separator
+    ctx.beginPath();
+    ctx.arc(cx, cy, r0, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // ──── 24h tick labels ────
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = '600 11px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ['00','06','12','18'].forEach((label, i) => {
+    const a = (i*6/24)*Math.PI*2 - Math.PI/2;
+    const r = outerR + 16;
+    ctx.fillText(label, cx + Math.cos(a)*r, cy + Math.sin(a)*r);
+  });
+
+  // 24-hour radial guide lines (very faint)
+  for (let h = 0; h < 24; h += 6) {
+    const a = (h / 24) * Math.PI * 2 - Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a)*innerR, cy + Math.sin(a)*innerR);
+    ctx.lineTo(cx + Math.cos(a)*outerR, cy + Math.sin(a)*outerR);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // ──── "Now" sweep — current hour highlight ring ────
+  const nowH = new Date().getHours() + new Date().getMinutes()/60;
+  const aNow = (nowH/24) * Math.PI*2 - Math.PI/2;
+  const sweepHalf = (Math.PI*2 / 24) / 2;
+
+  // current hour beam (innermost ring)
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR + ringStep/2, aNow - sweepHalf - 0.02, aNow + sweepHalf + 0.02);
+  ctx.strokeStyle = '#fff';
+  ctx.globalAlpha = 0.85;
+  ctx.lineWidth = ringStep - 1;
+  ctx.shadowColor = '#FFB7C5';
+  ctx.shadowBlur = 24;
+  ctx.stroke();
+  ctx.restore();
+
+  // ──── Center area: orb + label ────
+  // outer halo
+  const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, innerR * 1.3);
+  halo.addColorStop(0, 'rgba(255,183,197,0.55)');
+  halo.addColorStop(0.6, 'rgba(201,160,220,0.18)');
+  halo.addColorStop(1, 'rgba(108,155,210,0)');
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR * 1.3, 0, Math.PI*2);
+  ctx.fill();
+
+  // orb
+  const orb = ctx.createRadialGradient(cx - innerR*0.25, cy - innerR*0.25, 0, cx, cy, innerR);
+  orb.addColorStop(0, '#FFD8E0');
+  orb.addColorStop(0.5, '#FFB7C5');
+  orb.addColorStop(1, '#C9A0DC');
+  ctx.fillStyle = orb;
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI*2);
+  ctx.fill();
+
+  // center text
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.font = '600 13px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('focused', cx, cy - 5);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.fillText(new Date().toTimeString().slice(0,5), cx, cy + 10);
+
+  // ──── Day labels around outer ring ────
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '9px -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  for (let dayIdx = 0; dayIdx < NUM_RINGS; dayIdx++) {
+    const r = innerR + (NUM_RINGS - 1 - dayIdx) * ringStep + ringStep/2;
+    const label = dayIdx === 0 ? '今天' : `-${dayIdx}d`;
+    ctx.fillText(label, cx + 4, cy + r - ringStep*0.1);
+  }
+}
+
+function buildLegend(targetId) {
+  const moods = ['focused','frustrated','relieved','amused','tired','grateful','excited','relaxed'];
+  const html = moods.map(m =>
+    `<div class="mood-chip"><i style="background:${MOOD_COLORS[m]}"></i>${m}</div>`
+  ).join('');
+  document.getElementById(targetId).innerHTML = html;
+}
+
+// Mini Miru aurora (linear bar version)
+function drawMiruMiniAurora() {
+  const cv = document.getElementById('miru-mini-aurora');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = 120;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.scale(dpr, dpr);
+
+  const N = 14;
+  const bw = (W - 24) / N;
+  for (let i = 0; i < N; i++) {
+    const v = Math.sin(i*0.5)*0.3 + (Math.random()-0.5)*0.2 + 0.3;
+    const arr = 0.3 + Math.random()*0.4;
+    const cx = 12 + i*bw + bw/2;
+    const cy = H/2;
+    const r = 3 + arr*8;
+
+    // glow
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*3);
+    g.addColorStop(0, `rgba(255,183,197,${0.35 + arr*0.4})`);
+    g.addColorStop(1, 'rgba(255,183,197,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r*3, 0, Math.PI*2);
+    ctx.fill();
+
+    // dot
+    ctx.fillStyle = v > 0 ? '#FFB7C5' : '#7B9BA6';
+    ctx.beginPath();
+    ctx.arc(cx, cy + (-v)*30, r, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// DEMO 2: MOOD RIVER — properly closed ribbon with mood gradient
+// ─────────────────────────────────────────────────────────────
+function drawRiver() {
+  const cv = document.getElementById('river-canvas');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = 280;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.scale(dpr, dpr);
+
+  const PAD_L = 40, PAD_R = 20, PAD_T = 20, PAD_B = 24;
+  const plotW = W - PAD_L - PAD_R;
+  const plotH = H - PAD_T - PAD_B;
+  const cy = PAD_T + plotH/2;
+
+  // Background subtle gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, 'rgba(255,183,197,0.05)');
+  bg.addColorStop(0.5, 'rgba(255,255,255,0.015)');
+  bg.addColorStop(1, 'rgba(108,155,210,0.05)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Y axis pole labels
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '10px -apple-system';
+  ctx.textAlign = 'left';
+  ctx.fillText('愉悦', 8, PAD_T + 10);
+  ctx.fillText('低落', 8, H - PAD_B);
+
+  // Neutral baseline
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.setLineDash([4, 8]);
+  ctx.beginPath();
+  ctx.moveTo(PAD_L, cy);
+  ctx.lineTo(W-PAD_R, cy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Convert each entry to plot coords
+  const pts = TODAY.map(e => {
+    const [hh, mm] = e.t.split(':').map(Number);
+    const minutes = hh*60 + mm;
+    const x = PAD_L + (minutes/1440) * plotW;
+    const y = cy - e.valence * (plotH/2 - 8);
+    const halfThickness = 14 + e.intensity * 32;
+    return {
+      x, y, color: MOOD_COLORS[e.mood],
+      ht: halfThickness,
+      intensity: e.intensity, mood: e.mood,
+      t: e.t, val: e.valence, trig: e.trig,
+    };
+  });
+
+  // ─── Helper: build smooth cubic-Bezier path through the points
+  // off = vertical offset (negative = above, positive = below)
+  // hsel: function to pick half-thickness per point (for tapered ribbon)
+  function buildSmoothPath(side) {
+    // side: 'top' (y - ht) or 'bottom' (y + ht)
+    const ys = pts.map(p => side === 'top' ? p.y - p.ht : p.y + p.ht);
+    const path = new Path2D();
+    path.moveTo(pts[0].x, ys[0]);
+    for (let i = 0; i < pts.length-1; i++) {
+      const p0 = pts[i-1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i+1];
+      const p3 = pts[i+2] || p2;
+      const y0 = i-1 >= 0 ? ys[i-1] : ys[i];
+      const y1 = ys[i];
+      const y2 = ys[i+1];
+      const y3 = i+2 < ys.length ? ys[i+2] : y2;
+      const cp1x = p1.x + (p2.x - p0.x)/5;
+      const cp1y = y1 + (y2 - y0)/5;
+      const cp2x = p2.x - (p3.x - p1.x)/5;
+      const cp2y = y2 - (y3 - y1)/5;
+      path.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, y2);
+    }
+    return path;
+  }
+
+  // ─── Build the closed ribbon polygon manually (top forward + bottom reverse)
+  function buildClosedRibbon() {
+    const path = new Path2D();
+    // top forward
+    const topYs = pts.map(p => p.y - p.ht);
+    path.moveTo(pts[0].x, topYs[0]);
+    for (let i = 0; i < pts.length-1; i++) {
+      const p0 = pts[i-1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i+1];
+      const p3 = pts[i+2] || p2;
+      const y0 = topYs[i-1] !== undefined ? topYs[i-1] : topYs[i];
+      const y1 = topYs[i];
+      const y2 = topYs[i+1];
+      const y3 = topYs[i+2] !== undefined ? topYs[i+2] : y2;
+      const cp1x = p1.x + (p2.x - p0.x)/5;
+      const cp1y = y1 + (y2 - y0)/5;
+      const cp2x = p2.x - (p3.x - p1.x)/5;
+      const cp2y = y2 - (y3 - y1)/5;
+      path.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, y2);
+    }
+    // bottom reverse
+    const botYs = pts.map(p => p.y + p.ht);
+    path.lineTo(pts[pts.length-1].x, botYs[pts.length-1]);
+    for (let i = pts.length-1; i > 0; i--) {
+      const p0 = pts[i+1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i-1];
+      const p3 = pts[i-2] || p2;
+      const y0 = botYs[i+1] !== undefined ? botYs[i+1] : botYs[i];
+      const y1 = botYs[i];
+      const y2 = botYs[i-1];
+      const y3 = botYs[i-2] !== undefined ? botYs[i-2] : y2;
+      const cp1x = p1.x - (p0.x - p2.x)/5;
+      const cp1y = y1 - (y0 - y2)/5;
+      const cp2x = p2.x + (p1.x - p3.x)/5;
+      const cp2y = y2 + (y1 - y3)/5;
+      path.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, y2);
+    }
+    path.closePath();
+    return path;
+  }
+
+  // ─── Build mood-gradient color stops along the ribbon
+  const moodGradient = ctx.createLinearGradient(PAD_L, 0, W - PAD_R, 0);
+  pts.forEach((p, i) => {
+    const stop = pts.length === 1 ? 0.5 : i / (pts.length - 1);
+    moodGradient.addColorStop(stop, p.color);
+  });
+
+  // ─── Soft glow under ribbon (separate path with extra padding)
+  ctx.save();
+  ctx.shadowColor = '#FFB7C5';
+  ctx.shadowBlur = 24;
+  ctx.fillStyle = moodGradient;
+  ctx.globalAlpha = 0.18;
+  ctx.fill(buildClosedRibbon());
+  ctx.restore();
+
+  // ─── Filled ribbon body
+  ctx.save();
+  ctx.fillStyle = moodGradient;
+  ctx.globalAlpha = 0.42;
+  ctx.fill(buildClosedRibbon());
+  ctx.restore();
+
+  // ─── Top + bottom glowing edges
+  ctx.save();
+  ctx.strokeStyle = moodGradient;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#FFB7C5';
+  ctx.shadowBlur = 8;
+  ctx.stroke(buildSmoothPath('top'));
+  ctx.stroke(buildSmoothPath('bottom'));
+  ctx.restore();
+
+  // ─── Center axis curve (the actual valence line)
+  const centerPath = new Path2D();
+  centerPath.moveTo(pts[0].x, pts[0].y);
+  for (let i = 0; i < pts.length-1; i++) {
+    const p0 = pts[i-1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i+1];
+    const p3 = pts[i+2] || p2;
+    const cp1x = p1.x + (p2.x - p0.x)/5;
+    const cp1y = p1.y + (p2.y - p0.y)/5;
+    const cp2x = p2.x - (p3.x - p1.x)/5;
+    const cp2y = p2.y - (p3.y - p1.y)/5;
+    centerPath.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+  }
+  ctx.save();
+  ctx.strokeStyle = '#fff';
+  ctx.globalAlpha = 0.55;
+  ctx.lineWidth = 1.5;
+  ctx.stroke(centerPath);
+  ctx.restore();
+
+  // ─── Bright dots at each entry
+  pts.forEach((p) => {
+    // outer glow
+    const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 18);
+    halo.addColorStop(0, p.color + 'AA');
+    halo.addColorStop(1, p.color + '00');
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 18, 0, Math.PI*2);
+    ctx.fill();
+
+    // bright core
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3 + p.intensity*3, 0, Math.PI*2);
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 14;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+}
+
+function drawMiruMiniRiver() {
+  const cv = document.getElementById('miru-mini-river');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = 100;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.scale(dpr, dpr);
+
+  const N = 14;
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const x = (i/(N-1)) * (W - 20) + 10;
+    const v = Math.sin(i*0.4 + 1) * 0.3 + 0.2 + (Math.random()-0.5)*0.1;
+    const y = H/2 - v * (H/2 - 12);
+    pts.push({x, y, v});
+  }
+
+  // ribbon glow
+  const grad = ctx.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0, 'rgba(255,183,197,0.7)');
+  grad.addColorStop(0.5, 'rgba(201,160,220,0.7)');
+  grad.addColorStop(1, 'rgba(108,155,210,0.7)');
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) {
+    const xc = (pts[i].x + pts[i-1].x)/2;
+    const yc = (pts[i].y + pts[i-1].y)/2;
+    ctx.quadraticCurveTo(pts[i-1].x, pts[i-1].y, xc, yc);
+  }
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#FFB7C5';
+  ctx.shadowBlur = 12;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // dots
+  pts.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// DEMO 3: TIDE CALENDAR
+// ─────────────────────────────────────────────────────────────
+function buildTide() {
+  const grid = document.getElementById('tide-grid');
+  const today = 4; // mock today as May 4
+
+  // First weekday of May (mock = Friday = index 4)
+  const startDow = 4;
+  let html = '';
+  for (let e = 0; e < startDow; e++) html += '<div></div>';
+
+  for (let d = 1; d <= 31; d++) {
+    const data = MONTH[d-1];
+    const isToday = d === today;
+    if (!data) {
+      html += `<div class="tide-cell empty"><div class="tide-day-num">${d}</div></div>`;
+      continue;
+    }
+    const color = MOOD_COLORS[data.dom];
+    const bgGrad = `linear-gradient(135deg, ${color}28, ${color}08)`;
+    const valColor = data.avgV > 0.1 ? '#FFB7C5' : data.avgV < -0.1 ? '#7B9BA6' : '#AAA';
+
+    // mini sparkline SVG
+    const w = 70, h = 28;
+    const minV = -0.6, maxV = 0.7;
+    let pathD = '';
+    data.entries.forEach((e, i) => {
+      const x = (i / Math.max(1, data.entries.length-1)) * w;
+      const y = h - ((e.valence - minV) / (maxV - minV)) * h;
+      pathD += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    const baseY = h - ((0 - minV) / (maxV - minV)) * h;
+
+    html += `
+      <div class="tide-cell ${isToday ? 'today' : ''}" style="background:${bgGrad};border-color:${color}40">
+        <div class="tide-day-num" style="color:${valColor}">${d}</div>
+        <svg class="tide-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          <line x1="0" y1="${baseY}" x2="${w}" y2="${baseY}" stroke="rgba(255,255,255,0.15)" stroke-dasharray="2,3"/>
+          <path d="${pathD}" stroke="${color}" stroke-width="1.5" fill="none" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>
+        </svg>
+        <div class="tide-mood-dot" style="background:${color};box-shadow:0 0 6px ${color}"></div>
+      </div>`;
+  }
+  grid.innerHTML = html;
+
+  // miru month tide
+  const mt = document.getElementById('miru-month-tide');
+  let mhtml = '';
+  for (let i = 0; i < 30; i++) {
+    const v = Math.sin(i*0.4)*0.25 + 0.25 + (Math.random()-0.5)*0.15;
+    const h = 8 + Math.abs(v) * 28;
+    const c = v > 0.05 ? '#FFB7C5' : v < -0.05 ? '#7B9BA6' : '#AAA';
+    mhtml += `<div style="height:${h}px;background:${c};opacity:0.65;border-radius:2px;align-self:end"></div>`;
+  }
+  mt.innerHTML = mhtml;
+}
+
+// ─────────────────────────────────────────────────────────────
+// DEMO 4: CONSTELLATION — center orb + valence-driven radius + 24 ticks
+// radius now encodes valence (positive = outer, negative = inner) so
+// the cloud naturally splits into "good day / bad day" zones.
+// ─────────────────────────────────────────────────────────────
+function drawConstellation() {
+  const cv = document.getElementById('constellation-canvas');
+  const ctx = cv.getContext('2d');
+  const tooltip = document.getElementById('const-tooltip');
+  const dpr = window.devicePixelRatio || 1;
+  const size = cv.clientWidth;
+  cv.width = size*dpr; cv.height = size*dpr;
+  ctx.scale(dpr, dpr);
+
+  const cx = size/2, cy = size/2;
+  const orbR = size * 0.13;       // central mood orb (Miru's current state)
+  const innerR = size * 0.18;     // closest a star can sit
+  const baselineR = size * 0.30;  // valence = 0 ring (the "neutral horizon")
+  const outerR = size * 0.44;     // happiest possible
+  const lowR = size * 0.20;       // saddest possible
+
+  // Background space
+  ctx.fillStyle = '#070710';
+  ctx.fillRect(0, 0, size, size);
+  const spaceGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, size*0.55);
+  spaceGrad.addColorStop(0, 'rgba(255,183,197,0.05)');
+  spaceGrad.addColorStop(0.5, 'rgba(108,155,210,0.04)');
+  spaceGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = spaceGrad;
+  ctx.fillRect(0, 0, size, size);
+
+  // tiny background stars
+  for (let i = 0; i < 130; i++) {
+    const x = Math.random()*size, y = Math.random()*size;
+    const r = Math.random()*1.0;
+    ctx.fillStyle = `rgba(255,255,255,${0.15 + Math.random()*0.5})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // baseline ring (valence = 0) — labelled "neutral"
+  ctx.beginPath();
+  ctx.arc(cx, cy, baselineR, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.setLineDash([3, 6]);
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // outer ring guide
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.stroke();
+
+  // ─── 24 hour radial ticks ───
+  for (let h = 0; h < 24; h++) {
+    const a = (h/24) * Math.PI*2 - Math.PI/2;
+    const isMajor = h % 6 === 0;
+    const r1 = isMajor ? innerR : outerR - 4;
+    const r2 = outerR + (isMajor ? 8 : 2);
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a)*r1, cy + Math.sin(a)*r1);
+    ctx.lineTo(cx + Math.cos(a)*r2, cy + Math.sin(a)*r2);
+    ctx.strokeStyle = isMajor ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = isMajor ? 1 : 0.5;
+    ctx.stroke();
+  }
+
+  // hour labels
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = '600 11px -apple-system';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ['00','06','12','18'].forEach((label, i) => {
+    const a = (i*6/24)*Math.PI*2 - Math.PI/2;
+    const r = outerR + 22;
+    ctx.fillText(label, cx + Math.cos(a)*r, cy + Math.sin(a)*r);
+  });
+
+  // labels at radial extremes
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '9px -apple-system';
+  ctx.fillText('愉悦', cx, cy - outerR - 3);
+  ctx.fillText('低落', cx, cy - lowR + 16);
+
+  // ─── star points: angle = time, radius = valence-driven, color = mood ───
+  const points = TODAY.map(e => {
+    const [hh, mm] = e.t.split(':').map(Number);
+    const minute = hh*60 + mm;
+    const angle = (minute/1440) * Math.PI*2 - Math.PI/2;
+    // valence > 0 → push outward; valence < 0 → pull inward
+    const v = Math.max(-1, Math.min(1, e.val !== undefined ? e.val : e.valence));
+    let r;
+    if (v >= 0) r = baselineR + v * (outerR - baselineR) * 0.95;
+    else        r = baselineR + v * (baselineR - lowR) * 0.95; // v negative → inward
+    return {
+      x: cx + Math.cos(angle)*r,
+      y: cy + Math.sin(angle)*r,
+      r: r, angle: angle,
+      color: MOOD_COLORS[e.mood],
+      mood: e.mood, t: e.t, val: v, intensity: e.intensity, trig: e.trig, src: e.src
+    };
+  });
+
+  // ─── Trail connecting points in time order (faint) ───
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.stroke();
+
+  // ─── Stars ───
+  points.forEach((p) => {
+    // outer glow
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 22);
+    g.addColorStop(0, p.color + 'EE');
+    g.addColorStop(0.35, p.color + '88');
+    g.addColorStop(1, p.color + '00');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 22, 0, Math.PI*2);
+    ctx.fill();
+
+    // bright core, size = intensity
+    const coreR = 3 + p.intensity * 4;
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, coreR, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // tiny twinkle (4-pointed star)
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(p.x - coreR*2.2, p.y);
+    ctx.lineTo(p.x + coreR*2.2, p.y);
+    ctx.moveTo(p.x, p.y - coreR*2.2);
+    ctx.lineTo(p.x, p.y + coreR*2.2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  });
+
+  // ─── Center: Miru orb with halo (the core) ───
+  // halo
+  const halo = ctx.createRadialGradient(cx, cy, orbR*0.7, cx, cy, orbR*1.6);
+  halo.addColorStop(0, 'rgba(255,183,197,0.55)');
+  halo.addColorStop(0.5, 'rgba(201,160,220,0.22)');
+  halo.addColorStop(1, 'rgba(108,155,210,0)');
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(cx, cy, orbR*1.6, 0, Math.PI*2);
+  ctx.fill();
+
+  // orb body
+  const orb = ctx.createRadialGradient(cx - orbR*0.3, cy - orbR*0.3, 0, cx, cy, orbR);
+  orb.addColorStop(0, '#FFE0E8');
+  orb.addColorStop(0.4, '#FFB7C5');
+  orb.addColorStop(1, '#9F7BB8');
+  ctx.fillStyle = orb;
+  ctx.beginPath();
+  ctx.arc(cx, cy, orbR, 0, Math.PI*2);
+  ctx.fill();
+
+  // orb sheen
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(cx - orbR*0.3, cy - orbR*0.4, orbR*0.4, orbR*0.18, -0.3, 0, Math.PI*2);
+  ctx.fill();
+
+  // text
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.font = '600 13px -apple-system';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Miru', cx, cy - 6);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = '10px -apple-system';
+  ctx.fillText('挂念', cx, cy + 9);
+
+  // ─── Hover handler ───
+  cv.onmousemove = (ev) => {
+    const rect = cv.getBoundingClientRect();
+    const mx = ev.clientX - rect.left;
+    const my = ev.clientY - rect.top;
+    let hit = null;
+    points.forEach(p => {
+      const dx = mx - p.x, dy = my - p.y;
+      if (Math.sqrt(dx*dx + dy*dy) < 14) hit = p;
+    });
+    if (hit) {
+      tooltip.innerHTML = `<b style="color:${hit.color}">${hit.mood}</b> · ${hit.t}<br>` +
+        `<span style="opacity:0.7">valence ${hit.val>=0?'+':''}${hit.val.toFixed(2)} · int ${hit.intensity.toFixed(2)}</span><br>` +
+        `<span style="opacity:0.85;font-size:11px">${hit.trig}</span>`;
+      tooltip.style.left = (ev.pageX + 14) + 'px';
+      tooltip.style.top = (ev.pageY + 14) + 'px';
+      tooltip.classList.add('show');
+    } else {
+      tooltip.classList.remove('show');
+    }
+  };
+  cv.onmouseleave = () => tooltip.classList.remove('show');
+}
+
+function drawMiruMiniConstellation() {
+  const cv = document.getElementById('miru-mini-constellation');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = 200;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.scale(dpr, dpr);
+
+  const cx = W/2, cy = H/2;
+  // bg
+  ctx.fillStyle = '#070710';
+  ctx.fillRect(0, 0, W, H);
+  // tiny stars
+  for (let i = 0; i < 50; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${0.15 + Math.random()*0.4})`;
+    ctx.beginPath();
+    ctx.arc(Math.random()*W, Math.random()*H, Math.random()*0.7, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  const pts = [];
+  for (let i = 0; i < 14; i++) {
+    const a = (i/14) * Math.PI*2;
+    const r = 30 + Math.random()*40;
+    pts.push({x: cx + Math.cos(a)*r, y: cy + Math.sin(a)*r, c: ['#FFB7C5','#C9A0DC','#6C9BD2'][i%3]});
+  }
+  // trail
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath();
+  pts.forEach((p,i) => i === 0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+  ctx.closePath();
+  ctx.stroke();
+  // stars
+  pts.forEach(p => {
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 12);
+    g.addColorStop(0, p.c);
+    g.addColorStop(1, p.c + '00');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 12, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 1.6, 0, Math.PI*2);
+    ctx.fill();
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// INIT
+// Hidden panels have clientWidth = 0, so we only render the
+// active panel on load and on tab switch.
+// ─────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Legends are pure DOM, safe to build even for hidden tabs
+  buildLegend('aurora-legend');
+  buildLegend('river-legend');
+  buildLegend('tide-legend');
+  buildLegend('const-legend');
+  // Tide grid (not canvas-based) can be built upfront
+  buildTide();
+  // Pick the active tab (already set by hash logic above)
+  const active = document.querySelector('.tab.active');
+  if (active) renderTab(active.dataset.target);
+});
+
+window.addEventListener('resize', () => {
+  // Only re-render the visible panel
+  const active = document.querySelector('.tab.active');
+  if (active) renderTab(active.dataset.target);
+});
+</script>
+</body>
+</html>

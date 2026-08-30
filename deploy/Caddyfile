@@ -1,0 +1,23 @@
+# Replace {$DOMAIN} with your actual domain, e.g.:
+#   miru.example.com
+# Caddy auto-provisions Let's Encrypt HTTPS certificates.
+#
+# If you don't have a domain yet, use :80 instead:
+#   :80 {
+#       reverse_proxy miru:5001
+#   }
+
+{$DOMAIN:localhost} {
+    reverse_proxy miru:5001
+
+    # SSE: disable buffering for /api/events
+    @sse path /api/events
+    handle @sse {
+        reverse_proxy miru:5001 {
+            flush_interval -1
+            transport http {
+                read_timeout 0
+            }
+        }
+    }
+}

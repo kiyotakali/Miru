@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ContextLife Shell</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0f1117;
+      color: #d2d8e2;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .card {
+      width: min(560px, 96vw);
+      background: #151c2a;
+      border: 1px solid #2a3446;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+    .title {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      color: #9fc1ff;
+    }
+    .sub {
+      margin: 0 0 16px 0;
+      color: #a4adbb;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .target {
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #364765;
+      background: #0f1520;
+      word-break: break-all;
+      margin-bottom: 14px;
+    }
+    .muted {
+      font-size: 12px;
+      color: #8590a3;
+    }
+    .err {
+      color: #ff9f9f;
+      margin-top: 10px;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="title">ContextLife App Shell</h1>
+    <p class="sub">Loading the web core. This wrapper keeps one codebase across desktop and mobile.</p>
+    <div class="target" id="target">Resolving target URL...</div>
+    <div class="muted">If this page stays here, check network and shell URL config.</div>
+    <div class="err" id="err"></div>
+  </div>
+  <script>
+    async function boot() {
+      const targetEl = document.getElementById("target");
+      const errEl = document.getElementById("err");
+      try {
+        const queryUrl = new URLSearchParams(window.location.search).get("url");
+        let cfg = {};
+        try {
+          const res = await fetch("./config.json", { cache: "no-store" });
+          if (res.ok) cfg = await res.json();
+        } catch (e) {
+          // fallback below
+        }
+
+        const fallbackList = Array.isArray(cfg.fallback_urls) ? cfg.fallback_urls : [];
+        const url = queryUrl || cfg.web_url || fallbackList[0] || "http://127.0.0.1:5001";
+        targetEl.textContent = "Target: " + url;
+
+        if (cfg.replace_history === false) {
+          window.location.assign(url);
+        } else {
+          window.location.replace(url);
+        }
+      } catch (err) {
+        targetEl.textContent = "Target resolution failed.";
+        errEl.textContent = String(err);
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>

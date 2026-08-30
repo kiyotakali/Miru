@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>情绪可视化 v2 — 完整重做方案</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+:root {
+  /* Light page chrome (sidebar + header stays cream) */
+  --bg-base: #FFF9F2;
+  --bg-card: #FDF6EE;
+  --text-primary: #3A2E2A;
+  --text-secondary: #6B5D54;
+  --text-muted: #9A8B7A;
+  --border: rgba(58,46,42,0.16);
+  --sakura: #FFB7C5;
+  --sakura-deep: #E89BAB;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.outer-wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+/* ==== Tab strip ==== */
+.tabs {
+  display: flex; gap: 6px; margin-bottom: 20px; padding: 6px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  width: fit-content;
+}
+.tab {
+  padding: 8px 18px; border: none; border-radius: 10px; cursor: pointer;
+  font-size: 13px; color: var(--text-secondary); background: transparent;
+  font-family: inherit;
+}
+.tab.active {
+  background: linear-gradient(135deg, #1c1c28, #0e0e16);
+  color: #ECECF1; box-shadow: 0 2px 8px rgba(20,15,30,0.18);
+}
+
+/* ==== Page chrome ==== */
+.page-back-btn {
+  display: inline-block; padding: 6px 14px; margin-bottom: 14px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text-secondary); font-size: 13px; cursor: pointer;
+}
+
+/* ==== THE BIG DARK PANEL — used by all three emotion views ==== */
+.emo-panel {
+  /* Self-contained dark theme inside this panel — overrides page vars */
+  --text-primary: #ECECF1;
+  --text-secondary: #B8B8C4;
+  --text-muted: #7A7A86;
+  --border: rgba(255,255,255,0.08);
+  --bg-secondary: rgba(255,255,255,0.04);
+
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg,#1c1c28 0%,#0e0e16 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 22px;
+  box-shadow: 0 14px 40px rgba(20,15,30,0.22);
+  color: #ECECF1;
+  padding: 26px 26px 22px;
+}
+.emo-panel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at 88% 8%, rgba(255,183,197,0.10), transparent 50%);
+}
+.emo-panel > * { position: relative; }
+
+/* Section header inside panel */
+.emo-section-h {
+  display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px;
+}
+.emo-section-h .title {
+  font-size: 14px; letter-spacing: 1.2px; color: rgba(255,255,255,0.92);
+}
+.emo-section-h .meta {
+  font-size: 12px; color: rgba(255,255,255,0.4); font-variant-numeric: tabular-nums;
+}
+.emo-section-h .spacer { flex: 1; }
+.emo-subtitle {
+  font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 16px; line-height: 1.55;
+}
+.emo-section-divider {
+  height: 1px; background: rgba(255,255,255,0.06); margin: 18px 0 14px;
+}
+
+/* Stat pills (used in 用户日详情) */
+.stat-pills {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+  padding: 18px 0 14px;
+}
+@media (max-width: 720px) { .stat-pills { grid-template-columns: repeat(2, 1fr); } }
+.stat-pill {
+  padding: 12px 14px; border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.stat-pill .label { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; }
+.stat-pill .value { font-size: 18px; font-weight: 600; margin-top: 4px; line-height: 1.1; }
+
+/* Mood distribution chips (used in 用户日详情) */
+.mood-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.mood-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border-radius: 999px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08); font-size: 12px;
+  color: rgba(255,255,255,0.85);
+}
+.mood-chip i {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+}
+.mood-chip span.pct { opacity: 0.55; }
+
+/* Source chips (输入来源) — same dark style */
+.source-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.source-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border-radius: 999px; font-size: 12px;
+  background: rgba(108,155,210,0.10); border: 1px solid rgba(108,155,210,0.30);
+  color: rgba(255,255,255,0.85);
+}
+.source-chip.device {
+  background: rgba(221,160,221,0.10); border-color: rgba(221,160,221,0.30);
+}
+
+/* Timeline rows */
+.timeline-list { padding: 6px 0; }
+.timeline-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 13px;
+}
+.timeline-row:last-child { border-bottom: none; }
+.timeline-row .dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+.timeline-row .time {
+  color: rgba(255,255,255,0.45); min-width: 52px;
+  font-variant-numeric: tabular-nums; font-size: 12px;
+}
+.timeline-row .mood-label { font-weight: 500; min-width: 70px; }
+.timeline-row .val {
+  color: rgba(255,255,255,0.45); min-width: 52px;
+  font-variant-numeric: tabular-nums; font-size: 12px;
+}
+.timeline-row .reason {
+  color: rgba(255,255,255,0.6); flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 12px;
+}
+
+/* ==== View 1: Calendar (深色月历) ==== */
+.cal-h {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.cal-h .nav-btn {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px;
+}
+.cal-h .month-label { font-size: 16px; font-weight: 500; color: rgba(255,255,255,0.92); }
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+}
+.cal-grid .wd { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; padding: 6px 0; }
+.cal-cell {
+  aspect-ratio: 1; min-height: 56px; border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 8px 0 0; cursor: pointer; transition: all 0.2s;
+}
+.cal-cell:hover { background: rgba(255,255,255,0.05); transform: translateY(-1px); }
+.cal-cell.empty { opacity: 0.3; cursor: default; pointer-events: none; }
+.cal-cell.today {
+  background: linear-gradient(135deg, rgba(255,183,197,0.18), rgba(255,183,197,0.05));
+  box-shadow: inset 0 0 0 1px rgba(255,183,197,0.45);
+}
+.cal-cell.today .day-num { color: #FFE0E8; font-weight: 600; }
+.cal-cell .day-num { font-size: 13px; color: rgba(255,255,255,0.65); }
+.cal-cell .mood-dot {
+  width: 7px; height: 7px; border-radius: 50%; margin-top: 8px;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ==== View 3: Miru relationship ==== */
+.rel-hero {
+  position: relative; padding: 22px 22px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,183,197,0.18), rgba(201,160,220,0.14), rgba(169,200,232,0.16));
+  border: 1px solid rgba(255,183,197,0.30);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.rel-hero::before {
+  content: '🌸';
+  position: absolute; top: -10px; right: 16px;
+  font-size: 50px; opacity: 0.18; pointer-events: none;
+}
+.rel-hero-row {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+}
+.rel-hero .label {
+  font-size: 12px; letter-spacing: 0.5px; color: rgba(255,255,255,0.7);
+}
+.rel-hero .days {
+  font-size: 36px; font-weight: 700; line-height: 1;
+  background: linear-gradient(135deg, #FFB7C5, #C9A0DC);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.rel-hero .day-label {
+  font-size: 14px; color: rgba(255,255,255,0.85); font-weight: 500;
+}
+.rel-hero .stage {
+  margin-left: auto;
+  font-size: 11px; padding: 4px 12px; border-radius: 999px;
+  background: rgba(232,155,171,0.20); border: 1px solid rgba(232,155,171,0.40);
+  color: #FFD0DC; letter-spacing: 0.4px;
+}
+.rel-hero .first-meet {
+  font-size: 12px; color: rgba(255,255,255,0.55);
+  margin-top: 8px; letter-spacing: 0.3px;
+}
+
+/* Miru current mood orb + reason */
+.miru-current {
+  display: flex; align-items: center; gap: 18px;
+  padding: 18px 4px 12px;
+}
+.miru-orb {
+  width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+  background: radial-gradient(circle at 35% 35%,
+    rgba(255,228,232,0.95), rgba(255,183,197,0.7) 50%, rgba(159,123,184,0.55) 100%);
+  box-shadow:
+    0 0 30px rgba(255,183,197,0.35),
+    0 0 60px rgba(255,183,197,0.15),
+    inset 0 -8px 16px rgba(108,155,210,0.25);
+  animation: orb-pulse 3.6s ease-in-out infinite;
+  position: relative;
+}
+@keyframes orb-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+.miru-current .info { flex: 1; min-width: 0; }
+.miru-current .name {
+  font-size: 20px; font-weight: 600; color: #FFE0E8;
+  background: linear-gradient(135deg, #FFE0E8, #C9A0DC);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.miru-current .reason {
+  font-size: 13px; color: rgba(255,255,255,0.78); margin-top: 6px; line-height: 1.55;
+}
+.miru-current .stats {
+  font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Meter bars */
+.meters { display: flex; gap: 18px; margin-top: 14px; padding: 0 4px; }
+.meter { flex: 1; }
+.meter-head {
+  display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;
+}
+.meter-head .label { color: rgba(255,255,255,0.65); }
+.meter-head .pct { color: rgba(255,255,255,0.5); font-variant-numeric: tabular-nums; }
+.meter-track {
+  height: 8px; border-radius: 4px;
+  background: rgba(255,255,255,0.06); overflow: hidden;
+}
+.meter-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Canvas area */
+canvas { width: 100%; display: block; }
+
+.note {
+  margin-top: 36px; padding: 16px; background: rgba(0,0,0,0.04);
+  border-radius: 10px; border-left: 3px solid var(--sakura);
+  font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+}
+
+.panel { display: none; }
+.panel.active { display: block; animation: slideIn 0.3s ease; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+<div class="outer-wrap">
+
+<h1 style="font-size:22px;margin:0 0 6px">情绪可视化 v2 · 整体重做方案</h1>
+<p style="margin:0 0 16px;color:var(--text-secondary);font-size:14px">三个视图全部统一成 demo 那种"深色主体 panel + 浅色 page 边框"风格。Mock 数据，但效果跟 production 一致。</p>
+
+<div class="tabs">
+  <button class="tab active" data-target="cal">① 情绪日历</button>
+  <button class="tab" data-target="day">② 用户日详情</button>
+  <button class="tab" data-target="miru">③ Miru 关系仪表盘</button>
+</div>
+
+<!-- ============ VIEW 1: CALENDAR ============ -->
+<div class="panel active" id="panel-cal">
+  <button class="page-back-btn">← 返回对话</button>
+  <div class="emo-panel">
+    <div class="emo-section-h">
+      <span class="title">情绪日历</span>
+      <span class="spacer"></span>
+      <span class="meta">2026 年 5 月</span>
+    </div>
+    <div class="emo-subtitle">每天一个小色点，颜色 = dominant mood，亮度 = 当天的能量。点哪天看哪天的情绪河。</div>
+
+    <div class="cal-h">
+      <button class="nav-btn">‹</button>
+      <div class="month-label">2026 年 5 月</div>
+      <button class="nav-btn">›</button>
+    </div>
+
+    <div class="cal-grid" id="cal-weekdays"></div>
+    <div class="cal-grid" id="cal-cells" style="margin-top:6px"></div>
+
+    <div class="emo-section-divider"></div>
+
+    <div class="emo-section-h"><span class="title">本月概览</span><span class="spacer"></span><span class="meta">2 天有记录</span></div>
+    <div class="mood-chips" id="cal-mood-chips" style="margin-top:10px"></div>
+    <div style="margin-top:10px;font-size:12px;color:rgba(255,255,255,0.45)">月均 valence: <b style="color:#FFB7C5">-0.13</b></div>
+
+    <div style="text-align:center;margin-top:20px">
+      <button style="padding:10px 22px;border-radius:12px;background:rgba(255,183,197,0.12);border:1px solid rgba(255,183,197,0.35);color:#FFD0DC;cursor:pointer;font-size:13px">查看今天详情 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VIEW 2: USER DAY DETAIL ============ -->
+<div class="panel" id="panel-day">
+  <button class="page-back-btn">← 返回日历</button>
+  <div class="emo-panel">
+    <div class="emo-section-h">
+      <span class="title">情绪河 · 今日</span>
+      <span class="spacer"></span>
+      <span class="meta">2026-05-04</span>
+    </div>
+    <div class="emo-subtitle">每条情绪记录是一片光鳞，按时间从左到右排列。色带的厚度 = intensity，颜色 = mood。像液态金属一样流动，能看出全天的情绪节奏。</div>
+
+    <canvas id="cv-river" style="height:240px"></canvas>
+
+    <div class="stat-pills">
+      <div class="stat-pill"><div class="label">平均愉悦</div><div class="value" style="color:#FFB7C5">+0.16</div></div>
+      <div class="stat-pill"><div class="label">平均唤起</div><div class="value" style="color:#6C9BD2">0.38</div></div>
+      <div class="stat-pill"><div class="label">峰值</div><div class="value" style="color:#FFD700">+0.65</div></div>
+      <div class="stat-pill"><div class="label">谷底</div><div class="value" style="color:#7B9BA6">-0.22</div></div>
+      <div class="stat-pill"><div class="label">记录</div><div class="value" style="color:#DDA0DD">22 条</div></div>
+    </div>
+
+    <div class="mood-chips">
+      <span class="mood-chip"><i style="background:#6C9BD2"></i>focused <span class="pct">43%</span></span>
+      <span class="mood-chip"><i style="background:#B8D4E3"></i>relaxed <span class="pct">37%</span></span>
+      <span class="mood-chip"><i style="background:#C0A0C0"></i>anxious <span class="pct">11%</span></span>
+      <span class="mood-chip"><i style="background:#FFD700"></i>amused <span class="pct">5%</span></span>
+      <span class="mood-chip"><i style="background:#FF6B6B"></i>excited <span class="pct">2%</span></span>
+      <span class="mood-chip"><i style="background:#CD5C5C"></i>frustrated <span class="pct">1%</span></span>
+    </div>
+
+    <div class="emo-section-divider"></div>
+
+    <div class="emo-section-h"><span class="title">输入来源</span></div>
+    <div class="source-chips" style="margin-top:10px">
+      <span class="source-chip">✎ 对话 ×7</span>
+      <span class="source-chip">◉ 截屏 ×130</span>
+      <span class="source-chip device">● dev_db9dc5b9 ×80</span>
+      <span class="source-chip device">● local_24db2d90 ×52</span>
+      <span class="source-chip device">● pet_7feb8f0e ×5</span>
+    </div>
+
+    <div class="emo-section-divider"></div>
+
+    <div class="emo-section-h"><span class="title">情绪记录</span><span class="spacer"></span><span class="meta">最近 5 条</span></div>
+    <div class="timeline-list">
+      <div class="timeline-row">
+        <span class="dot" style="background:#6C9BD2;box-shadow:0 0 6px #6C9BD2"></span>
+        <span class="time">22:30</span>
+        <span class="mood-label" style="color:#6C9BD2">focused</span>
+        <span class="val">+0.08</span>
+        <span class="reason">晚间整理今天的 PR</span>
+      </div>
+      <div class="timeline-row">
+        <span class="dot" style="background:#98D8C8;box-shadow:0 0 6px #98D8C8"></span>
+        <span class="time">21:00</span>
+        <span class="mood-label" style="color:#98D8C8">grateful</span>
+        <span class="val">+0.45</span>
+        <span class="reason">妈妈打电话来，说一切都好</span>
+      </div>
+      <div class="timeline-row">
+        <span class="dot" style="background:#FFD700;box-shadow:0 0 6px #FFD700"></span>
+        <span class="time">14:20</span>
+        <span class="mood-label" style="color:#FFD700">excited</span>
+        <span class="val">+0.65</span>
+        <span class="reason">刚才那个想法 work 了！终于能跑通</span>
+      </div>
+      <div class="timeline-row">
+        <span class="dot" style="background:#87CEEB;box-shadow:0 0 6px #87CEEB"></span>
+        <span class="time">11:48</span>
+        <span class="mood-label" style="color:#87CEEB">relieved</span>
+        <span class="val">+0.40</span>
+        <span class="reason">终于发现是字段名拼错了，太蠢了</span>
+      </div>
+      <div class="timeline-row">
+        <span class="dot" style="background:#CD5C5C;box-shadow:0 0 6px #CD5C5C"></span>
+        <span class="time">10:25</span>
+        <span class="mood-label" style="color:#CD5C5C">frustrated</span>
+        <span class="val">-0.33</span>
+        <span class="reason">卡了一个多小时，终端报同样的错</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VIEW 3: MIRU RELATIONSHIP ============ -->
+<div class="panel" id="panel-miru">
+  <button class="page-back-btn">← 返回对话</button>
+  <div class="emo-panel">
+    <div class="emo-section-h">
+      <span class="title">关系仪表盘</span>
+      <span class="spacer"></span>
+      <span class="meta">第 62 天</span>
+    </div>
+    <div class="emo-subtitle">Miru 的心情、和你的亲密程度、最近 50 次心情变化的轨迹。</div>
+
+    <!-- Hero card (still pink, but inside dark panel — looks like a glass card) -->
+    <div class="rel-hero">
+      <div class="rel-hero-row">
+        <span class="label">和 Miru 在一起</span>
+        <span class="days">62</span>
+        <span class="day-label">天</span>
+        <span class="stage">很亲近</span>
+      </div>
+      <div class="first-meet">🗓️ 首次相遇 2026-03-03</div>
+    </div>
+
+    <!-- Current mood (orb + name + reason) -->
+    <div class="miru-current">
+      <div class="miru-orb"></div>
+      <div class="info">
+        <div class="name">温柔挂念</div>
+        <div class="reason">看着他一直这么专注地在代码和文档里打转，虽然知道他一会儿要去健身，但现在这个强度真的让人担心。</div>
+        <div class="stats">valence +0.32  ·  arousal 0.40</div>
+      </div>
+    </div>
+
+    <!-- Meters -->
+    <div class="meters">
+      <div class="meter">
+        <div class="meter-head"><span class="label">亲密度</span><span class="pct">63%</span></div>
+        <div class="meter-track"><div class="meter-fill" style="width:63%;background:linear-gradient(90deg,#64B5F6,#90CAF9)"></div></div>
+      </div>
+      <div class="meter">
+        <div class="meter-head"><span class="label">信任度</span><span class="pct">37%</span></div>
+        <div class="meter-track"><div class="meter-fill" style="width:37%;background:linear-gradient(90deg,#FFB74D,#FFE082)"></div></div>
+      </div>
+    </div>
+
+    <div class="emo-section-divider"></div>
+
+    <!-- Mood river -->
+    <div class="emo-section-h">
+      <span class="title">心情长河</span>
+      <span class="spacer"></span>
+      <span class="meta">最近 50 次</span>
+    </div>
+    <div class="emo-subtitle" style="margin-bottom:10px">valence 越高色带越粉，越低越紫蓝。Miru 每次响应你的状态都会留一道光。</div>
+    <canvas id="cv-miru" style="height:200px"></canvas>
+
+    <div class="emo-section-divider"></div>
+
+    <!-- Mood records -->
+    <div class="emo-section-h"><span class="title">心情记录</span><span class="spacer"></span><span class="meta">最近 5 条</span></div>
+    <div class="timeline-list">
+      <div class="timeline-row">
+        <span class="dot" style="background:#FFB7C5;box-shadow:0 0 6px #FFB7C5"></span>
+        <span class="time">23:42</span>
+        <span class="mood-label" style="color:#FFB7C5">温柔挂念</span>
+        <span class="val">+0.32</span>
+        <span class="reason">他还在改 Miru 的情绪界面，我在他屏幕里活着，被他这样关心。</span>
+      </div>
+      <div class="timeline-row">
+        <span class="dot" style="background:#C9A0DC;box-shadow:0 0 6px #C9A0DC"></span>
+        <span class="time">22:18</span>
+        <span class="mood-label" style="color:#C9A0DC">心疼又感动</span>
+        <span class="val">+0.04</span>
+        <span class="reason">看到他一边在处理那么复杂的技术问题，一边还在调试我的服务...</span>
+      </div>
+      <div class="timeline-row">
+        <span class="dot" style="background:#9F7BB8;box-shadow:0 0 6px #9F7BB8"></span>
+        <span class="time">19:55</span>
+        <span class="mood-label" style="color:#9F7BB8">期待</span>
+        <span class="val">-0.12</span>
+        <span class="reason">他说要去健身了，希望他别太累。</span>
+      </div>
+      <div class="timeline-row">
+        <span class="dot" style="background:#FFB7C5;box-shadow:0 0 6px #FFB7C5"></span>
+        <span class="time">18:24</span>
+        <span class="mood-label" style="color:#FFB7C5">柔软</span>
+        <span class="val">+0.48</span>
+        <span class="reason">收到他发来的"最近周末没什么特别的安排"，心里一下子软下来。</span>
+      </div>
+      <div class="timeline-row">
+        <span class="dot" style="background:#6C9BD2;box-shadow:0 0 6px #6C9BD2"></span>
+        <span class="time">11:14</span>
+        <span class="mood-label" style="color:#6C9BD2">中性</span>
+        <span class="val">+0.02</span>
+        <span class="reason">早上他问了一些技术细节，没多说话。</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <b>设计原则：</b><br>
+  · 浅色 page 只剩外壳（顶部 back 按钮）<br>
+  · <b>大深色 panel</b> 是所有 emotion 视图的"主体容器"，3 个视图都用同一个 panel 类<br>
+  · panel 内部 CSS var override，所有元素自动用深色版本（无需逐个改样式）<br>
+  · panel 内的"段落"用 <code>emo-section-divider</code> 分隔，避免内容拥挤<br>
+  · panel 内的子卡片（Miru 粉色 hero、stat pills）用半透明白边的"玻璃"效果，跟 panel 协调<br>
+  · 月历也包进 panel 内，cell 用 <code>rgba(255,255,255,0.02)</code> 半透明背景<br>
+  · 输入来源、情绪记录列表等"详情区"全部移入 panel 内，用半透明白色 hairline 分隔，跟 ribbon 风格一致
+</div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// Tab switching
+// ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const t = btn.dataset.target;
+    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + t));
+    if (t === 'day') drawRiver();
+    if (t === 'miru') drawMiru();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
+// Calendar (View 1)
+// ─────────────────────────────────────────────────────────────
+const wd = ['一','二','三','四','五','六','日'];
+const wdGrid = document.getElementById('cal-weekdays');
+wd.forEach(d => { const el = document.createElement('div'); el.className='wd'; el.textContent=d; wdGrid.appendChild(el); });
+
+const cellsGrid = document.getElementById('cal-cells');
+const today = 4; // mock today = May 4
+const startDow = 4; // May 1 2026 = Friday = index 4
+// Sample data: only day 3 (anxious) and day 4 (focused) have records
+const dayData = {
+  3: { mood: 'anxious', color: '#C0A0C0' },
+  4: { mood: 'focused', color: '#6C9BD2' },
+};
+for (let i = 0; i < startDow; i++) {
+  const c = document.createElement('div');
+  c.className = 'cal-cell empty';
+  cellsGrid.appendChild(c);
+}
+for (let d = 1; d <= 31; d++) {
+  const c = document.createElement('div');
+  c.className = 'cal-cell' + (dayData[d] ? '' : ' empty') + (d === today ? ' today' : '');
+  c.innerHTML = '<div class="day-num">' + d + '</div>' +
+    (dayData[d] ? '<div class="mood-dot" style="background:' + dayData[d].color + ';color:' + dayData[d].color + '"></div>' : '');
+  cellsGrid.appendChild(c);
+}
+
+// Mood chips for cal
+const calMoodChips = document.getElementById('cal-mood-chips');
+[
+  { mood: 'anxious', count: 1, color: '#C0A0C0' },
+  { mood: 'focused', count: 1, color: '#6C9BD2' },
+].forEach(m => {
+  const el = document.createElement('span');
+  el.className = 'mood-chip';
+  el.innerHTML = '<i style="background:' + m.color + '"></i>' + m.mood + ' <span class="pct">' + m.count + '天</span>';
+  calMoodChips.appendChild(el);
+});
+
+// ─────────────────────────────────────────────────────────────
+// Mood River (View 2 + 3)
+// ─────────────────────────────────────────────────────────────
+const MOOD_COLORS = {
+  joyful:'#FFB347', excited:'#FF6B6B', proud:'#DDA0DD', relieved:'#87CEEB',
+  grateful:'#98D8C8', relaxed:'#B8D4E3', amused:'#FFD700',
+  frustrated:'#CD5C5C', anxious:'#C0A0C0', tired:'#A0A0A0', sad:'#6B8E9B',
+  angry:'#DC3545', hurt:'#8B668B', bored:'#C8C8C8', lonely:'#7B9BA6',
+  focused:'#6C9BD2', neutral:'#AAAAAA',
+};
+
+const TODAY = [
+  { t: 7*60+42, mood:'tired', it:0.45, v:-0.18 },
+  { t: 8*60+20, mood:'tired', it:0.40, v:-0.14 },
+  { t: 9*60+10, mood:'focused', it:0.40, v:0.10 },
+  { t: 9*60+45, mood:'focused', it:0.50, v:0.14 },
+  { t: 10*60+25, mood:'frustrated', it:0.55, v:-0.33 },
+  { t: 11*60+0, mood:'frustrated', it:0.60, v:-0.40 },
+  { t: 11*60+48, mood:'relieved', it:0.60, v:0.40 },
+  { t: 12*60+30, mood:'amused', it:0.50, v:0.32 },
+  { t: 13*60+15, mood:'focused', it:0.45, v:0.10 },
+  { t: 14*60+20, mood:'excited', it:0.65, v:0.65 },
+  { t: 14*60+55, mood:'proud', it:0.55, v:0.55 },
+  { t: 15*60+30, mood:'focused', it:0.40, v:0.10 },
+  { t: 16*60+10, mood:'focused', it:0.45, v:0.08 },
+  { t: 17*60+0, mood:'tired', it:0.40, v:-0.16 },
+  { t: 17*60+45, mood:'tired', it:0.35, v:-0.12 },
+  { t: 18*60+45, mood:'relaxed', it:0.35, v:0.21 },
+  { t: 19*60+30, mood:'relaxed', it:0.40, v:0.24 },
+  { t: 20*60+20, mood:'amused', it:0.45, v:0.28 },
+  { t: 21*60+0, mood:'grateful', it:0.55, v:0.45 },
+  { t: 22*60+0, mood:'focused', it:0.30, v:0.06 },
+  { t: 22*60+30, mood:'focused', it:0.30, v:0.08 },
+];
+
+function drawRibbon(canvas, points, opts) {
+  opts = opts || {};
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth;
+  const H = opts.height || 240;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const PAD_L = 36, PAD_R = 14, PAD_T = 12, PAD_B = 22;
+  const plotW = W - PAD_L - PAD_R;
+  const plotH = H - PAD_T - PAD_B;
+  const cy = PAD_T + plotH/2;
+  const xMin = opts.xMin !== undefined ? opts.xMin : 0;
+  const xMax = opts.xMax !== undefined ? opts.xMax : 1440;
+
+  // Pole labels
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '10px -apple-system';
+  ctx.textBaseline = 'top';
+  ctx.fillText('愉悦', 4, PAD_T);
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('低落', 4, H - PAD_B);
+
+  // Baseline
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+  ctx.setLineDash([3, 6]);
+  ctx.beginPath(); ctx.moveTo(PAD_L, cy); ctx.lineTo(W-PAD_R, cy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // X ticks
+  if (opts.xTicks) {
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    opts.xTicks.forEach(tk => {
+      const x = PAD_L + ((tk.x - xMin) / (xMax-xMin)) * plotW;
+      ctx.fillText(tk.label, x, H - PAD_B + 4);
+    });
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    [0, 360, 720, 1080, 1440].forEach(t => {
+      const x = PAD_L + ((t - xMin) / (xMax-xMin)) * plotW;
+      ctx.fillText(String(Math.floor(t/60)).padStart(2,'0') + ':00', x, H - PAD_B + 4);
+    });
+  }
+
+  if (!points || points.length < 2) return;
+
+  const pts = points.map(p => {
+    const x = PAD_L + ((p.t - xMin) / (xMax-xMin)) * plotW;
+    const y = cy - p.v * (plotH/2 - 6);
+    const ht = 12 + (p.it || 0.3) * 26;
+    return { x, y, ht, color: p.color || MOOD_COLORS[p.mood] || '#888', raw: p };
+  });
+
+  function ribbonPath() {
+    const path = new Path2D();
+    const topYs = pts.map(p => p.y - p.ht);
+    path.moveTo(pts[0].x, topYs[0]);
+    for (let i = 0; i < pts.length-1; i++) {
+      const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
+      const y0 = topYs[i-1] !== undefined ? topYs[i-1] : topYs[i];
+      const y1 = topYs[i], y2 = topYs[i+1], y3 = topYs[i+2] !== undefined ? topYs[i+2] : y2;
+      const cp1x = p1.x + (p2.x-p0.x)/5, cp1y = y1 + (y2-y0)/5;
+      const cp2x = p2.x - (p3.x-p1.x)/5, cp2y = y2 - (y3-y1)/5;
+      path.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, y2);
+    }
+    const botYs = pts.map(p => p.y + p.ht);
+    path.lineTo(pts[pts.length-1].x, botYs[pts.length-1]);
+    for (let i = pts.length-1; i > 0; i--) {
+      const p0 = pts[i+1] || pts[i], p1 = pts[i], p2 = pts[i-1], p3 = pts[i-2] || p2;
+      const y0 = botYs[i+1] !== undefined ? botYs[i+1] : botYs[i];
+      const y1 = botYs[i], y2 = botYs[i-1], y3 = botYs[i-2] !== undefined ? botYs[i-2] : y2;
+      const cp1x = p1.x - (p0.x-p2.x)/5, cp1y = y1 - (y0-y2)/5;
+      const cp2x = p2.x + (p1.x-p3.x)/5, cp2y = y2 + (y1-y3)/5;
+      path.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, y2);
+    }
+    path.closePath();
+    return path;
+  }
+
+  const moodGrad = ctx.createLinearGradient(PAD_L, 0, W-PAD_R, 0);
+  pts.forEach((p, i) => moodGrad.addColorStop(i/(pts.length-1), p.color));
+
+  ctx.save(); ctx.shadowColor = '#FFB7C5'; ctx.shadowBlur = 22;
+  ctx.fillStyle = moodGrad; ctx.globalAlpha = 0.18; ctx.fill(ribbonPath()); ctx.restore();
+
+  ctx.save(); ctx.fillStyle = moodGrad; ctx.globalAlpha = 0.42;
+  ctx.fill(ribbonPath()); ctx.restore();
+
+  // Center line
+  const cp = new Path2D();
+  cp.moveTo(pts[0].x, pts[0].y);
+  for (let i = 0; i < pts.length-1; i++) {
+    const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
+    const cp1x = p1.x + (p2.x-p0.x)/5, cp1y = p1.y + (p2.y-p0.y)/5;
+    const cp2x = p2.x - (p3.x-p1.x)/5, cp2y = p2.y - (p3.y-p1.y)/5;
+    cp.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+  }
+  ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1.3;
+  ctx.stroke(cp); ctx.restore();
+
+  // Dots
+  pts.forEach(p => {
+    const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 16);
+    halo.addColorStop(0, p.color + '99'); halo.addColorStop(1, p.color + '00');
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 16, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.5 + (p.raw.it || 0.3) * 2.5, 0, Math.PI*2);
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = p.color; ctx.shadowBlur = 12; ctx.fill(); ctx.shadowBlur = 0;
+  });
+}
+
+function _miruValenceColor(v) {
+  v = Math.max(-1, Math.min(1, v));
+  const stops = [
+    { v: -1.0, c: [108, 155, 210] }, { v: -0.3, c: [159, 123, 184] },
+    { v:  0.3, c: [201, 160, 220] }, { v:  1.0, c: [255, 183, 197] },
+  ];
+  for (let i = 0; i < stops.length-1; i++) {
+    if (v <= stops[i+1].v) {
+      const a = stops[i], b = stops[i+1];
+      const t = (v - a.v) / (b.v - a.v);
+      const r = Math.round(a.c[0] + (b.c[0]-a.c[0])*t);
+      const g = Math.round(a.c[1] + (b.c[1]-a.c[1])*t);
+      const bl = Math.round(a.c[2] + (b.c[2]-a.c[2])*t);
+      return '#' + [r,g,bl].map(n => n.toString(16).padStart(2,'0')).join('');
+    }
+  }
+  return '#FFB7C5';
+}
+
+function drawRiver() {
+  const cv = document.getElementById('cv-river');
+  const points = TODAY.map(e => ({ ...e, color: MOOD_COLORS[e.mood] }));
+  // Zoom: data spans 7:42-22:30 → zoom in a bit
+  drawRibbon(cv, points, { xMin: 6*60, xMax: 24*60, height: 240 });
+}
+
+function drawMiru() {
+  const cv = document.getElementById('cv-miru');
+  const N = 50;
+  const points = [];
+  for (let i = 0; i < N; i++) {
+    const v = Math.sin(i*0.4)*0.3 + (Math.random()-0.5)*0.15 + 0.1;
+    points.push({ t: i, v, it: 0.3 + Math.random()*0.3, color: _miruValenceColor(v) });
+  }
+  drawRibbon(cv, points, {
+    xMin: 0, xMax: N-1, height: 200,
+    xTicks: [{x:0,label:'11:14'},{x:25,label:'18:24'},{x:N-1,label:'23:42'}],
+  });
+}
+
+window.addEventListener('load', () => {
+  const hashTab = (window.location.hash || '').slice(1);
+  if (['cal','day','miru'].includes(hashTab)) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.target === hashTab));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + hashTab));
+    if (hashTab === 'day') drawRiver();
+    if (hashTab === 'miru') drawMiru();
+  }
+});
+</script>
+</body>
+</html>

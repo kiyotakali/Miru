@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Miru 截屏链路 · 完整代码追踪</title>
+<style>
+:root{
+  --bg:#0d0f14; --bg2:#161922; --panel:#1d2230;
+  --line:rgba(255,255,255,0.08);
+  --text:#eaeaf0; --muted:#8c93a5; --dim:#6b7185;
+  --accent:#ff6b9d; --accent2:rgba(255,107,157,0.12);
+  --client:#5fa8ff; --client-bg:rgba(95,168,255,0.10);
+  --vps:#7be88a; --vps-bg:rgba(123,232,138,0.10);
+  --llm:#ffb84d; --llm-bg:rgba(255,184,77,0.12);
+  --drop:#ff7575; --drop-bg:rgba(255,117,117,0.12);
+  --slot:#c08bff; --slot-bg:rgba(192,139,255,0.12);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  line-height:1.55;padding:30px 26px;}
+h1{font-size:22px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+h2.sec{font-size:14px;color:var(--muted);margin:30px 0 12px;
+  text-transform:uppercase;letter-spacing:0.06em;font-weight:500}
+
+/* ── 阶段块 ── */
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:14px;
+  padding:18px 22px;margin-bottom:14px;position:relative}
+.stage.client{border-left:3px solid var(--client)}
+.stage.vps{border-left:3px solid var(--vps)}
+.stage.llm{border-left:3px solid var(--llm)}
+.stage.drop{border-left:3px solid var(--drop);opacity:0.85}
+.stage.slot{border-left:3px solid var(--slot)}
+
+.head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.no{flex:0 0 32px;height:32px;line-height:32px;text-align:center;border-radius:50%;
+  font-weight:700;font-size:13px;background:var(--accent2);color:var(--accent)}
+.title{font-size:15px;font-weight:600;flex:1}
+.tag{font-size:11px;padding:2px 9px;border-radius:10px;height:20px;line-height:16px}
+.tag.client{background:var(--client-bg);color:var(--client)}
+.tag.vps{background:var(--vps-bg);color:var(--vps)}
+.tag.llm{background:var(--llm-bg);color:var(--llm)}
+.tag.drop{background:var(--drop-bg);color:var(--drop)}
+.tag.slot{background:var(--slot-bg);color:var(--slot)}
+
+.body{font-size:13px;color:var(--text);margin-left:44px;line-height:1.8}
+.body code{background:rgba(255,255,255,0.06);padding:1px 7px;border-radius:4px;
+  font-size:12px;color:#d8d8e0;font-family:Menlo,Consolas,monospace}
+.body .file{color:var(--muted);font-size:11px;font-family:Menlo,Consolas,monospace}
+.body strong{color:var(--text)}
+
+.kv{margin-top:8px;padding:10px 12px;background:var(--panel);border-radius:8px;
+  font-size:12px;line-height:1.7;font-family:Menlo,Consolas,monospace;color:#d8d8e0}
+.kv .k{color:var(--muted)}
+.kv .v{color:var(--text)}
+.kv .v.warn{color:var(--llm)}
+.kv .v.bad{color:var(--drop)}
+.kv .v.ok{color:var(--vps)}
+
+.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6;font-style:italic}
+
+.arrow{text-align:center;color:var(--dim);font-size:18px;margin:-2px 0;
+  font-family:Menlo,monospace}
+.arrow .reason{font-size:11px;color:var(--muted);font-style:italic;margin-left:10px}
+
+/* 分支节点 */
+.branch{display:flex;gap:10px;margin:8px 0 14px}
+.branch .col{flex:1;background:var(--panel);padding:10px 14px;border-radius:10px;
+  border-left:2px solid var(--line);font-size:13px}
+.branch .col.drop{border-left-color:var(--drop)}
+.branch .col.pass{border-left-color:var(--vps)}
+.branch .col-label{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--muted);margin-bottom:4px;font-weight:500}
+
+/* 4-pass mini diagram */
+.passes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.passes .p{background:var(--panel);padding:10px 12px;border-radius:8px;font-size:12px;
+  border-top:2px solid var(--llm)}
+.passes .p .lbl{font-weight:600;color:var(--llm);font-size:11px;margin-bottom:4px}
+.passes .p .desc{color:var(--text);line-height:1.5}
+
+/* legend */
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);
+  margin-bottom:24px;padding:12px 16px;background:var(--bg2);border-radius:10px}
+.legend .item{display:flex;align-items:center;gap:6px}
+.legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.legend .dot.c{background:var(--client)}
+.legend .dot.v{background:var(--vps)}
+.legend .dot.l{background:var(--llm)}
+.legend .dot.s{background:var(--slot)}
+.legend .dot.d{background:var(--drop)}
+</style>
+</head>
+<body>
+
+<h1>截屏 → 记忆 完整链路</h1>
+<div class="sub">基于实际代码追踪 · 真实参数 · 标记每一处过滤/丢弃节点</div>
+
+<div class="legend">
+  <div class="item"><span class="dot c"></span>客户端本地</div>
+  <div class="item"><span class="dot v"></span>VPS 后端</div>
+  <div class="item"><span class="dot l"></span>LLM 调用 (花钱)</div>
+  <div class="item"><span class="dot s"></span>记忆系统写入</div>
+  <div class="item"><span class="dot d"></span>丢弃 / 跳过路径</div>
+</div>
+
+<!-- ============ 阶段 1: 定时唤醒 ============ -->
+<h2 class="sec">客户端: 本地采集 + 过滤</h2>
+
+<div class="stage client">
+  <div class="head"><div class="no">1</div>
+    <div class="title">定时器唤醒</div>
+    <span class="tag client">本地后台线程</span></div>
+  <div class="body">
+    <code>ScreenSensor._loop()</code> 后台 thread, <code>self._wake_event.wait(self._interval)</code>
+    <span class="file">— sensor.py:226-232</span>
+    <div class="kv">
+      <div><span class="k">macOS 默认间隔</span> <span class="v">CHECK_INTERVAL = 30s</span> &nbsp;<span class="k">(用户可改 5-3600s)</span></div>
+      <div><span class="k">Android 默认间隔</span> <span class="v">DEFAULT_INTERVAL_S = 30s</span> &nbsp;<span class="k">(用户可改 5-3600s)</span></div>
+      <div><span class="k">硬下限</span> <span class="v">MIN_INTERVAL = 5s</span> <span class="k">(三端必须一致)</span></div>
+      <div><span class="k">用户开关</span> <span class="v">_user_enabled</span> 默认 <span class="v bad">False</span> — 必须前端主动开启</div>
+    </div>
+    <div class="note">★ "5 秒" 是设置面板的最低可选值, 不是默认值. 默认情况桌面 60s 唤醒一次, 手机 30s.</div>
+  </div>
+</div>
+
+<div class="arrow">↓ <span class="reason">每个 tick 跑一次</span></div>
+
+<!-- ============ 阶段 2: 本地截屏 ============ -->
+<div class="stage client">
+  <div class="head"><div class="no">2</div>
+    <div class="title">本地抓屏</div>
+    <span class="tag client">subprocess</span></div>
+  <div class="body">
+    <code>tick() → _capture_screenshot()</code> <span class="file">— sensor.py:303-338</span>
+    <div class="kv">
+      <div><span class="k">macOS</span> <span class="v">subprocess.run(["screencapture", "-x", "-C", tmp.png], timeout=5)</span></div>
+      <div><span class="k">Windows</span> <span class="v">PIL.ImageGrab.grab()</span></div>
+      <div><span class="k">Android</span> <span class="v">MediaProjection + VirtualDisplay + ImageReader</span></div>
+    </div>
+    <div class="note">★ 失败 (无权限/锁屏) 累积 3 次 → backoff 5 分钟才重试 (避免狂刷错误日志)</div>
+  </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- ============ 阶段 3: 像素 diff ============ -->
+<div class="stage client">
+  <div class="head"><div class="no">3</div>
+    <div class="title">缩略图像素 diff</div>
+    <span class="tag client">本地过滤</span></div>
+  <div class="body">
+    <code>_screen_changed(thumbnail)</code> <span class="file">— sensor.py:282-301</span>
+    <div class="kv">
+      <div><span class="k">Thumbnail</span> <span class="v">200 × 150 px (RGB)</span></div>
+      <div><span class="k">变化像素判定</span> <span class="v">max(r_diff, g_diff, b_diff) > 15</span></div>
+      <div><span class="k">阈值</span> <span class="v warn">CHANGE_THRESHOLD = 0.30</span> = 至少 30% 像素变了才算变化</div>
+    </div>
+    <div class="branch">
+      <div class="col drop">
+        <div class="col-label">变化 &lt; 30%</div>
+        丢弃 — <strong>不上传, 不进 VPS</strong>, 直接 return
+      </div>
+      <div class="col pass">
+        <div class="col-label">变化 ≥ 30%</div>
+        进入压缩 + 上传
+      </div>
+    </div>
+    <div class="note">★ 这就是为什么"5 秒一次"也不会爆炸: 滚动/光标移动/通知 ticker 都低于 30%, 屏幕"真的变了"才会上传 (切应用/换网页/打字).</div>
+  </div>
+</div>
+
+<div class="arrow">↓ <span class="reason">屏幕真的变了</span></div>
+
+<!-- ============ 阶段 4: 上传 ============ -->
+<div class="stage client">
+  <div class="head"><div class="no">4</div>
+    <div class="title">压缩 + POST</div>
+    <span class="tag client">→ VPS</span></div>
+  <div class="body">
+    <code>_post_screenshot(jpeg_bytes)</code> <span class="file">— sensor.py:340-360</span>
+    <div class="kv">
+      <div><span class="k">Resize</span> <span class="v">CAPTURE_MAX_SIZE = (1920, 1080)</span></div>
+      <div><span class="k">JPEG 质量</span> <span class="v">JPEG_QUALITY = 60</span></div>
+      <div><span class="k">端点</span> <span class="v">POST /api/device/screenshot</span></div>
+      <div><span class="k">Body</span> <span class="v">multipart: image=jpeg, device_id, captured_at, Authorization: Bearer &lt;token&gt;</span></div>
+      <div><span class="k">Timeout</span> <span class="v">30s</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow">━━━━━━━━━━━━━━━━━━━━━━━ HTTPS ━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+<!-- ============ 阶段 5: VPS 接收 ============ -->
+<h2 class="sec">VPS 后端: 接收 + 冷却 + VLM</h2>
+
+<div class="stage vps">
+  <div class="head"><div class="no">5</div>
+    <div class="title">VPS 接收</div>
+    <span class="tag vps">Flask</span></div>
+  <div class="body">
+    <code>api_device_screenshot()</code> <span class="file">— app.py:1178-1224</span>
+    <div class="kv">
+      <div><span class="k">必跑 1</span> <span class="v">device_manager.record_device_activity(device_id)</span> <span class="k">— 设备心跳</span></div>
+      <div><span class="k">必跑 2</span> <span class="v">storage.append_screenshot_log(device_id, captured_at)</span> <span class="k">— 截屏活跃证据 (sleep_inference 用来推作息)</span></div>
+      <div><span class="k">转发</span> <span class="v">screen_analyzer.get_analyzer().analyze(jpeg_bytes, device_id)</span></div>
+    </div>
+    <div class="note">★ <strong>每张图都进 screenshot_log</strong>, 不管后面 VLM 有没有看. sleep_inference 靠这份日志推断"屏幕活跃时段" → 周报作息分析.</div>
+  </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- ============ 阶段 6: VLM 冷却 ============ -->
+<div class="stage vps">
+  <div class="head"><div class="no">6</div>
+    <div class="title">Per-device VLM 冷却 (硬过滤)</div>
+    <span class="tag vps">RAM lock</span></div>
+  <div class="body">
+    <code>analyze() — 冷却检查</code> <span class="file">— screen_analyzer.py:107-113</span>
+    <div class="kv">
+      <div><span class="k">冷却时长</span> <span class="v warn">DEFAULT_VLM_INTERVAL = 60s</span> per device</div>
+      <div><span class="k">逻辑</span> <span class="v">if now - _per_device_vlm_cooldown[device_id] &lt; 60: return None</span></div>
+    </div>
+    <div class="branch">
+      <div class="col drop">
+        <div class="col-label">冷却中</div>
+        return None — <strong>不调 VLM, 不路由记忆</strong>. 但 screenshot_log 已写入 (上一步)
+      </div>
+      <div class="col pass">
+        <div class="col-label">冷却已过</div>
+        更新 cooldown 时间 → 进入 VLM
+      </div>
+    </div>
+    <div class="note">★ 双层节流: <strong>客户端 30s/60s 唤醒 + 30% 像素差</strong> 已经过滤掉绝大多数, <strong>VPS 60s VLM 冷却</strong> 是第二道保险. 同一设备 1 分钟最多 1 次 VLM 调用.</div>
+  </div>
+</div>
+
+<div class="arrow">↓ <span class="reason">通过冷却的图</span></div>
+
+<!-- ============ 阶段 7: VLM 看图 ============ -->
+<div class="stage llm">
+  <div class="head"><div class="no">7</div>
+    <div class="title">VLM 观察 (1 次 LLM 调用)</div>
+    <span class="tag llm">vision tier</span></div>
+  <div class="body">
+    <code>call_screen_observation(b64, device_name, last_observation)</code> <span class="file">— memory_prompts.py:96-166</span>
+    <div class="kv">
+      <div><span class="k">Tier</span> <span class="v">vision</span> <span class="k">(便宜多模态, 当前 = gemini-3.1-pro-preview)</span></div>
+      <div><span class="k">参数</span> <span class="v">max_tokens=400, temperature=0.1</span></div>
+      <div><span class="k">Image</span> <span class="v">base64 data URL (image/jpeg)</span></div>
+      <div><span class="k">上下文</span> <span class="v">device_name + last_observation (上一次该设备的描述)</span></div>
+      <div><span class="k">系统 prompt</span> <span class="v">注入 identity.get_user_name() 做 OCR 消歧</span></div>
+    </div>
+
+    <div class="note" style="font-style:normal;color:var(--text);background:var(--panel);padding:12px;border-radius:8px;margin-top:10px">
+      <strong style="color:var(--llm)">输出格式: <code>分数|描述</code></strong> (例: <code>"4|用户在 VS Code 编辑 memory.py 文件"</code>)<br>
+      纯文本 "无" → 返回 ("", 0), 触发上层跳过
+    </div>
+
+    <div class="kv" style="margin-top:8px">
+      <div><span class="k">显著性 1分</span> 锁屏 / 桌面壁纸 / 加载画面 — 无实质内容</div>
+      <div><span class="k">显著性 2分</span> 普通网页 / 文件管理 / 系统设置 — 信息量低</div>
+      <div><span class="k">显著性 3分</span> 编辑文档 / 写代码 / 阅读文章 — 工作学习</div>
+      <div><span class="k">显著性 4分</span> 聊天 / 邮件 / 含人名事件 — 社交</div>
+      <div><span class="k">显著性 5分</span> 情绪 / 深夜 / DDL / 健康 — 关键</div>
+    </div>
+    <div class="note">★ DDL 识别: 看到日历/Notion/邮件里的明确截止时间, 必须 [DDL] 标记 + 完整原文引用 (不缩写).</div>
+  </div>
+</div>
+
+<div class="arrow">↓ <span class="reason">VLM 返回 (text, sig)</span></div>
+
+<!-- ============ 阶段 8: 去重 ============ -->
+<div class="stage vps">
+  <div class="head"><div class="no">8</div>
+    <div class="title">Per-device 语义去重</div>
+    <span class="tag vps">Jaccard</span></div>
+  <div class="body">
+    <code>_is_duplicate(observation, device_id)</code> <span class="file">— screen_analyzer.py:299-320</span>
+    <div class="kv">
+      <div><span class="k">每设备</span> 维护最近 5 条 observation</div>
+      <div><span class="k">分词</span> 中文 2+ 字 + 英文 2+ 字母</div>
+      <div><span class="k">阈值</span> <span class="v warn">Jaccard overlap / union &gt; 0.7</span></div>
+    </div>
+    <div class="branch">
+      <div class="col drop">
+        <div class="col-label">重复</div>
+        return None — 不路由不广播, 但 cooldown 已扣
+      </div>
+      <div class="col pass">
+        <div class="col-label">不重复</div>
+        进 router + emotion + CareEngine
+      </div>
+    </div>
+    <div class="note">★ 例: 上次 "用户在 VS Code 编辑 memory.py", 这次 VLM 又写一遍 → Jaccard ~ 0.9 → 丢弃. 防止 VLM 在两张几乎一样的图上重复路由.</div>
+  </div>
+</div>
+
+<div class="arrow">↓ <span class="reason">通过所有过滤的 observation</span></div>
+
+<!-- ============ 阶段 9: 三路并行 ============ -->
+<h2 class="sec">通过过滤后: 三路并行触发</h2>
+
+<div class="stage vps">
+  <div class="head"><div class="no">9a</div>
+    <div class="title">触发 4-pass router</div>
+    <span class="tag slot">memory</span></div>
+  <div class="body">
+    <code>trigger_route_async(content=observation, source_type="screenshot", source_context="来源设备:X 显著性:N")</code>
+    <span class="file">— screen_analyzer.py:185-193</span>
+    <div class="note">异步线程, 立刻返回. 关键: <strong>source_type 标 "screenshot"</strong>, 让下游 Pass 4 prompt 用"截屏看到..."的限定语气, OCR 易错处保留 hedge.</div>
+    <div class="passes">
+      <div class="p">
+        <div class="lbl">Pass 1 分类</div>
+        <div class="desc">domain → project / person / topic / self / none</div>
+      </div>
+      <div class="p">
+        <div class="lbl">Pass 2 路由</div>
+        <div class="desc">match 已有 slot 还是 new</div>
+      </div>
+      <div class="p">
+        <div class="lbl">Pass 3 元数据</div>
+        <div class="desc">仅 new 时跑: id/title/icon/aliases</div>
+      </div>
+      <div class="p">
+        <div class="lbl">Pass 4 SlotEditor</div>
+        <div class="desc">读旧 body 整段, 整合 + 压缩重写</div>
+      </div>
+    </div>
+    <div class="kv" style="margin-top:10px">
+      <div><span class="k">硬拦截</span> <span class="v bad">domain==self &amp; slot_id==identity → return failed</span> (J5 兜底)</div>
+      <div><span class="k">alias 过滤</span> 等于用户姓名的 alias 被丢 (避免人物 slot 错关联用户本人)</div>
+      <div><span class="k">写入</span> main.md 覆写 + revisions.jsonl +1 行 + _slots/&lt;d&gt;.json 更新</div>
+      <div><span class="k">广播</span> SSE memory_changed → 前端卡片自动刷新</div>
+    </div>
+  </div>
+</div>
+
+<div class="stage vps">
+  <div class="head"><div class="no">9b</div>
+    <div class="title">CareEngine 信号</div>
+    <span class="tag vps">关怀决策</span></div>
+  <div class="body">
+    <code>care_engine.notify_signal("screenshot", {observation, significance, mood, valence})</code>
+    <span class="file">— screen_analyzer.py:202-227</span>
+    <div class="note">CareEngine v3 用 LLM 决策"是否主动找用户聊". 把截屏 observation + 当天最近的 emotion 作为读空气素材.</div>
+  </div>
+</div>
+
+<div class="stage vps">
+  <div class="head"><div class="no">9c</div>
+    <div class="title">情绪标注 (条件触发)</div>
+    <span class="tag llm">+1 LLM</span></div>
+  <div class="body">
+    <code>_annotate_emotion_from_screenshot(observation, time, ...)</code>
+    <span class="file">— app.py:1207-1220 → core.py:1998</span>
+    <div class="kv">
+      <div><span class="k">触发条件</span> <span class="v warn">significance &gt;= 3</span> 才跑 (1-2 分跳过)</div>
+      <div><span class="k">输入</span> observation + 时间 + 最近 30 分钟用户消息 + 今天 emotion_log</div>
+      <div><span class="k">输出</span> {mood, intensity, valence, source_type:"auto_screenshot"}</div>
+      <div><span class="k">写入</span> emotion_log.json 追加</div>
+      <div><span class="k">广播</span> SSE emotion_updated → 前端情绪曲线</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow">↓</div>
+
+<!-- ============ 落盘 ============ -->
+<div class="stage slot">
+  <div class="head"><div class="no">10</div>
+    <div class="title">最终: 记忆 slot 完成更新</div>
+    <span class="tag slot">main.md</span></div>
+  <div class="body">
+    一张截图最终在记忆系统留下的痕迹 (Pass 4 完成后):
+    <div class="kv">
+      <div><span class="k">memory/&lt;domain&gt;/&lt;slot_id&gt;/main.md</span> <span class="v ok">整段被 SlotEditor 重写</span></div>
+      <div><span class="k">memory/&lt;domain&gt;/&lt;slot_id&gt;/revisions.jsonl</span> <span class="v ok">+1 行 (source: "screenshot")</span></div>
+      <div><span class="k">memory/_slots/&lt;domain&gt;.json</span> <span class="v ok">title/summary/aliases/last_active 更新</span></div>
+      <div><span class="k">memory/_slots/daily_writes.json</span> <span class="v ok">+1 条原始 content 日志</span></div>
+      <div><span class="k">screenshot_log.json</span> <span class="v ok">+1 条活跃证据</span></div>
+      <div><span class="k">emotion_log.json (条件)</span> <span class="v ok">+1 mood/valence 条</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 节流总览 ============ -->
+<h2 class="sec">总览: 一张截图能"活到"哪一步</h2>
+<div class="stage" style="border-left:3px solid var(--accent)">
+  <div class="head"><div class="no" style="background:var(--accent2);color:var(--accent)">∑</div>
+    <div class="title">从抓屏到写入记忆 — 5 道过滤</div></div>
+  <div class="body" style="margin-left:0">
+    <div class="kv" style="line-height:2">
+      <div><span class="v">①</span> <span class="k">客户端 用户开关 (_user_enabled)</span> &nbsp;→&nbsp; 默认关. 不开根本不跑.</div>
+      <div><span class="v">②</span> <span class="k">客户端 间隔节流 (60s 桌面/30s 手机)</span> &nbsp;→&nbsp; 每分钟最多 1-2 次唤醒</div>
+      <div><span class="v">③</span> <span class="k">客户端 像素 diff (≥30%)</span> &nbsp;→&nbsp; <strong>大部分 tick 在这步丢</strong>, 不上传 VPS</div>
+      <div><span class="v">④</span> <span class="k">VPS VLM 冷却 (60s/device)</span> &nbsp;→&nbsp; 上传到了也不一定调 LLM</div>
+      <div><span class="v">⑤</span> <span class="k">VLM "无" + Jaccard 去重 (0.7)</span> &nbsp;→&nbsp; 锁屏/纯桌面/重复内容 在这里丢</div>
+    </div>
+    <div class="note" style="margin-top:14px;color:var(--text);font-style:normal">
+      <strong>实际成本: 一张截图最多触发 1+1+4 = 最多 6 次 LLM 调用</strong> (VLM 1 次 + emotion 1 次 + 4-pass 路由 4 次).
+      但绝大多数截图在第 ③ 或第 ④ 步就被丢了, 实际平均 1 张图可能 0.2-0.5 次 LLM.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

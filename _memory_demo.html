@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Miru 记忆系统 v3 — 卡片 demo</title>
+<style>
+  :root{
+    --bg:#0f1115; --bg-elev:#171a21; --panel:#1d212a;
+    --border:rgba(255,255,255,0.08);
+    --text-primary:#eaeaf0; --text-muted:#9aa1b1;
+    --accent:#ff6b9d; --airi-pink-mid:rgba(255,107,157,0.18);
+    --src-chat:#5fa8ff; --src-screen:#ffb84d; --src-id:#7be88a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text-primary);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.55;padding:30px 24px;}
+  h1{font-size:22px;margin:0 0 6px}
+  .subtitle{color:var(--text-muted);margin-bottom:30px;font-size:13px}
+  h2.section{font-size:15px;color:var(--text-muted);margin:32px 0 14px;
+    text-transform:uppercase;letter-spacing:0.05em;font-weight:500;}
+
+  /* ── 链路图 ── */
+  .pipeline{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:18px 22px;margin-bottom:24px;font-size:13px;line-height:2.2;}
+  .pipeline .step{display:flex;align-items:flex-start;gap:10px}
+  .pipeline .num{flex:0 0 28px;height:28px;line-height:28px;text-align:center;
+    background:var(--airi-pink-mid);color:var(--accent);border-radius:50%;
+    font-weight:600;font-size:12px;}
+  .pipeline .desc{flex:1}
+  .pipeline .desc code{background:rgba(255,255,255,0.06);padding:1px 6px;
+    border-radius:4px;font-size:12px;color:#c8c8d0}
+  .pipeline .arrow{margin-left:13px;color:var(--text-muted);font-size:12px;line-height:1.3}
+
+  /* ── Slot 卡片 grid (网格视图) ── */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:32px}
+  .slot-card{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;
+    padding:14px 16px;cursor:pointer;transition:transform .12s,box-shadow .12s;}
+  .slot-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.3)}
+  .slot-card-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .slot-card-icon{font-size:22px;line-height:1}
+  .slot-card-title{font-size:15px;font-weight:600;flex:1;color:var(--text-primary)}
+  .slot-card-status{font-size:11px;color:var(--text-muted);background:rgba(255,255,255,0.05);
+    padding:2px 8px;border-radius:10px}
+  .slot-card-summary{color:var(--text-muted);font-size:13px;margin:6px 0 10px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .slot-card-meta{display:flex;justify-content:space-between;color:var(--text-muted);font-size:11px}
+
+  /* ── Slot 详情视图 ── */
+  .slot-detail{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;
+    padding:22px 26px;margin-bottom:24px}
+  .slot-detail-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
+  .slot-detail-icon{font-size:36px;line-height:1}
+  .slot-detail-title-block{flex:1;min-width:200px}
+  .slot-detail-title-block h2{margin:0;font-size:22px;color:var(--text-primary)}
+  .slot-detail-status{color:var(--text-muted);font-size:13px;margin-top:2px}
+  .slot-detail-actions{display:flex;gap:6px}
+  .slot-detail-actions button{background:rgba(255,107,157,0.12);color:var(--accent);
+    border:none;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;}
+  .slot-detail-actions button.btn-danger{background:rgba(255,107,107,0.12);color:#ff8a8a}
+  .slot-detail-meta{background:var(--panel);padding:12px 14px;border-radius:10px;
+    font-size:13px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px;}
+  .slot-detail-meta strong{color:var(--text-primary);margin-right:6px}
+  .slot-detail-meta-row{display:flex;justify-content:space-between;color:var(--text-muted);
+    font-size:11px;margin-top:6px}
+  .chip{display:inline-block;background:rgba(255,255,255,0.06);color:var(--text-primary);
+    padding:2px 9px;border-radius:10px;font-size:12px;margin-right:4px;margin-top:3px}
+  .chip.person{background:rgba(95,168,255,0.14);color:var(--src-chat);cursor:pointer}
+  .slot-detail-content h3{font-size:13px;color:var(--text-muted);margin:0 0 10px;
+    text-transform:uppercase;letter-spacing:0.05em;font-weight:500}
+  .markdown-rendered{font-size:14px;line-height:1.75}
+  .markdown-rendered h2{font-size:18px;margin:0 0 12px;display:none}/*body 标题已在 header*/
+  .markdown-rendered p{margin:0 0 10px}
+  .markdown-rendered ul{padding-left:20px;margin:0 0 10px}
+
+  /* ── revisions 时间线 ── */
+  .revisions{margin-top:18px;padding-top:18px;border-top:1px solid var(--border);}
+  .revisions h3{font-size:13px;color:var(--text-muted);margin:0 0 12px;
+    text-transform:uppercase;letter-spacing:0.05em;font-weight:500}
+  .rev-line{display:flex;gap:12px;padding:9px 0;border-bottom:1px dashed var(--border);
+    font-size:13px;align-items:flex-start}
+  .rev-line:last-child{border-bottom:none}
+  .rev-ts{flex:0 0 110px;color:var(--text-muted);font-size:12px;font-family:Menlo,monospace}
+  .rev-src{flex:0 0 60px;font-size:11px;padding:1px 8px;border-radius:8px;text-align:center;height:18px;line-height:16px}
+  .rev-src.chat{background:rgba(95,168,255,0.14);color:var(--src-chat)}
+  .rev-src.screenshot{background:rgba(255,184,77,0.14);color:var(--src-screen)}
+  .rev-src.identity{background:rgba(123,232,138,0.14);color:var(--src-id)}
+  .rev-note{flex:1;color:var(--text-primary)}
+  .rev-len{flex:0 0 90px;color:var(--text-muted);font-size:11px;text-align:right;
+    font-family:Menlo,monospace}
+  .rev-len .down{color:var(--src-id)}.rev-len .up{color:var(--src-screen)}
+
+  /* footnote */
+  .note{font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<h1>Miru 记忆系统 v3 · 卡片 demo</h1>
+<div class="subtitle">基于实际生产代码渲染的 slot 卡片样例（数据为虚构占位 / 三种 source 演示用）</div>
+
+<!-- ===== 链路时序图 ===== -->
+<h2 class="section">用户一句话进来,后台发生了什么</h2>
+<div class="pipeline">
+  <div class="step">
+    <div class="num">1</div>
+    <div class="desc">
+      <strong>立刻 (秒级)</strong> · <code>core.chat_with_companion()</code><br>
+      调主对话 LLM 回复用户 → 同时把消息塞进 <code>sleep_agent</code> 队列 (in-memory, per user)<br>
+      <span class="arrow">↓ 防抖 3 分钟 / 队列满 12 条</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div class="desc">
+      <strong>SleepAgent 切片 (1 次 LLM)</strong> · <code>call_sleep_agent_v2</code><br>
+      看一批消息,丢弃寒暄/问句 → 输出 0-3 个 fragment、可选 human/persona 块更新、完成的承诺标题<br>
+      <span class="arrow">↓ 每个 fragment 独立异步</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">3</div>
+    <div class="desc">
+      <strong>4-Pass Router (最多 4 次 LLM)</strong> · <code>route_and_write()</code><br>
+      Pass 1 分类 domain → Pass 2 match/new slot → Pass 3 (仅 new) 设计元数据 → <strong>Pass 4 SlotEditor 重写整段 body</strong><br>
+      <span class="arrow">↓ 原子写入</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">4</div>
+    <div class="desc">
+      <strong>落盘 + 推送</strong><br>
+      覆写 <code>main.md</code> · 更新 <code>_slots/&lt;domain&gt;.json</code> · 追加 <code>revisions.jsonl</code> · 记 <code>daily_writes.json</code> · SSE 推 <code>memory_changed</code> → 前端卡片自动刷新
+    </div>
+  </div>
+</div>
+<div class="note">★ 截屏路径并行: VLM observation → 直接进 4-pass router (不经 SleepAgent), source 标 <code>screenshot</code><br>
+  ★ Identity 路径独立: 设置页改姓名 → <code>cascade_identity()</code> 直接合成 body 写 self/identity, 不走 router<br>
+  ★ Pass 4 关键: 看到完整旧 body + 新输入, <strong>整合 + 压缩</strong>重写, 不是 append</div>
+
+<!-- ===== Slot 网格视图 ===== -->
+<h2 class="section">网格视图 (GET /api/memory/slots)</h2>
+<div class="grid">
+
+  <div class="slot-card">
+    <div class="slot-card-head">
+      <span class="slot-card-icon">🪪</span>
+      <span class="slot-card-title">用户身份 📌</span>
+      <span class="slot-card-status">进行中</span>
+    </div>
+    <div class="slot-card-summary">阿明 · 研究生 · 记忆系统蒸馏研究</div>
+    <div class="slot-card-meta"><span>self / identity</span><span>onboarding</span></div>
+  </div>
+
+  <div class="slot-card">
+    <div class="slot-card-head">
+      <span class="slot-card-icon">📄</span>
+      <span class="slot-card-title">2026 论文投稿</span>
+      <span class="slot-card-status">进行中</span>
+    </div>
+    <div class="slot-card-summary">ECCV multi-view 已完成 outline,根据老板反馈改单视图</div>
+    <div class="slot-card-meta"><span>project / papers_2026</span><span>4 次编辑</span></div>
+  </div>
+
+  <div class="slot-card">
+    <div class="slot-card-head">
+      <span class="slot-card-icon">👤</span>
+      <span class="slot-card-title">同事小王</span>
+      <span class="slot-card-status">进行中</span>
+    </div>
+    <div class="slot-card-summary">用户产品组同事,多次 review 中提供建议</div>
+    <div class="slot-card-meta"><span>person / xiaowang</span><span>3 次编辑</span></div>
+  </div>
+
+  <div class="slot-card" style="opacity:0.65">
+    <div class="slot-card-head">
+      <span class="slot-card-icon">🎮</span>
+      <span class="slot-card-title">三角洲行动</span>
+      <span class="slot-card-status">已暂停</span>
+    </div>
+    <div class="slot-card-summary">关于游戏《三角洲行动》的群聊讨论</div>
+    <div class="slot-card-meta"><span>topic / delta_force</span><span>30 天未活跃</span></div>
+  </div>
+</div>
+
+<!-- ===== Slot 详情: project ===== -->
+<h2 class="section">详情视图 (GET /api/memory/slot/project/papers_2026)</h2>
+<div class="slot-detail">
+  <div class="slot-detail-header">
+    <span class="slot-detail-icon">📄</span>
+    <div class="slot-detail-title-block">
+      <h2>2026 论文投稿</h2>
+      <div class="slot-detail-status">进行中</div>
+    </div>
+    <div class="slot-detail-actions">
+      <button>📦 归档</button>
+      <button class="btn-danger">🗑 删除</button>
+    </div>
+  </div>
+
+  <div class="slot-detail-meta">
+    <div><strong>概述:</strong> ECCV multi-view 已完成 outline,根据老板反馈改单视图</div>
+    <div><strong>别名:</strong>
+      <span class="chip">papers_2026</span>
+      <span class="chip">eccv2026</span>
+      <span class="chip">multi-view</span>
+      <span class="chip">论文</span>
+      <span class="chip">投稿</span>
+      <span class="chip">single-view</span>
+    </div>
+    <div><strong>涉及人物:</strong>
+      <span class="chip person">小王</span>
+      <span class="chip person">阿明</span>
+    </div>
+    <div class="slot-detail-meta-row">
+      <span>创建: 2026-04-12</span>
+      <span>最近活跃: 2026-05-06 14:26</span>
+    </div>
+  </div>
+
+  <div class="slot-detail-content">
+    <h3>内容 (main.md, body 由 SlotEditor 整合)</h3>
+    <div class="markdown-rendered">
+      <p>用户正在准备 2026 年的论文投稿,主线是 ECCV 上的 multi-view 工作。</p>
+      <p>初步设计文档已完成 outline,计划本周末提交一版给老板审阅。最新一次 review 后老板建议把 multi-view 改成单视图,重点放在交互流程的清晰度。截屏看到该项目内部已规划包含 5 个里程碑的 Phase 2 路线图。</p>
+    </div>
+  </div>
+
+  <!-- 编辑历史 / revisions.jsonl -->
+  <div class="revisions">
+    <h3>编辑历史 (revisions.jsonl, 最近 4 次)</h3>
+
+    <div class="rev-line">
+      <span class="rev-ts">05-02 10:14</span>
+      <span class="rev-src chat">chat</span>
+      <span class="rev-note">初次写入: 用户决定三投策略 (CVPR / ECCV / PRCV)</span>
+      <span class="rev-len">0 → 62</span>
+    </div>
+
+    <div class="rev-line">
+      <span class="rev-ts">05-04 16:30</span>
+      <span class="rev-src chat">chat</span>
+      <span class="rev-note">整合 multi-view ablation 实验进度,补充 outline 已写完</span>
+      <span class="rev-len">62 → 121 <span class="up">+59</span></span>
+    </div>
+
+    <div class="rev-line">
+      <span class="rev-ts">05-06 14:23</span>
+      <span class="rev-src chat">chat</span>
+      <span class="rev-note">老板建议改单视图,删过期 multi-view 准备过程,整合最新结论</span>
+      <span class="rev-len">121 → 96 <span class="down">-25</span></span>
+    </div>
+
+    <div class="rev-line">
+      <span class="rev-ts">05-06 14:26</span>
+      <span class="rev-src screenshot">screenshot</span>
+      <span class="rev-note">截屏内容: Phase 2 路线图 5 个里程碑,已整合进 body</span>
+      <span class="rev-len">96 → 108 <span class="up">+12</span></span>
+    </div>
+  </div>
+</div>
+<div class="note">★ <strong>2 → 3 次</strong> body 从 121 字压缩到 96 字 (-25) — 这就是 SlotEditor 在做"整合 + 压缩": 删了过时的"准备 multi-view"细节,整合最新"改单视图"结论。<br>
+★ <strong>3 → 4 次</strong> screenshot 来源加了 Phase 2 路线图信息,叙事里用"截屏看到..."的限定语气保留来源差异。</div>
+
+<!-- ===== Slot 详情: person ===== -->
+<h2 class="section">人物 slot 详情样例</h2>
+<div class="slot-detail">
+  <div class="slot-detail-header">
+    <span class="slot-detail-icon">👤</span>
+    <div class="slot-detail-title-block">
+      <h2>同事小王</h2>
+      <div class="slot-detail-status">进行中</div>
+    </div>
+    <div class="slot-detail-actions">
+      <button>📦 归档</button>
+      <button class="btn-danger">🗑 删除</button>
+    </div>
+  </div>
+
+  <div class="slot-detail-meta">
+    <div><strong>概述:</strong> 用户产品组同事,多次 review 中提供建议</div>
+    <div><strong>别名:</strong>
+      <span class="chip">小王</span>
+      <span class="chip">王同学</span>
+      <span class="chip">xiaowang</span>
+    </div>
+    <div class="slot-detail-meta-row">
+      <span>创建: 2026-05-04</span>
+      <span>最近活跃: 2026-05-06 14:23</span>
+    </div>
+  </div>
+
+  <div class="slot-detail-content">
+    <h3>内容</h3>
+    <div class="markdown-rendered">
+      <p>小王是用户的同事,在产品组工作。最近一次 review 上小王建议把方案改成单视图(用户原本准备的是 multi-view)。两人在对接接口设计。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Slot 详情: self/identity ===== -->
+<h2 class="section">用户身份 slot (cascade_identity 路径,不走 SlotEditor)</h2>
+<div class="slot-detail">
+  <div class="slot-detail-header">
+    <span class="slot-detail-icon">🪪</span>
+    <div class="slot-detail-title-block">
+      <h2>用户身份 <span style="color:var(--accent)">📌</span></h2>
+      <div class="slot-detail-status">进行中 · 由 onboarding / 设置页直接维护</div>
+    </div>
+    <div class="slot-detail-actions">
+      <button style="opacity:0.4" disabled>归档锁定</button>
+    </div>
+  </div>
+
+  <div class="slot-detail-meta">
+    <div><strong>概述:</strong> 阿明 · 研究生 · 记忆系统蒸馏研究</div>
+    <div class="slot-detail-meta-row">
+      <span>创建: 2026-04-01</span>
+      <span>最近活跃: 2026-05-03 (设置页改了风格)</span>
+    </div>
+  </div>
+
+  <div class="slot-detail-content">
+    <h3>内容 (curator.cascade_identity 直接合成)</h3>
+    <div class="markdown-rendered">
+      <ul>
+        <li><strong>姓名:</strong> 阿明</li>
+        <li><strong>身份:</strong> 研究生</li>
+        <li><strong>职业 / 研究方向:</strong> 记忆系统蒸馏</li>
+        <li><strong>作息:</strong> 夜猫子</li>
+        <li><strong>偏好的说话风格:</strong> 直白且温和</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="revisions">
+    <h3>编辑来源</h3>
+    <div class="rev-line">
+      <span class="rev-ts">04-01 22:30</span>
+      <span class="rev-src identity">identity</span>
+      <span class="rev-note">onboarding 提交</span>
+      <span class="rev-len">cascade</span>
+    </div>
+    <div class="rev-line">
+      <span class="rev-ts">05-03 11:05</span>
+      <span class="rev-src identity">identity</span>
+      <span class="rev-note">设置页改了"偏好风格"字段</span>
+      <span class="rev-len">cascade</span>
+    </div>
+  </div>
+</div>
+<div class="note">★ self/identity slot 在 router 里被代码硬拦截 — 任何 chat / screenshot 都改不了。<br>
+★ 即便截屏 OCR 把名字看错成"阿铭"想写进来, Pass 2 把这条 fragment 投递到 self/identity 时 route_and_write 直接返回 failed,本 slot 不动。<br>
+★ 没有 revisions.jsonl, 因为 cascade_identity 不走 SlotEditor — 它直接合成 body 覆写 main.md。</div>
+
+</body>
+</html>

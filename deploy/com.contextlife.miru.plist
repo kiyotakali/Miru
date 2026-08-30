@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.contextlife.miru</string>
+    <key>ProgramArguments</key>
+    <array>
+        <!-- After py2app build, change to Miru.app path -->
+        <string>/usr/local/bin/python3</string>
+        <string>__MIRU_DIR__/client_app.py</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/tmp/miru-client.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/miru-client.log</string>
+</dict>
+</plist>

@@ -1,0 +1,254 @@
+[
+  {
+    "id": "a1_person_descriptor",
+    "text": "阿强是战神。",
+    "expect_any": [
+      {
+        "category": "A1",
+        "title_contains": "阿强",
+        "content_contains": ["战神"]
+      }
+    ]
+  },
+  {
+    "id": "a1_person_role",
+    "text": "张伟教授是我的导师。",
+    "expect_any": [
+      {
+        "category": "A1",
+        "title_contains": "张伟",
+        "content_contains": ["导师"]
+      }
+    ]
+  },
+  {
+    "id": "a2_org",
+    "text": "OpenAI 是一家 AI 公司。",
+    "expect_any": [
+      {
+        "category": "A2",
+        "title_contains": "OpenAI"
+      }
+    ]
+  },
+  {
+    "id": "b1_commitment",
+    "text": "周五前把实验报告发给王老师。",
+    "expect_any": [
+      {
+        "category": "B1",
+        "title_contains": "报告"
+      }
+    ]
+  },
+  {
+    "id": "b2_action_item",
+    "text": "明天记得买牛奶和鸡蛋。",
+    "expect_any": [
+      {
+        "category": "B2",
+        "title_contains": "买"
+      }
+    ]
+  },
+  {
+    "id": "b4_recurring",
+    "text": "每周日晚上做一次周复盘。",
+    "expect_any": [
+      {
+        "category": "B4",
+        "title_contains": "复盘"
+      }
+    ]
+  },
+  {
+    "id": "c1_interaction",
+    "text": "今天下午和李明开了项目会，结论是先做最小可行版本。",
+    "expect_any": [
+      {
+        "category": "C1",
+        "content_contains": ["项目会"]
+      }
+    ]
+  },
+  {
+    "id": "c3_transaction",
+    "text": "刚刚花了 38 元点外卖。",
+    "expect_any": [
+      {
+        "category": "D4",
+        "content_contains": ["38"]
+      }
+    ]
+  },
+  {
+    "id": "d1_metrics",
+    "text": "昨晚睡了 6.2 小时，今天静息心率 58。",
+    "expect_any": [
+      {
+        "category": "D1",
+        "content_contains": ["6.2", "58"]
+      }
+    ]
+  },
+  {
+    "id": "d3_income",
+    "text": "今天发工资了，到账 12000 元。",
+    "expect_any": [
+      {
+        "category": "D3",
+        "content_contains": ["12000"]
+      }
+    ]
+  },
+  {
+    "id": "e2_knowledge",
+    "text": "我总结了 DreamerV3 的核心思路：用 RSSM 做潜在状态建模，并通过 imagination learning 提升样本效率。",
+    "expect_any": [
+      {
+        "category": "E2",
+        "title_contains": "DreamerV3"
+      }
+    ]
+  },
+  {
+    "id": "e4_template",
+    "text": "发布检查清单：先跑 lint，再跑 test，最后 deploy。",
+    "expect_any": [
+      {
+        "category": "E4",
+        "content_contains": ["清单"]
+      }
+    ]
+  },
+  {
+    "id": "f1_goal",
+    "text": "我今年的目标是把体脂降到 15%。",
+    "expect_any": [
+      {
+        "category": "F1",
+        "content_contains": ["15"]
+      }
+    ]
+  },
+  {
+    "id": "f3_preference",
+    "text": "我偏好上午做深度工作，晚上做轻任务。",
+    "expect_any": [
+      {
+        "category": "F3",
+        "content_contains": ["上午", "深度工作"]
+      }
+    ]
+  },
+  {
+    "id": "f4_principle",
+    "text": "我的原则是不熬夜。",
+    "expect_any": [
+      {
+        "category": "F4",
+        "content_contains": ["不熬夜"]
+      }
+    ]
+  },
+  {
+    "id": "a5_tool_account",
+    "text": "我用 Notion 管理待办和项目。",
+    "expect_any": [
+      {
+        "category": "A5",
+        "title_contains": "Notion"
+      }
+    ]
+  },
+  {
+    "id": "b3_open_loop",
+    "text": "客户报价这件事还没定负责人和截止时间。",
+    "expect_any": [
+      {
+        "category": "B3",
+        "content_contains": ["负责人"]
+      }
+    ]
+  },
+  {
+    "id": "b5_blocker",
+    "text": "项目卡住了，还在等财务批预算。",
+    "expect_any": [
+      {
+        "category": "B5",
+        "content_contains": ["预算"]
+      }
+    ]
+  },
+  {
+    "id": "c5_decision",
+    "text": "我们决定这周先上线 MVP，因为时间窗口很紧。",
+    "expect_any": [
+      {
+        "category": "C5",
+        "content_contains": ["MVP"]
+      }
+    ]
+  },
+  {
+    "id": "d2_constraint",
+    "text": "医生建议我这个月不能跑步。",
+    "expect_any": [
+      {
+        "category": "D2",
+        "content_contains": ["跑步"]
+      }
+    ]
+  },
+  {
+    "id": "e1_plan",
+    "text": "日本旅行计划：第一天东京，第二天箱根，第三天京都。",
+    "expect_any": [
+      {
+        "category": "E1",
+        "title_contains": "旅行"
+      }
+    ]
+  },
+  {
+    "id": "e3_record_pack",
+    "text": "报销材料包已整理：发票、收据、转账截图都放好了。",
+    "expect_any": [
+      {
+        "category": "E3",
+        "content_contains": ["发票"]
+      }
+    ]
+  },
+  {
+    "id": "e5_creative_output",
+    "text": "我写完了文章《AI 时代的个人知识系统》。",
+    "expect_any": [
+      {
+        "category": "E5",
+        "title_contains": "AI"
+      }
+    ]
+  },
+  {
+    "id": "f2_area",
+    "text": "我需要长期维护健康和职业发展这两个责任领域。",
+    "expect_any": [
+      {
+        "category": "F2",
+        "content_contains": ["健康"]
+      }
+    ]
+  },
+  {
+    "id": "f5_strategy",
+    "text": "我的减脂策略是先控制热量，再逐步增加力量训练。",
+    "expect_any": [
+      {
+        "category": "F5",
+        "content_contains": ["控制热量"]
+      }
+    ]
+  }
+]

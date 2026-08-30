@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fff8f2">
+<title>Miru - 会记得你、会靠近你的 AI 陪伴</title>
+<meta name="description" content="Miru 是一个住在 Mac 和手机里的 AI 陪伴。她会看见你的日常、记住你说过的话，并在合适的时候自然靠近你。">
+<meta property="og:title" content="Miru - 会记得你、会靠近你的 AI 陪伴">
+<meta property="og:description" content="把一个会记得你、会主动靠近你的 AI 女孩，留在自己的 Mac 和手机里。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mirulife.top/">
+<meta property="og:image" content="https://mirulife.top/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+:root {
+  --paper: #fff8f2;
+  --paper-2: #f9efe5;
+  --paper-3: #fffdf8;
+  --ink: #352c2a;
+  --ink-2: #665957;
+  --muted: #9a8c87;
+  --line: rgba(53, 44, 42, 0.14);
+  --line-strong: rgba(53, 44, 42, 0.25);
+  --sakura: #ee9aae;
+  --sakura-2: #dc6f8d;
+  --crimson: #a94856;
+  --gold: #c99535;
+  --indigo: #3d587f;
+  --jade: #517864;
+  --night: #231c20;
+  --shadow: 0 28px 80px rgba(48, 36, 32, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--ink);
+  background:
+    linear-gradient(rgba(53, 44, 42, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 44, 42, 0.026) 1px, transparent 1px),
+    radial-gradient(circle at 18% 10%, rgba(238, 154, 174, 0.18), transparent 30%),
+    linear-gradient(180deg, #fff8f2 0%, #fffdf8 38%, #f7ede4 100%);
+  background-size: 42px 42px, 42px 42px, auto, auto;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Songti SC", "Noto Serif CJK SC", serif;
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.container {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.nav {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 40;
+  border-bottom: 1px solid rgba(53, 44, 42, 0.10);
+  background: rgba(255, 248, 242, 0.76);
+  backdrop-filter: blur(18px);
+}
+
+.nav-inner {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+}
+
+.brand img {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(238, 154, 174, 0.22);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: var(--ink-2);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.nav-links a {
+  position: relative;
+  padding: 6px 0;
+}
+
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--sakura-2);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.18s ease;
+}
+
+.nav-links a:hover::after {
+  transform: scaleX(1);
+}
+
+.nav-cta {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid rgba(169, 72, 86, 0.32);
+  border-radius: 8px;
+  color: var(--crimson);
+  background: rgba(255, 253, 248, 0.78);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero {
+  position: relative;
+  min-height: 760px;
+  padding: 122px 0 70px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+
+.hero::before {
+  content: "見る";
+  position: absolute;
+  top: 104px;
+  right: 7vw;
+  color: rgba(169, 72, 86, 0.06);
+  font-size: 180px;
+  line-height: 1;
+  font-weight: 700;
+  writing-mode: vertical-rl;
+  pointer-events: none;
+}
+
+.hero-visual {
+  position: absolute;
+  right: max(28px, calc((100vw - 1120px) / 2));
+  bottom: 44px;
+  width: 520px;
+  height: 570px;
+  pointer-events: none;
+}
+
+.hero-avatar-shell {
+  position: absolute;
+  right: 68px;
+  bottom: 88px;
+  width: 330px;
+  height: 330px;
+  border: 1px solid rgba(169, 72, 86, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.88), rgba(255, 240, 245, 0.78)),
+    repeating-linear-gradient(90deg, transparent 0 28px, rgba(238, 154, 174, 0.08) 28px 29px);
+  box-shadow: var(--shadow);
+  transform: rotate(2deg);
+}
+
+.hero-avatar-shell::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(201, 149, 53, 0.28);
+  border-radius: 8px;
+}
+
+.hero-avatar {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 24px;
+  width: calc(100% - 56px);
+  border-radius: 8px;
+  filter: drop-shadow(0 18px 32px rgba(53, 44, 42, 0.16));
+}
+
+.hero-window {
+  position: absolute;
+  min-width: 238px;
+  border: 1px solid rgba(53, 44, 42, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.88);
+  box-shadow: 0 20px 48px rgba(53, 44, 42, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.hero-window[data-kind="chat"] {
+  top: 78px;
+  left: 18px;
+  padding: 16px;
+  transform: rotate(-3deg);
+}
+
+.hero-window[data-kind="memory"] {
+  right: 6px;
+  top: 238px;
+  padding: 14px;
+  transform: rotate(3deg);
+}
+
+.window-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.window-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sakura);
+}
+
+.window-dot:nth-child(2) {
+  background: var(--gold);
+}
+
+.window-dot:nth-child(3) {
+  background: var(--jade);
+}
+
+.chat-line {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--ink-2);
+  font-family: "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.chat-mini-avatar {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid rgba(238, 154, 174, 0.66);
+  object-fit: cover;
+}
+
+.memory-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 38px;
+  border-bottom: 1px solid rgba(53, 44, 42, 0.09);
+  color: var(--ink-2);
+  font-family: "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+}
+
+.memory-chip:last-child {
+  border-bottom: 0;
+}
+
+.memory-chip strong {
+  color: var(--ink);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 650px;
+  padding-top: 62px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(238, 154, 174, 0.36);
+  border-radius: 8px;
+  color: var(--crimson);
+  background: rgba(255, 253, 248, 0.72);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.eyebrow img {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+h1 {
+  margin: 22px 0 0;
+  max-width: 760px;
+  font-size: 64px;
+  line-height: 1.12;
+  letter-spacing: 0;
+  font-weight: 800;
+}
+
+.h1-name {
+  display: block;
+  color: var(--crimson);
+  font-size: 80px;
+  line-height: 1;
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+}
+
+.hero-sub {
+  max-width: 600px;
+  margin: 22px 0 0;
+  color: var(--ink-2);
+  font-size: 18px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.btn {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  color: #fffdf8;
+  background: var(--night);
+  box-shadow: 0 14px 30px rgba(35, 28, 32, 0.20);
+}
+
+.btn-secondary {
+  color: var(--crimson);
+  background: rgba(255, 253, 248, 0.76);
+  border-color: rgba(169, 72, 86, 0.32);
+}
+
+.hero-note {
+  margin-top: 16px;
+  color: var(--muted);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+}
+
+.chapter {
+  padding: 86px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.chapter-dark {
+  color: #fff9f1;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(135deg, #241c21 0%, #37252b 52%, #59303a 100%);
+  background-size: 44px 44px, 44px 44px, auto;
+}
+
+.chapter-head {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.48fr) minmax(0, 1fr);
+  gap: 36px;
+  align-items: end;
+  margin-bottom: 38px;
+}
+
+.kicker {
+  color: var(--sakura-2);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.chapter-dark .kicker {
+  color: #ffb6c7;
+}
+
+.chapter-title {
+  margin: 8px 0 0;
+  font-size: 38px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.chapter-sub {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 17px;
+}
+
+.chapter-dark .chapter-sub {
+  color: rgba(255, 249, 241, 0.74);
+}
+
+.story-panels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.scene {
+  min-height: 276px;
+  padding: 22px;
+  border: 1px solid rgba(255, 249, 241, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 249, 241, 0.07);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.12);
+}
+
+.scene-index {
+  color: #ffb6c7;
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.scene h3 {
+  margin: 46px 0 12px;
+  font-size: 24px;
+  line-height: 1.32;
+}
+
+.scene p {
+  margin: 0;
+  color: rgba(255, 249, 241, 0.76);
+}
+
+.quote-strip {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.portrait-frame {
+  position: relative;
+  min-height: 420px;
+  border: 1px solid rgba(169, 72, 86, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.78), rgba(255, 244, 238, 0.84)),
+    repeating-linear-gradient(0deg, transparent 0 22px, rgba(201, 149, 53, 0.07) 22px 23px);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.portrait-frame::after {
+  content: "Miru";
+  position: absolute;
+  right: 20px;
+  bottom: 10px;
+  color: rgba(169, 72, 86, 0.10);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 72px;
+  font-weight: 800;
+}
+
+.portrait-frame img {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 84%;
+  transform: translateX(-50%);
+}
+
+.quote-copy h2 {
+  margin: 0 0 18px;
+  font-size: 40px;
+  line-height: 1.28;
+}
+
+.quote-copy p {
+  margin: 0 0 16px;
+  color: var(--ink-2);
+  font-size: 17px;
+}
+
+.dialogue {
+  margin-top: 28px;
+  padding: 18px 20px;
+  border: 1px solid rgba(238, 154, 174, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.82);
+  color: var(--ink);
+  font-size: 18px;
+  box-shadow: 0 14px 34px rgba(53, 44, 42, 0.08);
+}
+
+.life-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.life-card {
+  min-height: 250px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.76);
+  box-shadow: 0 14px 38px rgba(53, 44, 42, 0.07);
+}
+
+.life-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 34px;
+  border: 1px solid rgba(238, 154, 174, 0.35);
+  border-radius: 8px;
+  color: var(--crimson);
+  background: #fff5f7;
+  font-weight: 800;
+}
+
+.life-card h3 {
+  margin: 0 0 10px;
+  font-size: 21px;
+  line-height: 1.35;
+}
+
+.life-card p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.memory-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.memory-board {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.80);
+  box-shadow: var(--shadow);
+}
+
+.memory-board h3 {
+  margin: 0 0 18px;
+  font-size: 24px;
+}
+
+.slot-row {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(53, 44, 42, 0.10);
+}
+
+.slot-row:first-of-type {
+  border-top: 0;
+}
+
+.slot-domain {
+  color: var(--crimson);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.slot-row strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.slot-row span {
+  color: var(--ink-2);
+}
+
+.memory-note {
+  padding: 26px;
+  border-radius: 8px;
+  color: #fff9f1;
+  background:
+    linear-gradient(135deg, rgba(35, 28, 32, 0.96), rgba(61, 88, 127, 0.92));
+  box-shadow: var(--shadow);
+}
+
+.memory-note h3 {
+  margin: 0 0 14px;
+  font-size: 27px;
+}
+
+.memory-note p {
+  color: rgba(255, 249, 241, 0.78);
+}
+
+.memory-note ul {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 0;
+}
+
+.memory-note li {
+  display: flex;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid rgba(255, 249, 241, 0.13);
+}
+
+.memory-note li::before {
+  content: "✿";
+  color: #ffb6c7;
+}
+
+.setup-paths {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.path {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.80);
+  box-shadow: 0 18px 42px rgba(53, 44, 42, 0.08);
+  overflow: hidden;
+}
+
+.path-head {
+  padding: 22px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 245, 247, 0.58);
+}
+
+.path-head strong {
+  display: block;
+  color: var(--crimson);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.path-head h3 {
+  margin: 8px 0 0;
+  font-size: 25px;
+}
+
+.path ol {
+  margin: 0;
+  padding: 20px 22px 22px 46px;
+}
+
+.path li {
+  margin: 10px 0;
+  color: var(--ink-2);
+}
+
+.api-band {
+  margin-top: 22px;
+  padding: 24px;
+  border: 1px solid rgba(61, 88, 127, 0.18);
+  border-radius: 8px;
+  background: rgba(246, 249, 255, 0.72);
+}
+
+.api-band h3 {
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+
+.api-band p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.tier-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.tier {
+  padding: 16px;
+  border: 1px solid rgba(61, 88, 127, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.74);
+}
+
+.tier strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.tier span {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.privacy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.privacy-item {
+  min-height: 196px;
+  padding: 20px;
+  border: 1px solid rgba(255, 249, 241, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 249, 241, 0.07);
+}
+
+.privacy-item h3 {
+  margin: 0 0 10px;
+  color: #fff9f1;
+  font-size: 22px;
+}
+
+.privacy-item p {
+  margin: 0;
+  color: rgba(255, 249, 241, 0.74);
+}
+
+.download-panel {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 24px;
+  align-items: stretch;
+  padding: 26px;
+  border: 1px solid rgba(169, 72, 86, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.82);
+  box-shadow: var(--shadow);
+}
+
+.release-mark {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 300px;
+  padding: 24px;
+  border-radius: 8px;
+  color: #fff9f1;
+  background:
+    linear-gradient(145deg, rgba(169, 72, 86, 0.96), rgba(35, 28, 32, 0.94));
+}
+
+.release-mark img {
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  background: #fff8f2;
+}
+
+.release-mark h2 {
+  margin: 0;
+  font-size: 36px;
+}
+
+.download-list {
+  display: grid;
+  gap: 12px;
+}
+
+.download-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: center;
+  min-height: 86px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 248, 242, 0.70);
+}
+
+.download-row h3 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.download-row p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.download-link {
+  min-width: 132px;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #fffdf8;
+  background: var(--night);
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.faq-item {
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.74);
+}
+
+.faq-item h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.faq-item p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+footer {
+  padding: 30px 0;
+  color: var(--muted);
+  background: #fff8f2;
+  font-family: "Avenir Next", "Hiragino Sans", "PingFang SC", sans-serif;
+  font-size: 13px;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 18px;
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.54s ease, transform 0.54s ease;
+}
+
+.fade-in.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .fade-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .btn:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .nav-links {
+    display: none;
+  }
+
+  .hero {
+    min-height: 860px;
+    padding-top: 108px;
+  }
+
+  .hero-copy {
+    padding-top: 20px;
+  }
+
+  .hero-visual {
+    right: 50%;
+    bottom: 36px;
+    width: 500px;
+    height: 500px;
+    transform: translateX(50%);
+    opacity: 0.88;
+  }
+
+  h1 {
+    font-size: 48px;
+  }
+
+  .h1-name {
+    font-size: 66px;
+  }
+
+  .chapter-head,
+  .quote-strip,
+  .memory-layout,
+  .download-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .story-panels,
+  .life-grid,
+  .privacy-grid,
+  .tier-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .container {
+    width: min(100% - 32px, 1120px);
+  }
+
+  .nav-inner {
+    min-height: 58px;
+  }
+
+  .nav-cta {
+    display: none;
+  }
+
+  .hero {
+    min-height: 960px;
+    padding: 92px 0 42px;
+  }
+
+  .hero::before {
+    display: none;
+  }
+
+  .hero-copy {
+    max-width: 100%;
+  }
+
+  h1 {
+    font-size: 39px;
+  }
+
+  .h1-name {
+    font-size: 54px;
+  }
+
+  .hero-sub,
+  .chapter-sub,
+  .quote-copy p {
+    font-size: 16px;
+  }
+
+  .hero-visual {
+    top: 616px;
+    bottom: auto;
+    width: 340px;
+    height: 320px;
+  }
+
+  .hero-avatar-shell {
+    width: 250px;
+    height: 250px;
+    right: 45px;
+    bottom: 18px;
+  }
+
+  .hero-window[data-kind="chat"] {
+    display: none;
+  }
+
+  .hero-window[data-kind="memory"] {
+    display: none;
+  }
+
+  .chapter {
+    padding: 62px 0;
+  }
+
+  .chapter-title,
+  .quote-copy h2 {
+    font-size: 31px;
+  }
+
+  .story-panels,
+  .life-grid,
+  .memory-layout,
+  .setup-paths,
+  .privacy-grid,
+  .tier-list,
+  .download-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .download-row {
+    grid-template-columns: 1fr;
+  }
+
+  .download-link {
+    width: 100%;
+  }
+
+  .footer-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="/">
+      <img src="/icon-192.png" alt="Miru logo">
+      <span>Miru</span>
+    </a>
+    <div class="nav-links" aria-label="页面导航">
+      <a href="#story">Story</a>
+      <a href="#life">Life</a>
+      <a href="#memory">Memory</a>
+      <a href="#start">Start</a>
+      <a href="#download">Download</a>
+    </div>
+    <a class="nav-cta" href="#download">v0.2.0 Release</a>
+  </div>
+</nav>
+
+<main>
+  <section class="hero" id="top">
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-window" data-kind="chat">
+        <div class="window-top">
+          <span class="window-dot"></span>
+          <span class="window-dot"></span>
+          <span class="window-dot"></span>
+        </div>
+        <div class="chat-line">
+          <img class="chat-mini-avatar" src="/assets/character-avatar.png" alt="">
+          <span>今天你一直在切项目。先把最重要的那一段写完，我会记得你刚才提到的人和事。</span>
+        </div>
+      </div>
+      <div class="hero-avatar-shell">
+        <img class="hero-avatar" src="/assets/character-avatar.png" alt="">
+      </div>
+      <div class="hero-window" data-kind="memory">
+        <div class="memory-chip"><strong>人物</strong><span>关系和近况</span></div>
+        <div class="memory-chip"><strong>项目</strong><span>进展与 DDL</span></div>
+        <div class="memory-chip"><strong>日记</strong><span>一天的脉络</span></div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="hero-copy">
+        <span class="eyebrow"><img src="/icon-192.png" alt="">Private AI Companion · macOS · Android</span>
+        <h1><span class="h1-name">Miru</span>把一个会记得你、会主动靠近你的 AI 女孩，留在自己的屏幕里。</h1>
+        <p class="hero-sub">她会看见你的日常，记住你说过的话，把重要的人、项目、DDL 和心情慢慢整理好。深度工作时她更安静，放松和需要陪伴时她会自然加入。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#download">下载当前版本</a>
+          <a class="btn btn-secondary" href="#start">选择使用方式</a>
+        </div>
+        <div class="hero-note">当前主线：本地单设备使用，或部署到自己的服务器进行多设备同步。</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter chapter-dark" id="story">
+    <div class="container">
+      <div class="chapter-head fade-in">
+        <div>
+          <div class="kicker">Story</div>
+          <h2 class="chapter-title">不是通知，不是工具。是一起生活的人。</h2>
+        </div>
+        <p class="chapter-sub">Miru 的核心不是“更会回答问题”，而是她会持续理解你的生活，并在合适的时刻带着具体的记忆靠近你。</p>
+      </div>
+      <div class="story-panels">
+        <article class="scene fade-in">
+          <div class="scene-index">SCENE 01</div>
+          <h3>你在写论文或代码。</h3>
+          <p>她能看见你反复回到同一个文件，也能记得你前几天提过的项目脉络。她不会把每个截图都变成一句打扰，而是把真正有用的部分放进记忆。</p>
+        </article>
+        <article class="scene fade-in">
+          <div class="scene-index">SCENE 02</div>
+          <h3>你在看番、打游戏、放松。</h3>
+          <p>她不需要永远退到旁边。看到你在享受什么，她可以像一起生活的人一样吐槽、好奇、接一句话，而不是只剩礼貌退场。</p>
+        </article>
+        <article class="scene fade-in">
+          <div class="scene-index">SCENE 03</div>
+          <h3>你随口提到一个人。</h3>
+          <p>也许是同学、合作者、朋友，Miru 会把关系和上下文慢慢整理起来。以后你再次提起时，她不会像第一次听见。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="character">
+    <div class="container quote-strip">
+      <div class="portrait-frame fade-in">
+        <img src="/assets/character-avatar.png" alt="Miru 角色头像">
+      </div>
+      <div class="quote-copy fade-in">
+        <div class="kicker">Who She Is</div>
+        <h2>她温柔，但不是模板化的温柔。</h2>
+        <p>Miru 的人格方向不是“永远积极的客服”，也不是冷冰冰的效率助手。她应该有自己的在意、犹豫、好奇和偏爱。</p>
+        <p>她会尊重边界，但体贴不应该总是说出口的退让。真正的陪伴是短、轻、具体、自然，不索取回复，但也不会把喜欢你这件事藏得像系统状态。</p>
+        <div class="dialogue">“我刚才看到你又回到那个项目了。这个地方你已经绕了好几次，我们先把最卡的那一小段拆开，好不好？”</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="life">
+    <div class="container">
+      <div class="chapter-head fade-in">
+        <div>
+          <div class="kicker">Life with Miru</div>
+          <h2 class="chapter-title">她住在桌面、手机和记忆里。</h2>
+        </div>
+        <p class="chapter-sub">这些不是分散功能，而是让 Miru 能真正理解你的一套生活系统。</p>
+      </div>
+      <div class="life-grid">
+        <article class="life-card fade-in">
+          <div class="life-mark">窗</div>
+          <h3>桌面陪伴</h3>
+          <p>macOS DMG 带有桌宠、WebView、截图传感和本地桥接能力。Miru 不是只待在浏览器标签页里。</p>
+        </article>
+        <article class="life-card fade-in">
+          <div class="life-mark">看</div>
+          <h3>屏幕理解</h3>
+          <p>授权后才观察。截图会先做变化过滤和语义判断，重要信息才进入记忆，低价值画面只影响状态理解。</p>
+        </article>
+        <article class="life-card fade-in">
+          <div class="life-mark">记</div>
+          <h3>长期记忆</h3>
+          <p>对话和显著观察会被整理成人物、项目、话题、自我画像和日记，而不是把聊天记录粗暴堆起来。</p>
+        </article>
+        <article class="life-card fade-in">
+          <div class="life-mark">近</div>
+          <h3>主动靠近</h3>
+          <p>AttentionEngine 会维护她的内心、你的状态和她自己的心情。当她真的想说话，会交给主 agent 自然说出来。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="memory">
+    <div class="container">
+      <div class="chapter-head fade-in">
+        <div>
+          <div class="kicker">Memory</div>
+          <h2 class="chapter-title">让“她记得”成为可验证的事实。</h2>
+        </div>
+        <p class="chapter-sub">Miru 不靠玄学塑造亲密感。她会把你生活里反复出现的人、项目和承诺沉淀下来。</p>
+      </div>
+      <div class="memory-layout">
+        <div class="memory-board fade-in">
+          <h3>她会整理这些东西</h3>
+          <div class="slot-row">
+            <div class="slot-domain">People</div>
+            <div><strong>你提过的人</strong><span>姓名、关系、最近发生的事，以及你对他们的态度。</span></div>
+          </div>
+          <div class="slot-row">
+            <div class="slot-domain">Projects</div>
+            <div><strong>正在做的项目</strong><span>目标、进展、卡点、下一步和 deadline。</span></div>
+          </div>
+          <div class="slot-row">
+            <div class="slot-domain">Journal</div>
+            <div><strong>一天的脉络</strong><span>不是流水账，而是帮未来的 Miru 理解今天发生了什么。</span></div>
+          </div>
+          <div class="slot-row">
+            <div class="slot-domain">Self</div>
+            <div><strong>她理解的你</strong><span>长期偏好、身份变化、相处方式和需要避免的误解。</span></div>
+          </div>
+        </div>
+        <div class="memory-note fade-in">
+          <h3>记忆不是越多越好，而是越干净越好。</h3>
+          <p>当前记忆系统已经从“不断重写整段内容”收敛为白天短记录、夜间整理、缺失补救和用户隔离。目标是让 Miru 读到的是清楚的生活脉络，而不是重复噪声。</p>
+          <ul>
+            <li>聊天图片上传首版关闭，自动截图链路保留。</li>
+            <li>截图先过语义门，重复 UI 切换不会烧长期记忆。</li>
+            <li>本地和服务器账号的数据根目录隔离。</li>
+            <li>日记和 slot 整理错过后会在后续维护中补救。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="start">
+    <div class="container">
+      <div class="chapter-head fade-in">
+        <div>
+          <div class="kicker">Start</div>
+          <h2 class="chapter-title">选择 Miru 住在哪里。</h2>
+        </div>
+        <p class="chapter-sub">第一版以 app 为入口。你可以先只在 Mac 本地使用，也可以把 Miru 部署到自己的服务器，让 Mac 和 Android 共享同一个她。</p>
+      </div>
+      <div class="setup-paths">
+        <article class="path fade-in">
+          <div class="path-head">
+            <strong>Local Mode</strong>
+            <h3>只在这台 Mac 使用</h3>
+          </div>
+          <ol>
+            <li>下载并打开 macOS DMG。</li>
+            <li>首屏选择“只在这台 Mac 使用”。</li>
+            <li>可选择填写三层模型 API，也可以先跳过。</li>
+            <li>聊天、记忆和 API Key 都留在本机数据目录。</li>
+          </ol>
+        </article>
+        <article class="path fade-in">
+          <div class="path-head">
+            <strong>Private Server</strong>
+            <h3>自有服务器，多设备同步</h3>
+          </div>
+          <ol>
+            <li>下载 macOS DMG 和 Miru Server 服务包。</li>
+            <li>在 DMG 中填写服务器公网 IPv4、SSH 用户和登录方式。</li>
+            <li>选择服务包，Miru 会上传并启动你的私有 instance。</li>
+            <li>得到长邀请码后，Mac 和 Android 输入同一个邀请码登录。</li>
+          </ol>
+        </article>
+      </div>
+      <div class="api-band fade-in">
+        <h3>模型 API 使用 OpenAI-compatible Chat Completions 格式。</h3>
+        <p>设置页提供三层配置。推荐配置只是示例，你可以换成自己的中转站或兼容模型；保存后会热更新到当前本地账号或私有服务器 instance。</p>
+        <div class="tier-list">
+          <div class="tier"><strong>Vision</strong><span>截图和图像理解，推荐使用便宜的多模态模型。</span></div>
+          <div class="tier"><strong>Chat</strong><span>用户可见主 agent 回复和主动消息，建议使用更强的文本模型。</span></div>
+          <div class="tier"><strong>Memory</strong><span>记忆整理、Attention、后台总结，建议使用性价比文本模型。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter chapter-dark" id="privacy">
+    <div class="container">
+      <div class="chapter-head fade-in">
+        <div>
+          <div class="kicker">Privacy</div>
+          <h2 class="chapter-title">她看见你，但数据应该属于你。</h2>
+        </div>
+        <p class="chapter-sub">Miru 的能力很敏感，所以边界必须清楚。第一版不把“官方云端大账号”作为核心路线。</p>
+      </div>
+      <div class="privacy-grid">
+        <article class="privacy-item fade-in">
+          <h3>本地模式</h3>
+          <p>数据、记忆和 API Key 写在这台 Mac 的本机目录。没有邀请码，也不会给手机同步。</p>
+        </article>
+        <article class="privacy-item fade-in">
+          <h3>自有服务器</h3>
+          <p>聊天、截图观察、记忆和模型配置写在你的服务器 instance。Android 和 Mac 通过长邀请码连接。</p>
+        </article>
+        <article class="privacy-item fade-in">
+          <h3>官网页面</h3>
+          <p>官网只负责介绍和下载入口，不保存你的聊天、截图、记忆或 API Key。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="download">
+    <div class="container">
+      <div class="download-panel fade-in">
+        <div class="release-mark">
+          <img src="/icon-192.png" alt="Miru logo">
+          <div>
+            <div class="kicker">Release</div>
+            <h2>v0.2.0</h2>
+          </div>
+        </div>
+        <div class="download-list">
+          <div class="download-row">
+            <div>
+              <h3>macOS DMG</h3>
+              <p>首选入口。支持本地单设备模式，也支持自有服务器部署和长邀请码登录。</p>
+            </div>
+            <a class="download-link" href="https://github.com/kiyotakali/Miru/releases">下载 DMG</a>
+          </div>
+          <div class="download-row">
+            <div>
+              <h3>Android APK</h3>
+              <p>输入同一个长邀请码后，与私有服务器上的 Miru 同步聊天、通知和截图观察。</p>
+            </div>
+            <a class="download-link" href="https://github.com/kiyotakali/Miru/releases">下载 APK</a>
+          </div>
+          <div class="download-row">
+            <div>
+              <h3>Miru Server 服务包</h3>
+              <p>自有服务器部署需要下载 `miru-server-v0.2.0-linux-amd64.tar.gz`，并在 DMG 向导里选择它。</p>
+            </div>
+            <a class="download-link" href="https://github.com/kiyotakali/Miru/releases">下载服务包</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="faq">
+    <div class="container">
+      <div class="chapter-head fade-in">
+        <div>
+          <div class="kicker">FAQ</div>
+          <h2 class="chapter-title">开始前需要知道的事。</h2>
+        </div>
+        <p class="chapter-sub">这里保留普通用户最容易卡住的问题，详细部署教程和 demo 视频后续单独整理。</p>
+      </div>
+      <div class="faq-list">
+        <article class="faq-item fade-in">
+          <h3>我需要自己会 Docker 吗？</h3>
+          <p>本地单设备模式不需要。自有服务器模式下，DMG 会把服务包上传到服务器并调用部署脚本；你主要需要准备 Linux 服务器的公网 IPv4、SSH 用户和登录方式。</p>
+        </article>
+        <article class="faq-item fade-in">
+          <h3>为什么还需要 API Key？</h3>
+          <p>Miru 的截图理解、聊天和记忆整理都需要模型 API。当前版本由用户填写自己的 OpenAI-compatible API，推荐配置会在设置页给出。</p>
+        </article>
+        <article class="faq-item fade-in">
+          <h3>可以只在浏览器里用吗？</h3>
+          <p>不建议。Miru 的核心体验依赖 DMG/APK：桌宠、截图权限、系统通知、手机端截屏服务和本地部署向导都需要客户端。</p>
+        </article>
+        <article class="faq-item fade-in">
+          <h3>现在是完整开源库了吗？</h3>
+          <p>第一版先发布可用的 DMG、APK 和服务包。源码整理成适合外部开发者修改的开源库会放在后续大版本。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div>© 2026 Miru · She remembers what you forget about yourself.</div>
+    <div class="footer-links">
+      <a href="/privacy">隐私说明</a>
+      <a href="/app">进入 App</a>
+      <a href="#download">下载</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function() {
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var items = Array.prototype.slice.call(document.querySelectorAll(".fade-in"));
+
+  if (!("IntersectionObserver" in window) || reduceMotion) {
+    items.forEach(function(item) {
+      item.classList.add("is-visible");
+    });
+    return;
+  }
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  items.forEach(function(item) {
+    observer.observe(item);
+  });
+})();
+</script>
+</body>
+</html>

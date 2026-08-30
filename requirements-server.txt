@@ -1,0 +1,12 @@
+flask
+flask-compress
+Pillow
+pywebpush
+anthropic
+openai
+httpx[socks]
+psycopg[binary]
+pydantic
+requests
+qrcode[pil]
+paramiko

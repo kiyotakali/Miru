@@ -1,0 +1,24 @@
+{
+  "name": "Miru",
+  "short_name": "Miru",
+  "description": "生活记录助手 — Miru 帮你结构化每一天",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF5E9",
+  "theme_color": "#4A3A30",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

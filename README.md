@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-Apache%202.0-D94F6E" alt="License">
-  <img src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Android-D94F6E" alt="Platform">
+  <img src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Windows%20%C2%B7%20Android-D94F6E" alt="Platform">
   <img src="https://img.shields.io/badge/backend-self--hosted-D94F6E" alt="Self-hosted">
   <img src="https://img.shields.io/badge/models-any%20OpenAI--compatible-D94F6E" alt="Models">
 </p>
@@ -23,8 +23,9 @@
 
 <p align="center">
   <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-macOS.dmg"><img src="_page/assets/dl-macos.svg" width="240" alt="Download for macOS"></a>&nbsp;
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Windows-x64-Setup.exe"><img src="https://img.shields.io/badge/Download-Windows%20x64-2563EB?style=for-the-badge&logo=windows11&logoColor=white" height="54" alt="Download for Windows"></a>&nbsp;
   <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Android.apk"><img src="_page/assets/dl-android.svg" width="240" alt="Download for Android"></a>&nbsp;
-  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/miru-server-linux-amd64.tar.gz"><img src="_page/assets/dl-linux.svg" width="240" alt="Linux server image"></a>
+  <a href="https://github.com/kiyotakali/Miru/releases/latest/download/Miru-Server-linux-amd64.tar.gz"><img src="_page/assets/dl-linux.svg" width="240" alt="Linux server image"></a>
 </p>
 
 ---
@@ -35,7 +36,7 @@
 
 Three things set her apart from every "AI girlfriend" wrapper:
 
-- **She runs on _your_ machine.** Your Mac, or your own server. There is no central cloud. The only thing that ever leaves your computer is the call to the model API *you* configured.
+- **She runs on _your_ device.** Your Mac, Windows PC, Android phone, or your own server. There is no central Miru cloud. The only application traffic sent to a third party is the model API call *you* configured.
 - **What she remembers is verifiable.** Not a black box — her memory is plain Markdown you can open, read, and export. She never "remembers" out of thin air: the chat agent only *reads* memory; every write comes from something that actually happened.
 - **She decides when to speak.** An attention system reads your screen and your rhythm and judges the moment. Deep in work? She stays quiet. Stuck, tired, or winding down? She comes a little closer. It's her call — not a timer, not a notification rule.
 
@@ -43,40 +44,40 @@ Three things set her apart from every "AI girlfriend" wrapper:
 
 ## What she can do
 
-**Sees your day.** A screen sensor glances at your screen (default every 60s, skipped when nothing changed, adjustable, or fully off). The screenshot is analyzed and thrown away — what stays is *what you were doing*, never the image.
+**Sees your day.** A screen sensor glances at your screen (default every 30s, skipped when nothing changed, adjustable, or fully off). The screenshot is analyzed and thrown away — what stays is *what you were doing*, never the image.
 
 **Remembers it as facts you can check.** Four kinds of long-term memory — projects, people, yourself, topics — plus a daily journal and a commitment list. When you tell a friend "I'll send you the figures tonight," she reads it off the screen and quietly logs the promise.
 
 **Comes closer on her own terms.** Continuous emotion and a personality of her own (defined in a `soul.md`). She isn't reactive-only: when she sees you've been stuck for an hour and your mood keeps sinking, *she* opens the conversation.
 
-**Lives across your devices.** A Live2D desktop pet on macOS, and the same her on Android — one invitation code, memory synced through your own server.
+**Lives across your devices.** macOS, Windows, and Android can each run Miru locally, or connect through one invitation code to the same Miru on your own server.
 
 ## Quick start
 
 Miru is free software; you bring your own model API keys (any OpenAI-compatible provider). A recommended setup costs **under ¥2/day** in tokens.
 
-### 🖥️ Just this Mac — local, single-device
+### Local, single-device
 
-1. Download the **macOS DMG** from [Releases](https://github.com/kiyotakali/Miru/releases).
-2. On first launch, choose **"Only on this Mac."**
+1. Download the installer for macOS, Windows, or Android from [Releases](https://github.com/kiyotakali/Miru/releases).
+2. On first launch, choose local single-device mode.
 3. Fill in the three model tiers (Vision / Chat / Memory) in Settings.
-4. Start talking — everything (chat, memory, journal) stays on your machine.
+4. Start talking — chat, memory, journal, AttentionEngine, Curator, and SleepAgent run on that device.
 
-### 📱 Mac + phone — your own server, multi-device
+### Your own server, multi-device
 
-1. Install the DMG and pick **"Mac + phone together."**
-2. The first-run wizard deploys Miru to **your own Linux server** in one step.
+1. On macOS, Windows, or Android, choose multi-device mode.
+2. Deploy Miru to **your own Linux server** from the first-run wizard, or connect to an existing Miru instance.
 3. You get a long invitation code.
-4. Log in on Mac and Android with the same code — the same her, everywhere.
+4. Log in on Mac, Windows, and Android with the same code — the same account and memory on every connected device.
 
 ### 🐳 Server image — advanced
 
-Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Releases, `docker load`, and run it on any Linux box (we test and deploy on **Ubuntu 20.04 LTS**; newer Ubuntu/Debian works too). Same invitation-code format as the wizard.
+Prefer to deploy by hand? Grab `Miru-Server-linux-amd64.tar.gz` from Releases, run `docker load`, and start it on an x86-64 Linux server. See [the deployment guide](deploy/README.md).
 
 ## How it works
 
 ```
-   macOS / Android app              your Mac  ·  or your own Linux server
+ macOS / Windows / Android       current device  ·  or your own Linux server
   ┌─────────────────────┐           ┌────────────────────────────────────────┐
   │  Live2D pet         │           │  Flask backend                         │
   │  screen sensor      │  ───────> │  · chat agent (reads memory)           │
@@ -87,24 +88,23 @@ Prefer to deploy by hand? Grab the `linux-amd64` server image (`tar.gz`) from Re
         (any OpenAI-compatible)     └────────────────────────────────────────┘
 ```
 
-- **No central backend.** In local mode the backend runs on your Mac; in multi-device mode it runs on your server. Outbound traffic goes only to your chosen model provider.
+- **No central Miru backend.** In local mode the backend runs on the current device; in multi-device mode it runs on your server. Model traffic goes to the provider you configure.
 - **Three model tiers**, all OpenAI-compatible: `Vision` (reads screenshots), `Chat` (talks to you), `Memory` (organizes what she keeps). Mix providers freely.
-- The macOS/Android apps and the server image are released here under **Apache 2.0**. The full backend source is being opened up in stages — [star / watch](https://github.com/kiyotakali/Miru) to follow along.
+- Miru's application source is available in this repository under **Apache 2.0**. Live2D Cubism components and the Hiyori sample model keep their separate upstream terms and are not included in the source archive; see [Third-Party Notices](THIRD_PARTY_NOTICES.md).
 
 ## Privacy
 
-- Chat, screen understanding, memory, and journals live on **your** Mac or **your** server. This project's website stores nothing.
+- Chat, screen understanding, memory, and journals live on **your** device or **your** server. This project's website stores nothing.
 - Screenshots are discarded right after analysis; only the understanding is kept.
 - She's not a black box: her memory, journal, and even her attention/mood notes are files on your own backend you can open and audit.
 
 ## Roadmap
 
-- [x] Local single-device mode (macOS)
-- [x] Self-hosted multi-device (macOS + Android, one invitation code)
+- [x] Local single-device mode (macOS, Windows, Android)
+- [x] Self-hosted multi-device (macOS, Windows, Android, one invitation code)
 - [x] Live2D desktop pet, AttentionEngine proactive presence, verifiable memory
-- [ ] Windows client
+- [x] Full Miru application source published
 - [ ] iOS client
-- [ ] Full backend source open-sourced
 - [ ] Editable personality / prompt knobs
 
 If Miru resonates with you, a ⭐ genuinely helps — and lets you follow the road to Windows, iOS, and full open source.
@@ -122,6 +122,8 @@ For questions and collaborations, please contact:
 
 ## License
 
-[Apache 2.0](LICENSE).
+Miru's own source code is licensed under [Apache 2.0](LICENSE). Third-party dependencies and assets remain under their respective licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Developer setup and all four build targets are documented in [docs/BUILDING.md](docs/BUILDING.md). Contributions are described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 <p align="center"><sub>花会落，她记得。 — Petals fall; she remembers.</sub></p>

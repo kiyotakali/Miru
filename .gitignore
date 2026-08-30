@@ -1,9 +1,44 @@
-# Claude Code 本地配置，不进仓库
+# Local agent configuration
 .claude/
 
-# 本地开发依赖
-node_modules/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+.venv-windows/
+.env
 
-# 系统杂物
+# Frontend dependencies
+node_modules/
+miru-mobile/node_modules/
+
+# Runtime data and process files
+data/*
+.docker/
+.child_pids
+.pet.pid
+
+# Keep bundled Miru model metadata when present
+!data/models/
+!data/personas/
+!data/model_library.json
+
+# Build output
+build/
+dist/
+artifacts/
+public-source-export/
+src-tauri/target/
+miru-mobile/android/.gradle/
+miru-mobile/android/build/
+miru-mobile/android/app/build/
+miru-mobile/android/local.properties
+miru-mobile/*.apk
+.pytest_cache/
+*.spec.bak
+
+# System files
 .DS_Store
 Thumbs.db

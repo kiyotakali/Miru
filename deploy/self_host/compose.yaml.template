@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+  miru:
+    image: ${MIRU_IMAGE}
+    container_name: ${MIRU_CONTAINER_NAME}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATA_DIR: /opt/miru/data
+      LOG_DIR: /opt/miru/logs
+      MIRU_HEADLESS: "1"
+      FLASK_DEBUG: "false"
+      TZ: ${TZ}
+      TIMEZONE: ${TIMEZONE}
+      PORT: "5001"
+      SERVER_PORT: ${SERVER_PORT}
+    ports:
+      - "${SERVER_PORT}:5001"
+    volumes:
+      - ./data:/opt/miru/data
+      - ./logs:/opt/miru/logs

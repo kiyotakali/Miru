@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FFF9F2">
+<script src="/assets/js/android-lifecycle-shim.js"></script>
+<script>
+(function() {
+  try {
+    if (new URLSearchParams(window.location.search).get('android') === '1') {
+      document.documentElement.classList.add('android-client');
+    }
+  } catch (e) {}
+})();
+</script>
+<title>Miru — 初次见面</title>
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fffaf4;
+  --paper: #fffdf9;
+  --paper-deep: #fff6ec;
+  --ink: #342d2a;
+  --muted: #796e67;
+  --faint: #a99d95;
+  --line: rgba(82, 66, 58, 0.13);
+  --line-strong: rgba(82, 66, 58, 0.22);
+  --sakura: #f2a8ba;
+  --sakura-strong: #d86f8a;
+  --sakura-pale: #fff0f4;
+  --moss: #577d68;
+  --indigo: #61758a;
+  --ok: #287b5b;
+  --warn: #9a6630;
+  --danger: #b65163;
+  --shadow: rgba(63, 48, 39, 0.12);
+}
+
+html.android-client {
+  --android-safe-top: max(env(safe-area-inset-top, 0px), 34px);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  min-height: 100%;
+  margin: 0;
+  color: var(--ink);
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  background:
+    repeating-linear-gradient(90deg, rgba(92, 67, 54, 0.025) 0 1px, transparent 1px 42px),
+    repeating-linear-gradient(0deg, rgba(92, 67, 54, 0.018) 0 1px, transparent 1px 36px),
+    linear-gradient(180deg, #fff8f0 0%, #fffdf8 48%, #fff6ee 100%);
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 58px 22px 52px;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.72), transparent 42%),
+    radial-gradient(ellipse at top left, rgba(242, 168, 186, 0.16), transparent 32%),
+    linear-gradient(180deg, transparent 0%, rgba(255, 244, 235, 0.72) 100%);
+}
+
+button, input {
+  font: inherit;
+}
+
+.sakura-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.petal {
+  position: absolute;
+  width: 14px;
+  height: 22px;
+  border-radius: 14px 14px 14px 3px;
+  background: rgba(242, 168, 186, 0.34);
+  transform: rotate(28deg);
+  filter: blur(0.1px);
+}
+
+.petal:nth-child(1) { left: 7%; top: 16%; transform: rotate(-18deg); opacity: 0.48; }
+.petal:nth-child(2) { left: 16%; top: 64%; transform: rotate(42deg); opacity: 0.28; }
+.petal:nth-child(3) { right: 11%; top: 18%; transform: rotate(64deg); opacity: 0.34; }
+.petal:nth-child(4) { right: 18%; top: 72%; transform: rotate(-28deg); opacity: 0.22; }
+.petal:nth-child(5) { left: 48%; top: 8%; transform: rotate(12deg); opacity: 0.2; }
+
+.shell {
+  position: relative;
+  z-index: 1;
+  width: min(860px, 100%);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 54px;
+  padding: 0 4px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "Zen Maru Gothic", "Noto Sans SC", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.brand img {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #fff1eb;
+  box-shadow: 0 4px 14px rgba(216, 111, 138, 0.14);
+}
+
+.panel {
+  position: relative;
+  min-height: 0;
+  padding: 0;
+}
+
+.view {
+  position: relative;
+  z-index: 1;
+  display: none;
+  width: min(560px, 100%);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.view.active {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  animation: view-in 0.22s ease-out both;
+}
+
+body[data-view="self"] .view.active,
+body[data-view="api-setup"] .view.active {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  text-align: left;
+  border: 1px solid rgba(82, 66, 58, 0.14);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(216, 111, 138, 0.16) 0 4px, transparent 4px 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 251, 246, 0.94));
+  box-shadow: 0 26px 62px rgba(63, 48, 39, 0.1);
+  padding: 40px 42px 42px;
+}
+
+@keyframes view-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sakura-strong);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.kicker::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 8px 8px 8px 2px;
+  background: var(--sakura);
+  transform: rotate(35deg);
+}
+
+h1 {
+  max-width: 100%;
+  margin: 0;
+  font-family: "Zen Maru Gothic", "Noto Sans SC", sans-serif;
+  font-size: 36px;
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+
+.sub {
+  max-width: 100%;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.85;
+  margin: 16px 0 42px;
+}
+
+.choices {
+  display: grid;
+  gap: 14px;
+  text-align: left;
+}
+
+.choice {
+  position: relative;
+  width: 100%;
+  min-height: 82px;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: rgba(255, 253, 249, 0.68);
+  border-radius: 8px;
+  padding: 17px 48px 17px 18px;
+  cursor: pointer;
+  color: var(--ink);
+  box-shadow: 0 8px 30px rgba(63, 48, 39, 0.04);
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.choice::after {
+  content: "›";
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(216, 111, 138, 0.58);
+  font-size: 28px;
+  font-family: "Zen Maru Gothic", "Noto Sans SC", sans-serif;
+}
+
+.choice:hover:not(:disabled) {
+  border-color: rgba(216, 111, 138, 0.48);
+  background: rgba(255, 248, 250, 0.86);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(216, 111, 138, 0.09);
+}
+
+.choice:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, #fff7f2, #ffedf2);
+  border: 1px solid rgba(216, 111, 138, 0.12);
+  color: var(--sakura-strong);
+  font-weight: 800;
+}
+
+.choice-title {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.choice-desc {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  margin-left: 8px;
+  border-radius: 999px;
+  background: rgba(97, 117, 138, 0.1);
+  color: var(--indigo);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+  color: var(--muted);
+}
+
+body[data-view="self"] .toolbar,
+body[data-view="api-setup"] .toolbar {
+  justify-content: flex-start;
+}
+
+.toolbar strong {
+  font-size: 13px;
+}
+
+.back {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.back:hover {
+  border-color: rgba(216, 111, 138, 0.45);
+  color: var(--ink);
+  background: #fff8fa;
+}
+
+	.form {
+	  display: grid;
+	  gap: 18px;
+	  text-align: left;
+	}
+
+	.field {
+	  display: grid;
+	  gap: 8px;
+	  align-content: start;
+	}
+
+label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+	input {
+	  width: 100%;
+	  min-height: 54px;
+	  border: 1px solid var(--line);
+	  border-radius: 8px;
+	  background: rgba(255, 255, 255, 0.78);
+	  color: var(--ink);
+	  padding: 13px 16px;
+	  outline: none;
+	}
+
+input:focus {
+  border-color: rgba(216, 111, 138, 0.72);
+  box-shadow: 0 0 0 3px rgba(216, 111, 138, 0.13);
+  background: #fff;
+}
+
+.code-input {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+	.grid-2 {
+	  display: grid;
+	  grid-template-columns: 1fr 1fr;
+	  gap: 12px;
+	}
+
+	.self-server-form {
+	  gap: 18px;
+	}
+
+	.self-form-section {
+	  display: grid;
+	  gap: 12px;
+	  border: 1px solid rgba(82, 66, 58, 0.12);
+	  background:
+	    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 251, 246, 0.82));
+	  border-radius: 8px;
+	  padding: 16px;
+	  box-shadow: 0 12px 32px rgba(63, 48, 39, 0.045);
+	}
+
+	.self-form-section.soft {
+	  border-color: rgba(216, 111, 138, 0.22);
+	  background:
+	    linear-gradient(180deg, rgba(255, 248, 251, 0.84), rgba(255, 253, 249, 0.92));
+	}
+
+	.credential-grid {
+	  display: grid;
+	  grid-template-columns: 1fr 1fr;
+	  gap: 16px;
+	  align-items: start;
+	}
+
+	.credential-grid .field {
+	  grid-template-rows: auto 54px;
+	}
+
+	.field-note {
+	  color: var(--muted);
+	  font-size: 12px;
+	  line-height: 1.7;
+	}
+
+	.field-note code {
+	  color: var(--sakura-strong);
+	  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+	  font-weight: 800;
+	  background: rgba(242, 168, 186, 0.13);
+	  border: 1px solid rgba(216, 111, 138, 0.16);
+	  border-radius: 6px;
+	  padding: 1px 6px;
+	}
+
+details {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 13px;
+  background: rgba(255, 253, 249, 0.7);
+}
+
+summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.advanced {
+  display: grid;
+  gap: 12px;
+  margin-top: 13px;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  min-height: 46px;
+  padding: 0 20px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(52, 45, 42, 0.13);
+  transition: opacity 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(52, 45, 42, 0.16);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  box-shadow: none;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+body[data-view="local"] .local-actions {
+  justify-content: center;
+  margin-top: 30px;
+}
+
+body[data-view="local"] .local-actions .btn {
+  min-width: 220px;
+}
+
+.note {
+  border: 1px solid rgba(154, 102, 48, 0.22);
+  background: rgba(255, 248, 237, 0.78);
+  color: #735437;
+  border-radius: 8px;
+  padding: 13px 14px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.api-setup {
+  display: grid;
+  gap: 12px;
+}
+
+.api-tier-card {
+  border: 1px solid rgba(216, 111, 138, 0.18);
+  background: rgba(255, 253, 249, 0.82);
+  border-radius: 8px;
+  padding: 15px;
+  display: grid;
+  gap: 12px;
+}
+
+.api-tier-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.api-tier-head strong {
+  font-size: 15px;
+}
+
+.api-tier-head span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.api-format-hint {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: -2px;
+}
+
+body[data-view="api-setup"] .sub {
+  margin: 10px 0 12px;
+}
+
+body[data-view="api-setup"] .note {
+  margin: 0 0 8px;
+}
+
+.api-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.api-grid .field:last-child {
+  grid-column: 1 / -1;
+}
+
+	.archive-card {
+	  border: 1px solid rgba(216, 111, 138, 0.22);
+	  background:
+	    linear-gradient(180deg, rgba(255, 248, 251, 0.86), rgba(255, 253, 249, 0.92));
+	  border-radius: 8px;
+	  padding: 16px;
+	  display: grid;
+	  gap: 12px;
+	}
+
+.archive-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-weight: 800;
+}
+
+.archive-title span {
+  font-size: 12px;
+  color: var(--sakura-strong);
+  font-weight: 800;
+}
+
+	.file-input {
+	  position: absolute;
+	  width: 1px;
+	  height: 1px;
+	  opacity: 0;
+	  pointer-events: none;
+	}
+
+	.file-picker {
+	  display: grid;
+	  grid-template-columns: auto 1fr;
+	  align-items: center;
+	  gap: 12px;
+	  border: 1px dashed rgba(216, 111, 138, 0.4);
+	  background: rgba(255, 255, 255, 0.72);
+	  border-radius: 8px;
+	  padding: 12px;
+	}
+
+	.file-picker-btn {
+	  border: 1px solid rgba(216, 111, 138, 0.24);
+	  background: rgba(255, 240, 244, 0.82);
+	  color: var(--sakura-strong);
+	  border-radius: 8px;
+	  min-height: 38px;
+	  padding: 0 14px;
+	  font-weight: 800;
+	  cursor: pointer;
+	}
+
+	.file-picker-btn:hover {
+	  background: rgba(255, 232, 239, 0.92);
+	  border-color: rgba(216, 111, 138, 0.42);
+	}
+
+.file-hint {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+	.file-name {
+	  color: var(--muted);
+	  font-size: 12px;
+	  min-height: 18px;
+	  overflow: hidden;
+	  text-overflow: ellipsis;
+	  white-space: nowrap;
+	}
+
+.message {
+  min-height: 20px;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.message.ok {
+  color: var(--ok);
+}
+
+.progress {
+  display: none;
+  margin-top: 18px;
+  border: 1px solid rgba(216, 111, 138, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 247, 249, 0.76);
+  padding: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.progress.active {
+  display: block;
+}
+
+.success-card {
+  display: none;
+  margin-top: 18px;
+  border: 1px solid rgba(40, 123, 91, 0.24);
+  border-radius: 8px;
+  background: rgba(244, 255, 249, 0.78);
+  padding: 16px;
+}
+
+.success-card.active {
+  display: grid;
+  gap: 12px;
+}
+
+.success-title {
+  font-weight: 800;
+  color: var(--ok);
+}
+
+.success-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.invite-code-box {
+  border: 1px solid rgba(40, 123, 91, 0.18);
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-all;
+  letter-spacing: 0;
+}
+
+.deploy-head {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.sakura-spinner {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  animation: sakura-spin 1.6s linear infinite;
+}
+
+.sakura-spinner span {
+  position: absolute;
+  left: 18px;
+  top: 4px;
+  width: 10px;
+  height: 17px;
+  border-radius: 10px 10px 10px 2px;
+  background: linear-gradient(180deg, #ffd2dc, #e997a8);
+  transform-origin: 4px 18px;
+  box-shadow: 0 1px 4px rgba(216, 111, 138, 0.18);
+}
+
+.sakura-spinner span:nth-child(1) { transform: rotate(0deg); }
+.sakura-spinner span:nth-child(2) { transform: rotate(60deg); }
+.sakura-spinner span:nth-child(3) { transform: rotate(120deg); }
+.sakura-spinner span:nth-child(4) { transform: rotate(180deg); }
+.sakura-spinner span:nth-child(5) { transform: rotate(240deg); }
+.sakura-spinner span:nth-child(6) { transform: rotate(300deg); }
+
+@keyframes sakura-spin {
+  to { transform: rotate(360deg); }
+}
+
+.phase {
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+
+.phase-help {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.progress-track {
+  position: relative;
+  overflow: hidden;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(216, 111, 138, 0.16);
+  margin: 10px 0 14px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f7b6c3, #d66f86);
+  transition: width 0.35s ease;
+}
+
+.deploy-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0;
+  margin: 0 0 12px;
+  list-style: none;
+}
+
+.deploy-step {
+  min-height: 54px;
+  border: 1px solid rgba(216, 111, 138, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 9px;
+  color: var(--faint);
+  font-size: 12px;
+  line-height: 1.38;
+}
+
+.deploy-step strong {
+  display: block;
+  color: inherit;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.deploy-step.done {
+  border-color: rgba(40, 123, 91, 0.2);
+  background: rgba(40, 123, 91, 0.06);
+  color: var(--ok);
+}
+
+.deploy-step.current {
+  border-color: rgba(216, 111, 138, 0.42);
+  background: rgba(255, 245, 247, 0.9);
+  color: var(--sakura-strong);
+}
+
+.deploy-details {
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.logs {
+  display: grid;
+  gap: 6px;
+  max-height: 150px;
+  overflow: auto;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.log-line {
+  border-left: 2px solid rgba(216, 111, 138, 0.35);
+  padding-left: 8px;
+}
+
+@media (max-width: 720px) {
+  body { padding: 18px 12px 32px; }
+  html.android-client body {
+    padding-top: calc(18px + var(--android-safe-top));
+  }
+  .shell { width: 100%; }
+  .panel { min-height: 0; }
+  .view,
+  .view.active,
+  body[data-view="self"] .view.active,
+  body[data-view="api-setup"] .view.active {
+    width: 100%;
+    margin: 0;
+  }
+  .view.active { padding: 0; }
+  body[data-view="self"] .view.active,
+  body[data-view="api-setup"] .view.active { padding: 24px 20px 26px; }
+  h1 { font-size: 28px; }
+  .choice { grid-template-columns: 40px 1fr; padding-right: 38px; }
+  .icon { width: 40px; height: 40px; }
+	  .grid-2,
+	  .credential-grid,
+	  .file-picker,
+	  .api-grid,
+	  .deploy-steps { grid-template-columns: 1fr; }
+  body[data-view="local"] .local-actions .btn { width: 100%; }
+}
+</style>
+</head>
+<body data-view="home">
+<div class="sakura-field" aria-hidden="true">
+  <span class="petal"></span>
+  <span class="petal"></span>
+  <span class="petal"></span>
+  <span class="petal"></span>
+  <span class="petal"></span>
+</div>
+<main class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <img src="/assets/brand/miru-logo.svg" alt="" onerror="this.onerror=null;this.src='/icon-192.png'">
+      <span>Miru</span>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div id="view-home" class="view active">
+      <p class="kicker">FIRST RUN</p>
+      <h1>Miru 要住在哪里？</h1>
+      <p class="sub" id="homeScopeCopy">你可以让她住在自己的私有服务器里，让多台设备看到同一个 Miru；也可以先只在这台电脑上使用，所有数据都留在本机。</p>
+      <div class="choices">
+        <button class="choice" type="button" onclick="showView('multi')">
+          <span class="icon">↔</span>
+          <span>
+            <span class="choice-title">多设备同步使用</span>
+            <span class="choice-desc">Mac、Windows 和 Android 使用同一个长邀请码，聊天、截图、记忆都同步到同一台私有服务器。</span>
+          </span>
+        </button>
+        <button class="choice" type="button" onclick="showView('local')">
+          <span class="icon">⌂</span>
+          <span>
+            <span class="choice-title" id="localChoiceTitle">只在这台电脑使用</span>
+            <span class="choice-desc" id="localChoiceDesc">不需要邀请码，后端、记忆和模型配置都放在本机；手机暂时不会同步。</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div id="view-local" class="view">
+      <div class="toolbar">
+        <button class="back" type="button" onclick="showView('home')" aria-label="返回">‹</button>
+        <strong id="localToolbarTitle">只在这台电脑使用</strong>
+      </div>
+      <h1 id="localHeading">让 Miru 住在这台电脑</h1>
+      <p class="sub" id="localScopeCopy">本地模式会在这台电脑上创建一个本地账号。聊天、记忆和 API Key 都只写入本机数据目录；不能多设备同步。</p>
+      <div class="message" id="localMsg" style="margin-top:14px"></div>
+      <div class="inline-actions local-actions">
+        <button class="btn" id="localBtn" type="button" onclick="startLocalMode()">开始本地使用</button>
+      </div>
+    </div>
+
+    <div id="view-multi" class="view">
+      <div class="toolbar">
+        <button class="back" type="button" onclick="showView('home')" aria-label="返回">‹</button>
+        <strong>多设备同步使用</strong>
+      </div>
+      <h1>你已经有 Miru 邀请码了吗？</h1>
+      <p class="sub" id="multiScopeCopy">已有账号就直接输入长邀请码；还没有账号，可以使用官方服务器，或者让这台电脑帮你在自己的服务器上创建一个新的 Miru。</p>
+      <div class="choices">
+        <button class="choice" type="button" onclick="showView('invite')">
+          <span class="icon">#</span>
+          <span>
+            <span class="choice-title">我已有邀请码</span>
+            <span class="choice-desc">输入形如 MIRU-XXXXXXXXXX-YYYYYY 的长邀请码，Miru 会自己找到对应的私有服务器。</span>
+          </span>
+        </button>
+        <button class="choice" type="button" onclick="showView('new')">
+          <span class="icon">＋</span>
+          <span>
+            <span class="choice-title">我还没有邀请码</span>
+            <span class="choice-desc">选择官方服务器，或使用自己的云服务器创建一个只属于你的 Miru。</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div id="view-invite" class="view">
+      <div class="toolbar">
+        <button class="back" type="button" onclick="showView('multi')" aria-label="返回">‹</button>
+        <strong>输入邀请码</strong>
+      </div>
+      <h1>让 Miru 回到你身边</h1>
+      <p class="sub">这里必须使用完整长邀请码。短码无法登录，请确认已经完整复制。</p>
+      <form class="form" onsubmit="doInviteLogin(event)" autocomplete="off">
+        <div class="field">
+          <label for="codeInput">长邀请码</label>
+          <input id="codeInput" class="code-input" type="text" placeholder="MIRU-XXXXXXXXXX-YYYYYY" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        </div>
+        <div class="message" id="inviteMsg"></div>
+        <button class="btn" id="inviteBtn" type="submit" disabled>登录 Miru</button>
+      </form>
+    </div>
+
+    <div id="view-new" class="view">
+      <div class="toolbar">
+        <button class="back" type="button" onclick="showView('multi')" aria-label="返回">‹</button>
+        <strong>创建新账号</strong>
+      </div>
+      <h1>选择一台服务器</h1>
+      <p class="sub">不管是官方服务器还是你自己的服务器，最后都会得到同一种长邀请码，Mac、Windows 和 Android 都用它登录。</p>
+      <div class="choices">
+        <button class="choice" type="button" onclick="showView('official')">
+          <span class="icon">★</span>
+          <span>
+            <span class="choice-title">使用官方服务器<span class="pill">准备中</span></span>
+            <span class="choice-desc">未来会跳转官网订单页，付款后自动开通 Miru 私有服务器并返回邀请码。</span>
+          </span>
+        </button>
+        <button class="choice" type="button" onclick="showView('self')">
+          <span class="icon">IP</span>
+          <span>
+            <span class="choice-title">使用自己的服务器</span>
+            <span class="choice-desc">输入公网 IPv4、SSH 用户和密码，并选择 Miru 服务包，Miru 会在服务器上创建你的账号并返回邀请码。</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div id="view-official" class="view">
+      <div class="toolbar">
+        <button class="back" type="button" onclick="showView('new')" aria-label="返回">‹</button>
+        <strong>官方服务器</strong>
+      </div>
+      <h1>官方开通正在准备中</h1>
+      <p class="sub">现在如果你已经有邀请码，可以直接登录；如果你有自己的云服务器，也可以先在自己的服务器上创建 Miru。</p>
+      <div class="inline-actions">
+        <button class="btn" type="button" onclick="showView('invite')">输入已有邀请码</button>
+        <button class="btn secondary" type="button" onclick="showView('self')">使用自己的服务器</button>
+      </div>
+    </div>
+
+    <div id="view-self" class="view">
+      <div class="toolbar">
+        <button class="back" type="button" onclick="showView('new')" aria-label="返回">‹</button>
+        <strong>自有服务器</strong>
+      </div>
+      <h1>在你的服务器上创建 Miru</h1>
+      <p class="sub">自动安装 Docker 目前支持 Ubuntu / Debian；其他 Linux 请先安装 Docker 和 Docker Compose。先从 Miru 发布页下载服务包，再在这里选择它；创建完成后，Mac、Windows 和 Android 都用同一个长邀请码登录。</p>
+      <div class="note">默认会从 5001 到 5010 中选择第一个空闲端口；如果 5001 已被占用，会使用后续端口。请在云安全组或防火墙放行实际端口。首次连接会信任这台服务器的指纹，请确认 IP 是你自己的云服务器。</div>
+      <form class="form self-server-form" style="margin-top:16px" onsubmit="createSelfServer(event)" autocomplete="off">
+        <div class="self-form-section">
+          <div class="field">
+            <label for="selfIp">服务器公网 IPv4</label>
+            <input id="selfIp" type="text" inputmode="decimal" placeholder="输入你的云服务器公网 IPv4" autocomplete="off">
+          </div>
+          <div class="credential-grid">
+            <div class="field">
+              <label for="selfUser">SSH 用户</label>
+              <input id="selfUser" type="text" placeholder="云服务器登录页显示的用户名" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="selfPassword">SSH 密码 / 密钥</label>
+              <input id="selfPassword" type="password" placeholder="输入密码；私钥有口令时填口令" autocomplete="off">
+            </div>
+          </div>
+          <input id="selfSshPrivateKey" class="file-input" type="file">
+          <div class="file-picker">
+            <button class="file-picker-btn" type="button" onclick="document.getElementById('selfSshPrivateKey').click()">选择 SSH 私钥</button>
+            <div class="file-name" id="selfSshPrivateKeyName">没有选择私钥</div>
+          </div>
+          <div class="field-note">用户名必须和云服务器登录窗口保持一致。可以填写登录密码，也可以选择私钥；私钥有口令时在密码栏填写。Mac 或 Windows 已配置 SSH key 时，也可以不选文件并在密码栏输入 <code>//</code>。非 root 密钥用户需有免密 sudo，或在密码栏提供可用的 sudo 密码。</div>
+        </div>
+        <div class="archive-card soft">
+          <div class="archive-title">
+            <strong>Miru 服务包</strong>
+            <span>推荐</span>
+          </div>
+          <input id="selfImageTar" class="file-input" type="file">
+          <div class="file-picker">
+            <button class="file-picker-btn" type="button" onclick="document.getElementById('selfImageTar').click()">选择服务包</button>
+            <div class="file-name" id="selfImageTarName">还没有选择文件</div>
+          </div>
+          <div class="file-hint">请选择从 Miru Releases 下载的服务包，例如 miru-server-v0.2.0-linux-amd64.tar.gz。没有选择文件时，会改用高级选项里的在线镜像地址。</div>
+        </div>
+
+        <details>
+          <summary>高级选项</summary>
+          <div class="advanced">
+            <div class="field">
+              <label for="selfSshPort">SSH 端口</label>
+              <input id="selfSshPort" type="number" min="1" max="65535" value="22">
+              <div class="file-hint">如果填写的用户不是系统管理员，Miru 会在需要系统权限时通过 sudo 完成安装；请确认它有 sudo 权限。</div>
+            </div>
+            <div class="field">
+              <label for="selfHostHome">服务器保存位置</label>
+              <input id="selfHostHome" type="text" value="/opt/miru-host" autocomplete="off">
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label for="selfPortStart">起始端口</label>
+                <input id="selfPortStart" type="number" min="1" max="65535" value="5001">
+              </div>
+              <div class="field">
+                <label for="selfPortEnd">结束端口</label>
+                <input id="selfPortEnd" type="number" min="1" max="65535" value="5010">
+              </div>
+            </div>
+            <div class="field">
+              <label for="selfImage">在线镜像地址</label>
+              <input id="selfImage" type="text" value="miru/server:0.2.0" autocomplete="off">
+              <div class="file-hint">已经选择服务包时，这里通常不用改；没有选择服务包时，这里可以填写服务器能直接下载的镜像地址。</div>
+            </div>
+          </div>
+        </details>
+
+        <div class="message" id="selfMsg"></div>
+        <button class="btn" id="selfBtn" type="submit">创建 Miru</button>
+      </form>
+      <div class="progress" id="selfProgress">
+        <div class="deploy-head">
+          <div class="sakura-spinner" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div>
+            <div class="phase" id="selfPhase">正在准备</div>
+            <div class="phase-help" id="selfPhaseHelp">Miru 会把部署过程一步步告诉你。</div>
+          </div>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="selfProgressFill"></div>
+        </div>
+        <ol class="deploy-steps" id="selfSteps"></ol>
+        <details class="deploy-details">
+          <summary>查看详细过程</summary>
+          <div class="logs" id="selfLogs"></div>
+        </details>
+      </div>
+      <div class="success-card" id="selfSuccess">
+        <div>
+          <div class="success-title">Miru 已经在你的服务器上醒来了</div>
+          <p class="sub" style="margin:6px 0 0">下面这个长邀请码同时给 Mac、Windows 和 Android 使用。其他设备输入它，就会连到同一个 Miru。</p>
+        </div>
+        <div class="success-copy">
+          <label>长邀请码</label>
+          <div class="invite-code-box" id="selfSuccessCode"></div>
+        </div>
+        <div class="inline-actions">
+          <button class="btn secondary" id="selfCopyInviteBtn" type="button" onclick="copySelfInvite()">复制邀请码</button>
+          <button class="btn" id="selfEnterBtn" type="button" onclick="enterSelfServer()">进入 Miru</button>
+        </div>
+        <div class="message ok" id="selfSuccessMsg"></div>
+      </div>
+    </div>
+
+    <div id="view-api-setup" class="view">
+      <h1>API Key</h1>
+      <p class="sub">Miru 需要视觉、聊天、记忆三组模型。保存后会逐项测试，全部通过后再进入应用。</p>
+      <div class="note" id="apiSetupScopeCopy">配置会写入刚创建的 Miru：本地模式存在这台电脑，自有服务器模式存在你的服务器。页面不会显示完整 API Key。</div>
+      <div class="api-format-hint">服务地址填 OpenAI-compatible Base URL。</div>
+      <div class="api-setup" style="margin-top:16px">
+        <div class="api-tier-card">
+          <div class="api-tier-head">
+            <strong>视觉模型</strong>
+            <span>推荐 OpenRouter + Qwen VLM；也可以换成其他支持图片输入的模型</span>
+          </div>
+          <div class="api-grid">
+            <div class="field">
+              <label for="apiVisionHost">服务地址</label>
+              <input id="apiVisionHost" type="text" placeholder="推荐示例：openrouter.ai/api" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="apiVisionModel">模型名称</label>
+              <input id="apiVisionModel" type="text" placeholder="推荐示例：qwen/qwen3.5-9b" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="apiVisionKey">API Key</label>
+              <input id="apiVisionKey" type="password" placeholder="粘贴 API Key" autocomplete="off">
+            </div>
+          </div>
+        </div>
+        <div class="api-tier-card">
+          <div class="api-tier-head">
+            <strong>聊天模型</strong>
+            <span>推荐 DeepSeek Pro；也可以换成 GPT、Gemini 或其他强模型</span>
+          </div>
+          <div class="api-grid">
+            <div class="field">
+              <label for="apiChatHost">服务地址</label>
+              <input id="apiChatHost" type="text" placeholder="推荐示例：api.deepseek.com" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="apiChatModel">模型名称</label>
+              <input id="apiChatModel" type="text" placeholder="推荐示例：deepseek-v4-pro" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="apiChatKey">API Key</label>
+              <input id="apiChatKey" type="password" placeholder="粘贴 API Key" autocomplete="off">
+            </div>
+          </div>
+        </div>
+        <div class="api-tier-card">
+          <div class="api-tier-head">
+            <strong>记忆模型</strong>
+            <span>推荐 DeepSeek Flash；也可以换成性价比高的文本模型</span>
+          </div>
+          <div class="api-grid">
+            <div class="field">
+              <label for="apiMemoryHost">服务地址</label>
+              <input id="apiMemoryHost" type="text" placeholder="推荐示例：api.deepseek.com" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="apiMemoryModel">模型名称</label>
+              <input id="apiMemoryModel" type="text" placeholder="推荐示例：deepseek-v4-flash" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="apiMemoryKey">API Key</label>
+              <input id="apiMemoryKey" type="password" placeholder="粘贴 API Key" autocomplete="off">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="message" id="apiSetupMsg" style="margin-top:14px"></div>
+      <div class="inline-actions" style="margin-top:16px">
+        <button class="btn" id="apiSetupSaveBtn" type="button" onclick="saveApiSetupAndEnter()">保存、测试并进入 Miru</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var isAndroidClient = false;
+  try {
+    isAndroidClient = new URLSearchParams(window.location.search).get('android') === '1';
+  } catch(e) {}
+  if (isAndroidClient) {
+    var androidCopy = {
+      homeScopeCopy: '你可以让她住在自己的私有服务器里，让多台设备看到同一个 Miru；也可以先只在这部手机上使用，所有数据都留在本机。',
+      localChoiceTitle: '只在这部手机使用',
+      localChoiceDesc: '不需要邀请码，后端、记忆和模型配置都放在本机；其他设备不会同步。',
+      localToolbarTitle: '只在这部手机使用',
+      localHeading: '让 Miru 住在这部手机',
+      localScopeCopy: '本地模式会在这部手机上创建一个本地账号。聊天、记忆和 API Key 都只写入本机数据目录；不能多设备同步。',
+      multiScopeCopy: '已有账号就直接输入长邀请码；还没有账号，可以使用官方服务器，或者让这部手机帮你在自己的服务器上创建一个新的 Miru。',
+      apiSetupScopeCopy: '配置会写入刚创建的 Miru：本地模式存在这部手机，自有服务器模式存在你的服务器。页面不会显示完整 API Key。'
+    };
+    Object.keys(androidCopy).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = androidCopy[id];
+    });
+  }
+  var desktopParams = null;
+  try {
+    var currentParams = new URLSearchParams(window.location.search);
+    if (currentParams.get('desktop') === '1') {
+      desktopParams = {
+        desktop: '1',
+        desktop_platform: currentParams.get('desktop_platform') || 'windows'
+      };
+    }
+  } catch(e) {}
+
+  function withDesktopClientParams(target) {
+    if (!desktopParams) return target;
+    try {
+      var absolute = /^https?:\/\//i.test(target);
+      var url = new URL(target, window.location.origin);
+      url.searchParams.set('desktop', desktopParams.desktop);
+      url.searchParams.set('desktop_platform', desktopParams.desktop_platform);
+      return absolute ? url.href : (url.pathname + url.search + url.hash);
+    } catch(e) {
+      var join = target.indexOf('?') >= 0 ? '&' : '?';
+      return target + join + 'desktop=1&desktop_platform=' + encodeURIComponent(desktopParams.desktop_platform);
+    }
+  }
+
+  function persistAndroidCredentials(serverUrl, token, invitationCode, mode, userId) {
+    try {
+      if (window.MiruAndroid && typeof window.MiruAndroid.saveCredentialsForProfile === 'function') {
+        window.MiruAndroid.saveCredentialsForProfile(
+          serverUrl || '', token || '', invitationCode || '', mode || 'remote', userId || '');
+      } else if (window.MiruAndroid && typeof window.MiruAndroid.saveCredentials === 'function') {
+        window.MiruAndroid.saveCredentials(serverUrl || '', token || '', invitationCode || '');
+      }
+    } catch(e) {}
+  }
+
+  function androidClientHeaders(headers) {
+    var out = headers || {};
+    try {
+      var localHost = ['127.0.0.1', 'localhost', '::1'].indexOf(window.location.hostname) !== -1;
+      if (localHost && window.MiruAndroid && typeof window.MiruAndroid.getClientSecret === 'function') {
+        var secret = window.MiruAndroid.getClientSecret();
+        if (secret) out['X-Miru-Client-Secret'] = secret;
+      }
+    } catch(e) {}
+    return out;
+  }
+
+  var CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  var views = {};
+  var inviteInput = document.getElementById('codeInput');
+  var inviteBtn = document.getElementById('inviteBtn');
+  var inviteMsg = document.getElementById('inviteMsg');
+  var localMsg = document.getElementById('localMsg');
+  var localBtn = document.getElementById('localBtn');
+  var selfMsg = document.getElementById('selfMsg');
+  var selfBtn = document.getElementById('selfBtn');
+  var selfProgress = document.getElementById('selfProgress');
+  var selfPhase = document.getElementById('selfPhase');
+  var selfPhaseHelp = document.getElementById('selfPhaseHelp');
+  var selfProgressFill = document.getElementById('selfProgressFill');
+  var selfSteps = document.getElementById('selfSteps');
+  var selfLogs = document.getElementById('selfLogs');
+  var selfImageTar = document.getElementById('selfImageTar');
+  var selfImageTarName = document.getElementById('selfImageTarName');
+  var selfSshPrivateKey = document.getElementById('selfSshPrivateKey');
+  var selfSshPrivateKeyName = document.getElementById('selfSshPrivateKeyName');
+  var selfSuccess = document.getElementById('selfSuccess');
+  var selfSuccessCode = document.getElementById('selfSuccessCode');
+  var selfSuccessMsg = document.getElementById('selfSuccessMsg');
+  var selfEnterBtn = document.getElementById('selfEnterBtn');
+  var apiSetupMsg = document.getElementById('apiSetupMsg');
+  var apiSetupSaveBtn = document.getElementById('apiSetupSaveBtn');
+  var inviteBusy = false;
+  var localBusy = false;
+  var selfBusy = false;
+  var apiSetupBusy = false;
+  var apiSetupState = null;
+  var selfCurrentInvitationCode = '';
+  var selfRetryJobId = '';
+  var selfHealthRetryJobId = '';
+  var pollTimer = null;
+  var pollInFlight = false;
+  var selfProgressStartedAt = 0;
+  var API_TIER_LABELS = {
+    vision: '视觉模型',
+    chat: '聊天模型',
+    memory: '记忆模型'
+  };
+
+  var DEPLOY_STEPS = [
+    {key: 'local_upload', title: '读取服务包', hint: '从这台电脑接收文件'},
+    {key: 'connect', title: '连接服务器', hint: '确认 IP、SSH 和权限'},
+    {key: 'upload', title: '准备文件', hint: '把 Miru 需要的文件放到服务器'},
+    {key: 'image_upload', title: '传送 Miru', hint: '上传或下载服务包'},
+    {key: 'create_instance', title: '启动 Miru', hint: '在服务器上启动你的 Miru'},
+    {key: 'public_health', title: '确认连接', hint: '从这台电脑检查公网端口'},
+    {key: 'done', title: '进入 Miru', hint: '打开你的私有 Miru'}
+  ];
+  var PHASE_ORDER = {
+    queued: 0,
+    prepare: 0,
+    local_upload: 0,
+    connect: 1,
+    upload: 2,
+    host_prepare: 2,
+    image_check: 3,
+    image_pull: 3,
+    image_upload: 3,
+    image_uploaded: 3,
+    image_ready: 3,
+    image_load: 4,
+    create_instance: 4,
+    ready: 4,
+    public_health: 5,
+    done: 6,
+    failed: -1
+  };
+
+  document.querySelectorAll('.view').forEach(function(el) {
+    views[el.id.replace('view-', '')] = el;
+  });
+
+  window.showView = function(name) {
+    document.body.setAttribute('data-view', name);
+    Object.keys(views).forEach(function(key) {
+      views[key].classList.toggle('active', key === name);
+    });
+    clearMessages();
+    if (name === 'invite') setTimeout(function(){ inviteInput.focus(); }, 30);
+    if (name === 'self') loadSelfDefaults();
+  };
+
+  function clearMessages() {
+    inviteMsg.textContent = '';
+    inviteMsg.className = 'message';
+    if (localMsg) {
+      localMsg.textContent = '';
+      localMsg.className = 'message';
+    }
+    selfMsg.textContent = '';
+    selfMsg.className = 'message';
+    if (apiSetupMsg) {
+      apiSetupMsg.textContent = '';
+      apiSetupMsg.className = 'message';
+    }
+  }
+
+  function normalizeCode(v) {
+    v = (v || '').toUpperCase().replace(/[^A-Z0-9\-]/g, '').replace(/\s+/g, '');
+    var body = v.replace(/^MIRU-?/, '').replace(/-/g, '');
+    if (body.length === 16 && v.indexOf('MIRU-') !== 0) {
+      return 'MIRU-' + body.slice(0, 10) + '-' + body.slice(10);
+    }
+    if (body.length === 16 && v.indexOf('MIRU-') === 0) {
+      return 'MIRU-' + body.slice(0, 10) + '-' + body.slice(10);
+    }
+    return v;
+  }
+
+  function isValidCode(v) {
+    v = normalizeCode(v);
+    if (v.indexOf('MIRU-') !== 0) return false;
+    var body = v.substring(5).replace(/-/g, '');
+    if (body.length !== 16) return false;
+    for (var i = 0; i < body.length; i++) {
+      if (CODE_CHARS.indexOf(body[i]) < 0) return false;
+    }
+    return true;
+  }
+
+  function setInviteMessage(text, ok) {
+    inviteMsg.textContent = text || '';
+    inviteMsg.className = ok ? 'message ok' : 'message';
+  }
+
+  function setLocalMessage(text, ok) {
+    if (!localMsg) return;
+    localMsg.textContent = text || '';
+    localMsg.className = ok ? 'message ok' : 'message';
+  }
+
+  function setSelfMessage(text, ok) {
+    selfMsg.textContent = text || '';
+    selfMsg.className = ok ? 'message ok' : 'message';
+  }
+
+  function setApiSetupMessage(text, ok) {
+    if (!apiSetupMsg) return;
+    apiSetupMsg.textContent = text || '';
+    apiSetupMsg.className = ok ? 'message ok' : 'message';
+  }
+
+  function beginApiSetup(state) {
+    apiSetupState = state || null;
+    if (!apiSetupState || !apiSetupState.token || !apiSetupState.redirect_url) {
+      enterMiruFromApiSetup();
+      return;
+    }
+    setApiSetupMessage('', false);
+    showView('api-setup');
+  }
+
+  function apiSetupValue(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function collectApiTier(prefix, tier) {
+    var host = apiSetupValue(prefix + 'Host');
+    var model = apiSetupValue(prefix + 'Model');
+    var key = apiSetupValue(prefix + 'Key');
+    var any = !!(host || model || key);
+    if (!any) return null;
+    if (!host || !model || !key) {
+      throw new Error('请把' + tier + '的服务地址、模型名称和 API Key 填完整。');
+    }
+    return { host: host, model: model, api_key: key };
+  }
+
+  function collectApiSetupPayloads() {
+    var vision = collectApiTier('apiVision', '视觉模型');
+    var chat = collectApiTier('apiChat', '聊天模型');
+    var memory = collectApiTier('apiMemory', '记忆模型');
+    var filled = [vision, chat, memory].filter(Boolean).length;
+    if (filled < 3) {
+      throw new Error('请把视觉、聊天、记忆三组都填完整，并测试通过后进入 Miru。');
+    }
+    var out = [];
+    if (vision) out.push(['vision', vision]);
+    if (chat) out.push(['chat', chat]);
+    if (memory) out.push(['memory', memory]);
+    return out;
+  }
+
+  async function saveApiTier(tier, payload) {
+    var base = (apiSetupState && apiSetupState.server_url) ? apiSetupState.server_url.replace(/\/+$/, '') : '';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiSetupState.token
+    };
+    if (!base) headers = androidClientHeaders(headers);
+    var res = await fetch(base + '/api/owner/ai-config/' + encodeURIComponent(tier), {
+      method: 'PATCH',
+      headers: headers,
+      body: JSON.stringify(payload)
+    });
+    var data = await res.json().catch(function(){ return {}; });
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || ('保存' + tier + '失败'));
+    }
+  }
+
+  async function testApiTier(tier) {
+    var base = (apiSetupState && apiSetupState.server_url) ? apiSetupState.server_url.replace(/\/+$/, '') : '';
+    var label = API_TIER_LABELS[tier] || tier;
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiSetupState.token
+    };
+    if (!base) headers = androidClientHeaders(headers);
+    var res = await fetch(base + '/api/owner/ai-config/' + encodeURIComponent(tier) + '/test', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({})
+    });
+    var data = await res.json().catch(function(){ return {}; });
+    if (!res.ok || !data.ok) {
+      throw new Error(label + '测试失败：' + (data.error || '请检查服务地址、模型名称和 API Key。'));
+    }
+    return data;
+  }
+
+  function apiSetupRedirectUrl(status) {
+    var target = (apiSetupState && apiSetupState.redirect_url) ? apiSetupState.redirect_url : '/app';
+    target = withDesktopClientParams(target);
+    if (!status) return target;
+    try {
+      var absolute = /^https?:\/\//i.test(target);
+      var u = new URL(target, window.location.origin);
+      u.searchParams.set('api_setup', status);
+      return absolute ? u.href : (u.pathname + u.search + u.hash);
+    } catch(e) {
+      return target + (target.indexOf('?') >= 0 ? '&' : '?') + 'api_setup=' + encodeURIComponent(status);
+    }
+  }
+
+  async function completeClientSetup() {
+    var headers = {'Content-Type': 'application/json'};
+    if (apiSetupState && apiSetupState.token) {
+      headers['Authorization'] = 'Bearer ' + apiSetupState.token;
+    }
+    var res = await fetch('/api/client/setup/complete', {
+      method: 'POST',
+      headers: androidClientHeaders(headers),
+      body: JSON.stringify({})
+    });
+    var data = await res.json().catch(function(){ return {}; });
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || 'Miru 启动准备失败，请稍后再试。');
+    }
+    return data;
+  }
+
+  async function enterMiruFromApiSetup(status) {
+    if (!apiSetupState || !apiSetupState.redirect_url) {
+      location.href = withDesktopClientParams('/app');
+      return;
+    }
+    await completeClientSetup();
+    location.href = apiSetupRedirectUrl(status);
+  }
+
+  window.saveApiSetupAndEnter = async function() {
+    if (apiSetupBusy) return;
+    var payloads = [];
+    try {
+      payloads = collectApiSetupPayloads();
+    } catch(e) {
+      setApiSetupMessage(e.message || '请检查模型配置。', false);
+      return;
+    }
+    apiSetupBusy = true;
+    if (apiSetupSaveBtn) {
+      apiSetupSaveBtn.disabled = true;
+      apiSetupSaveBtn.textContent = '正在保存';
+    }
+    try {
+      for (var i = 0; i < payloads.length; i++) {
+        setApiSetupMessage('正在保存' + (API_TIER_LABELS[payloads[i][0]] || payloads[i][0]) + '…', true);
+        await saveApiTier(payloads[i][0], payloads[i][1]);
+      }
+      if (apiSetupSaveBtn) apiSetupSaveBtn.textContent = '正在测试';
+      for (var j = 0; j < payloads.length; j++) {
+        setApiSetupMessage('正在测试' + (API_TIER_LABELS[payloads[j][0]] || payloads[j][0]) + '连通性…', true);
+        await testApiTier(payloads[j][0]);
+      }
+      setApiSetupMessage('模型配置已保存并测试通过，正在进入 Miru。', true);
+      await enterMiruFromApiSetup('configured');
+    } catch(e) {
+      setApiSetupMessage(e.message || '保存失败，请稍后再试。', false);
+    } finally {
+      apiSetupBusy = false;
+      if (apiSetupSaveBtn) {
+        apiSetupSaveBtn.disabled = false;
+        apiSetupSaveBtn.textContent = '保存、测试并进入 Miru';
+      }
+    }
+  };
+
+  function resetSelfProgress() {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+    selfRetryJobId = '';
+    selfHealthRetryJobId = '';
+    pollInFlight = false;
+    if (selfBtn) {
+      selfBtn.style.display = '';
+      selfBtn.disabled = false;
+      selfBtn.textContent = '创建 Miru';
+    }
+    selfProgress.classList.remove('active');
+    selfPhase.textContent = '正在准备';
+    selfPhaseHelp.textContent = 'Miru 会把部署过程一步步告诉你。';
+    selfProgressFill.style.width = '0%';
+    selfSteps.innerHTML = '';
+    selfLogs.innerHTML = '';
+    selfCurrentInvitationCode = '';
+    selfSuccess.classList.remove('active');
+    selfSuccessCode.textContent = '';
+    selfSuccessMsg.textContent = '';
+    selfProgressStartedAt = 0;
+  }
+
+  inviteInput.addEventListener('input', function() {
+    var normalized = normalizeCode(inviteInput.value);
+    if (inviteInput.value !== normalized && normalized.length <= 24) inviteInput.value = normalized;
+    inviteBtn.disabled = !isValidCode(inviteInput.value) || inviteBusy;
+    setInviteMessage('');
+  });
+
+  inviteInput.addEventListener('paste', function() {
+    setTimeout(function() {
+      inviteInput.value = normalizeCode(inviteInput.value);
+      inviteBtn.disabled = !isValidCode(inviteInput.value) || inviteBusy;
+    }, 0);
+  });
+
+  if (selfImageTar) {
+	    selfImageTar.addEventListener('change', function() {
+	      var file = selfImageTar.files && selfImageTar.files[0];
+	      if (!file) {
+	        selfImageTarName.textContent = '还没有选择文件';
+	        return;
+	      }
+	      selfImageTarName.textContent = file.name + ' · ' + formatBytes(file.size);
+      setSelfMessage('', false);
+    });
+  }
+
+  if (selfSshPrivateKey) {
+    selfSshPrivateKey.addEventListener('change', function() {
+      var file = selfSshPrivateKey.files && selfSshPrivateKey.files[0];
+      selfSshPrivateKeyName.textContent = file ? file.name : '没有选择私钥';
+      setSelfMessage('', false);
+    });
+  }
+
+  window.doInviteLogin = async function(ev) {
+    if (ev) ev.preventDefault();
+    var code = normalizeCode(inviteInput.value);
+    await loginWithCode(code, inviteBtn, setInviteMessage);
+  };
+
+  window.startLocalMode = async function() {
+    if (localBusy) {
+      setLocalMessage('正在准备本地 Miru', true);
+      return;
+    }
+    localBusy = true;
+    if (localBtn) {
+      localBtn.disabled = true;
+      localBtn.textContent = '正在准备';
+    }
+    setLocalMessage('正在创建本地账号…', true);
+    try {
+      var res = await fetch('/api/client/local/start', {
+        method: 'POST',
+        headers: androidClientHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify({})
+      });
+      var data = await res.json().catch(function(){ return {}; });
+      if (res.ok && data.ok && data.token) {
+        try {
+          localStorage.setItem('miru_auth_token', data.token);
+          localStorage.setItem('miru_local_mode', '1');
+          localStorage.removeItem('miru_invitation_code');
+          if (data.server_url) localStorage.setItem('miru_server_url', data.server_url);
+        } catch(e) {}
+        persistAndroidCredentials(
+          data.server_url || window.location.origin, data.token, '', 'local', data.user_id || '');
+        setLocalMessage(data.is_new ? '本地 Miru 已经准备好了。' : '已经找到本地 Miru。', true);
+        if (!data.is_new) {
+          window.location.href = withDesktopClientParams('/app?token=' + encodeURIComponent(data.token));
+          return;
+        }
+        beginApiSetup({
+          mode: 'local',
+          token: data.token,
+          server_url: '',
+          redirect_url: withDesktopClientParams('/app?token=' + encodeURIComponent(data.token))
+        });
+        return;
+      }
+      setLocalMessage(data.error || '本地 Miru 准备失败，请稍后再试', false);
+    } catch (e) {
+      setLocalMessage('本地后端没有响应，请重启 Miru 后再试', false);
+    } finally {
+      localBusy = false;
+      if (localBtn) {
+        localBtn.disabled = false;
+        localBtn.textContent = '开始本地使用';
+      }
+    }
+  };
+
+  async function loginWithCode(code, button, setMessage, options) {
+    options = options || {};
+    if (inviteBusy) {
+      setMessage('正在登录中', true);
+      return options.returnState ? null : false;
+    }
+    if (!isValidCode(code)) {
+      setMessage('邀请码格式不对，请确认是否完整复制', false);
+      return options.returnState ? null : false;
+    }
+    inviteBusy = true;
+    if (button) {
+      button.disabled = true;
+      button.textContent = '连接中';
+    }
+    setMessage('', false);
+    try {
+      var ctrl = new AbortController();
+      var timer = setTimeout(function(){ ctrl.abort(); }, 18000);
+      var loginPayload = { code: code };
+      if (options.setupComplete === false) loginPayload.setup_complete = false;
+      var res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: androidClientHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify(loginPayload),
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      var data = await res.json().catch(function(){ return {}; });
+      if (res.ok && data.token) {
+        try {
+          localStorage.setItem('miru_auth_token', data.token);
+          localStorage.setItem('miru_invitation_code', code);
+        } catch(e) {}
+        var base = '';
+        if (data.server_url && /^https?:\/\//.test(data.server_url)) {
+          base = data.server_url.replace(/\/+$/, '');
+        }
+        persistAndroidCredentials(
+          base || window.location.origin, data.token, code, 'remote', data.user_id || '');
+        var redirectUrl = withDesktopClientParams(base + '/app?token=' + encodeURIComponent(data.token));
+        if (options.returnState) {
+          setMessage('登录成功。', true);
+          return {
+            ok: true,
+            token: data.token,
+            server_url: base,
+            redirect_url: redirectUrl,
+            user_id: data.user_id || ''
+          };
+        }
+        setMessage('登录成功，正在打开 Miru', true);
+        location.href = redirectUrl;
+        return true;
+      }
+      setMessage(data.error || '邀请码无效或服务器没有响应', false);
+      return options.returnState ? null : false;
+    } catch (e) {
+      setMessage(e && e.name === 'AbortError' ? '连接超时，请检查服务器端口是否开放' : '网络未就绪，稍后再试', false);
+      return options.returnState ? null : false;
+    } finally {
+      inviteBusy = false;
+      if (button === inviteBtn) {
+        button.disabled = !isValidCode(inviteInput.value);
+        button.textContent = '登录 Miru';
+      } else if (button) {
+        button.disabled = false;
+        button.textContent = '重新创建';
+      }
+    }
+  }
+
+  async function loadSelfDefaults() {
+    try {
+      var res = await fetch('/api/client/provision/self-server/defaults', {
+        headers: androidClientHeaders({})
+      });
+      if (!res.ok) return;
+      var data = await res.json();
+      var d = data.defaults || {};
+      setIfEmpty('selfUser', d.ssh_user);
+      setIfEmpty('selfSshPort', d.ssh_port);
+      setIfEmpty('selfHostHome', d.host_home);
+      setIfEmpty('selfPortStart', d.port_start);
+      setIfEmpty('selfPortEnd', d.port_end);
+      setIfEmpty('selfImage', d.image);
+    } catch(e) {}
+  }
+
+  function setIfEmpty(id, value) {
+    var el = document.getElementById(id);
+    if (el && (el.value === '' || el.value == null) && value != null) el.value = value;
+  }
+
+  window.createSelfServer = async function(ev) {
+    if (ev) ev.preventDefault();
+    if (selfBusy) return;
+    if (selfRetryJobId) {
+      selfBusy = true;
+      selfBtn.disabled = true;
+      selfBtn.textContent = '检查中';
+      setSelfMessage('正在重新检查刚才的创建任务。', true);
+      pollSelfJob(selfRetryJobId);
+      return;
+    }
+    if (selfHealthRetryJobId) {
+      selfBusy = true;
+      selfBtn.disabled = true;
+      selfBtn.textContent = '检查中';
+      setSelfMessage('正在重新检查这台电脑能不能访问刚创建的 Miru。', true);
+      verifySelfServerPublicHealth({ job_id: selfHealthRetryJobId });
+      return;
+    }
+	    var payload = {
+	      server_ip: valueOf('selfIp'),
+	      ssh_password: valueOf('selfPassword'),
+	      ssh_user: valueOf('selfUser'),
+	      ssh_port: valueOf('selfSshPort') || 22,
+	      host_home: valueOf('selfHostHome') || '/opt/miru-host',
+	      port_start: valueOf('selfPortStart') || 5001,
+      port_end: valueOf('selfPortEnd') || 5010,
+      image: valueOf('selfImage') || 'miru/server:0.2.0',
+      allow_no_api: true
+    };
+	    if (!payload.server_ip) {
+	      resetSelfProgress();
+	      setSelfMessage('请输入服务器公网 IPv4', false);
+	      return;
+	    }
+	    if (!payload.ssh_user) {
+	      resetSelfProgress();
+	      setSelfMessage('请输入 SSH 用户名，和云服务器登录窗口里的用户名保持一致', false);
+	      return;
+	    }
+    var sshKeyFile = selfSshPrivateKey && selfSshPrivateKey.files
+      ? selfSshPrivateKey.files[0] : null;
+    if (!payload.ssh_password && !sshKeyFile) {
+      resetSelfProgress();
+      setSelfMessage('请输入 SSH 密码、选择 SSH 私钥，或在桌面端输入 // 使用本机密钥', false);
+	      return;
+	    }
+    selfBusy = true;
+    selfHealthRetryJobId = '';
+    selfBtn.disabled = true;
+    selfBtn.style.display = '';
+    selfBtn.textContent = '创建中';
+    selfSuccess.classList.remove('active');
+    selfSuccessMsg.textContent = '';
+    setSelfMessage('', false);
+    selfProgress.classList.add('active');
+    selfProgressStartedAt = Date.now();
+    var imageFile = selfImageTar && selfImageTar.files ? selfImageTar.files[0] : null;
+    selfPhase.textContent = imageFile ? '正在读取服务包' : '正在提交任务';
+    selfPhaseHelp.textContent = imageFile ? '先把你选择的服务包交给本机 Miru，再由她上传到服务器。' : '没有选择服务包，会尝试使用高级选项里的在线镜像地址。';
+    selfProgressFill.style.width = '3%';
+    renderDeploySteps(imageFile ? 'local_upload' : 'prepare');
+    selfLogs.innerHTML = '';
+    try {
+      var form = new FormData();
+      Object.keys(payload).forEach(function(key) {
+        form.append(key, String(payload[key]));
+      });
+      if (imageFile) form.append('image_tar', imageFile);
+      if (sshKeyFile) form.append('ssh_private_key', sshKeyFile);
+      var data = await postSelfServerCreate(form, Boolean(imageFile));
+      if (!data.job) throw new Error(data.error || '无法创建部署任务');
+      pollSelfJob(data.job.job_id);
+    } catch (e) {
+      selfBusy = false;
+      selfBtn.disabled = false;
+      selfBtn.textContent = '创建 Miru';
+      resetSelfProgress();
+      setSelfMessage(e.message || '创建失败', false);
+    }
+  };
+
+  function valueOf(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function postSelfServerCreate(form, hasImageFile) {
+    return new Promise(function(resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/client/provision/self-server/create');
+      var clientHeaders = androidClientHeaders({});
+      if (clientHeaders['X-Miru-Client-Secret']) {
+        xhr.setRequestHeader('X-Miru-Client-Secret', clientHeaders['X-Miru-Client-Secret']);
+      }
+      xhr.timeout = hasImageFile ? 10 * 60 * 1000 : 30000;
+      xhr.upload.onprogress = function(ev) {
+        if (!hasImageFile || !ev.lengthComputable) return;
+        var pct = Math.max(0, Math.min(100, Math.round(ev.loaded * 100 / ev.total)));
+        selfPhase.textContent = '正在读取服务包（' + pct + '%）';
+        selfPhaseHelp.textContent = '这一步只是把文件交给本机 Miru，真正上传到服务器会在下一步显示。';
+        selfProgressFill.style.width = Math.min(14, 3 + pct * 0.11) + '%';
+        renderDeploySteps('local_upload');
+      };
+      xhr.onload = function() {
+        var data = {};
+        try { data = JSON.parse(xhr.responseText || '{}'); } catch(e) {}
+        if (xhr.status >= 200 && xhr.status < 300 && data.job) {
+          resolve(data);
+          return;
+        }
+        reject(new Error(data.error || '无法创建部署任务'));
+      };
+      xhr.onerror = function() { reject(new Error('本机 Miru 没有响应，请重启 App 后再试')); };
+      xhr.ontimeout = function() { reject(new Error('服务包读取超时，请确认文件完整后重试')); };
+      xhr.send(form);
+    });
+  }
+
+  function formatBytes(size) {
+    if (!size) return '0 B';
+    var units = ['B', 'KB', 'MB', 'GB'];
+    var n = size;
+    var i = 0;
+    while (n >= 1024 && i < units.length - 1) {
+      n = n / 1024;
+      i++;
+    }
+    return (i === 0 ? n.toFixed(0) : n.toFixed(1)) + ' ' + units[i];
+  }
+
+  function pollSelfJob(jobId) {
+    if (pollTimer) clearInterval(pollTimer);
+    var pollFailures = 0;
+    var run = async function() {
+      if (pollInFlight) return;
+      pollInFlight = true;
+      try {
+        var res = await fetch('/api/client/provision/self-server/status/' + encodeURIComponent(jobId), {
+          headers: androidClientHeaders({})
+        });
+        var data = await res.json().catch(function(){ return {}; });
+        if (!res.ok || !data.job) {
+          var err = new Error(data.error || '部署状态读取失败');
+          err.status = res.status;
+          throw err;
+        }
+        pollFailures = 0;
+        renderJob(data.job);
+      if (data.job.status === 'succeeded') {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        selfRetryJobId = '';
+        await verifySelfServerPublicHealth(data.job);
+          return;
+        }
+      if (data.job.status === 'failed') {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        selfRetryJobId = '';
+        selfBusy = false;
+        selfBtn.disabled = false;
+          selfBtn.textContent = '重新创建';
+          setSelfMessage(data.job.error || '创建失败，请检查 SSH、Docker 和安全组端口', false);
+        }
+      } catch (e) {
+        pollFailures += 1;
+        var msg = (e && e.message) || '部署状态读取失败';
+        if (e && e.status === 404) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          selfRetryJobId = '';
+          selfBusy = false;
+          selfBtn.disabled = false;
+          selfBtn.textContent = '创建 Miru';
+          resetSelfProgress();
+          setSelfMessage('刚才的创建已经中断，请重新创建一次。Miru 会重新检查服务器状态，不会重复占用端口。', false);
+          return;
+        }
+        if (pollFailures < 3) {
+          setSelfMessage(msg + '，正在继续确认，先不要重复创建。', false);
+        } else {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          selfRetryJobId = jobId;
+          selfBusy = false;
+          selfBtn.disabled = false;
+          selfBtn.textContent = '重新检查状态';
+          setSelfMessage('暂时读不到部署状态，但服务器上的创建可能仍在继续。重新检查会先查看刚才的任务。', false);
+        }
+      } finally {
+        pollInFlight = false;
+      }
+    };
+    run();
+    pollTimer = setInterval(run, 1800);
+  }
+
+  function renderSelfSuccess(code) {
+    selfCurrentInvitationCode = normalizeCode(code || '');
+    selfSuccessCode.textContent = selfCurrentInvitationCode || '邀请码读取失败';
+    selfSuccess.classList.add('active');
+    setSelfMessage('已经创建完成。先复制邀请码给其他设备，或者直接进入桌面端。', true);
+    selfSuccessMsg.textContent = '';
+    if (selfCurrentInvitationCode && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(selfCurrentInvitationCode).then(function() {
+        selfSuccessMsg.textContent = '已复制邀请码，可以直接去手机端粘贴。';
+        selfSuccessMsg.className = 'message ok';
+      }).catch(function() {});
+    }
+    try { selfSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(e) {}
+  }
+
+  async function verifySelfServerPublicHealth(job) {
+    var jobId = job && job.job_id ? job.job_id : selfHealthRetryJobId;
+    if (!jobId) {
+      selfBusy = false;
+      selfBtn.disabled = false;
+      selfBtn.textContent = '创建 Miru';
+      setSelfMessage('创建任务状态不完整，请重新创建一次。', false);
+      return;
+    }
+    selfHealthRetryJobId = jobId;
+    selfSuccess.classList.remove('active');
+    selfSuccessMsg.textContent = '';
+    selfCurrentInvitationCode = normalizeCode((job && job.invitation_code) || selfCurrentInvitationCode || '');
+    selfProgress.classList.add('active');
+    selfPhase.textContent = '正在确认公网访问';
+    selfPhaseHelp.textContent = 'Miru 已在服务器上启动，正在确认这台电脑能打开它。';
+    selfProgressFill.style.width = '96%';
+    renderDeploySteps('public_health');
+    selfBtn.style.display = '';
+    selfBtn.disabled = true;
+    selfBtn.textContent = '检查中';
+    setSelfMessage('正在确认这台电脑可以访问刚创建的 Miru。', true);
+    try {
+      var res = await fetch('/api/client/provision/self-server/public-health/' + encodeURIComponent(jobId), {
+        method: 'POST',
+        headers: androidClientHeaders({})
+      });
+      var data = await res.json().catch(function(){ return {}; });
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || '这台电脑暂时访问不到刚创建的 Miru。');
+      }
+      selfHealthRetryJobId = '';
+      selfBusy = false;
+      selfBtn.disabled = true;
+      selfBtn.style.display = 'none';
+      selfPhase.textContent = '完成';
+      selfPhaseHelp.textContent = '公网访问已经确认，可以进入 Miru。';
+      selfProgressFill.style.width = '100%';
+      renderDeploySteps('done');
+      renderSelfSuccess((job && job.invitation_code) || selfCurrentInvitationCode);
+    } catch (e) {
+      selfBusy = false;
+      selfBtn.disabled = false;
+      selfBtn.style.display = '';
+      selfBtn.textContent = '重新检查公网访问';
+      selfPhaseHelp.textContent = '服务器内已启动，但这台电脑还访问不到公网端口。';
+      setSelfMessage((e && e.message) || '这台电脑暂时访问不到刚创建的 Miru。', false);
+    }
+  }
+
+  window.copySelfInvite = function() {
+    var code = selfCurrentInvitationCode || selfSuccessCode.textContent || '';
+    if (!code) {
+      selfSuccessMsg.textContent = '还没有拿到邀请码。';
+      selfSuccessMsg.className = 'message';
+      return;
+    }
+    function copied() {
+      selfSuccessMsg.textContent = '已复制邀请码。';
+      selfSuccessMsg.className = 'message ok';
+    }
+    function fallback() {
+      var range = document.createRange();
+      range.selectNodeContents(selfSuccessCode);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      try { document.execCommand('copy'); copied(); }
+      catch(e) {
+        selfSuccessMsg.textContent = '复制失败，请手动选中邀请码。';
+        selfSuccessMsg.className = 'message';
+      }
+      sel.removeAllRanges();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(copied).catch(fallback);
+    } else {
+      fallback();
+    }
+  };
+
+  window.enterSelfServer = async function() {
+    var code = selfCurrentInvitationCode || selfSuccessCode.textContent || '';
+    if (!isValidCode(code)) {
+      selfSuccessMsg.textContent = '邀请码格式不完整，无法进入。';
+      selfSuccessMsg.className = 'message';
+      return;
+    }
+    selfEnterBtn.disabled = true;
+    selfEnterBtn.textContent = '正在进入';
+    selfSuccessMsg.textContent = '正在登录桌面端…';
+    selfSuccessMsg.className = 'message ok';
+    var state = await loginWithCode(code, null, function(text, good) {
+      selfSuccessMsg.textContent = text || '';
+      selfSuccessMsg.className = good ? 'message ok' : 'message';
+    }, { returnState: true, setupComplete: false });
+    if (!state || !state.ok) {
+      selfEnterBtn.disabled = false;
+      selfEnterBtn.textContent = '进入 Miru';
+      return;
+    }
+    beginApiSetup({
+      mode: 'remote',
+      token: state.token,
+      server_url: state.server_url,
+      redirect_url: state.redirect_url
+    });
+  };
+
+  async function resumePendingApiSetup() {
+    try {
+      var res = await fetch('/api/client-config', { headers: androidClientHeaders({}) });
+      if (!res.ok) return;
+      var cfg = await res.json();
+      if (!cfg || !cfg.client_mode || !cfg.auth_token || cfg.setup_complete !== false) return;
+      var localOnly = !!cfg.local_only;
+      var base = (!localOnly && cfg.server_url) ? String(cfg.server_url).replace(/\/+$/, '') : '';
+      beginApiSetup({
+        mode: cfg.mode || (localOnly ? 'local' : 'remote'),
+        token: cfg.auth_token,
+        server_url: localOnly ? '' : base,
+        redirect_url: withDesktopClientParams((localOnly ? '' : base) + '/app?token=' + encodeURIComponent(cfg.auth_token))
+      });
+      setApiSetupMessage('继续完成模型配置。测试通过后，Miru 才会正式启动。', true);
+    } catch(e) {}
+  }
+
+  function renderJob(job) {
+    var phaseKey = job.phase_key || 'prepare';
+    var progress = typeof job.progress === 'number' ? job.progress : 0;
+    selfPhase.textContent = job.phase || job.status || '处理中';
+    selfPhaseHelp.textContent = phaseHelp(phaseKey);
+    selfProgressFill.style.width = Math.max(0, Math.min(100, progress)) + '%';
+    renderDeploySteps(phaseKey);
+    selfLogs.innerHTML = '';
+    (job.logs || []).forEach(function(line) {
+      var div = document.createElement('div');
+      div.className = 'log-line';
+      div.textContent = line;
+      selfLogs.appendChild(div);
+    });
+    selfLogs.scrollTop = selfLogs.scrollHeight;
+  }
+
+  function phaseHelp(phaseKey) {
+    if (phaseKey === 'local_upload') return '正在把你选择的服务包交给本机 Miru。';
+    if (phaseKey === 'image_upload') return '正在把 Miru 服务包传到你的服务器，这一步取决于家里网络和云服务器带宽。';
+    if (phaseKey === 'image_uploaded') return '服务包已经到服务器上，接下来会启动 Miru。';
+    if (phaseKey === 'image_load') return '服务器正在准备 Miru，服务包越大这一步越久。';
+    if (phaseKey === 'image_pull') {
+      var elapsed = selfProgressStartedAt ? Math.floor((Date.now() - selfProgressStartedAt) / 1000) : 0;
+      if (elapsed > 60) return '服务器正在从在线镜像源下载 Miru，取决于网络，可能需要几分钟。';
+      return '正在下载 Miru 服务：从高级选项里的在线镜像源获取镜像。';
+    }
+    if (phaseKey === 'host_prepare' || phaseKey === 'upload') return '正在把 Miru 需要的文件放到服务器上。';
+    if (phaseKey === 'create_instance') return '服务已经在服务器上，正在启动属于你的 Miru。';
+    if (phaseKey === 'ready') return 'Miru 已经醒来，正在准备邀请码。';
+    if (phaseKey === 'public_health') return '正在确认这台电脑可以访问刚创建的 Miru。';
+    if (phaseKey === 'done') return '完成了，正在带你进入 Miru。';
+    if (phaseKey === 'failed') return '没有完成，下面的详细过程里会保留失败原因。';
+    if (phaseKey === 'connect') return '正在连接你填写的云服务器。';
+    return 'Miru 会把部署过程一步步告诉你。';
+  }
+
+  function renderDeploySteps(phaseKey) {
+    var current = PHASE_ORDER[phaseKey];
+    if (current == null) current = 0;
+    selfSteps.innerHTML = '';
+    DEPLOY_STEPS.forEach(function(step, index) {
+      var li = document.createElement('li');
+      li.className = 'deploy-step';
+      if (phaseKey === 'failed') {
+        if (index < Math.max(0, current)) li.classList.add('done');
+      } else if (index < current) {
+        li.classList.add('done');
+      } else if (index === current) {
+        li.classList.add('current');
+      }
+      var title = document.createElement('strong');
+      title.textContent = step.title;
+      var hint = document.createElement('span');
+      hint.textContent = step.hint;
+      li.appendChild(title);
+      li.appendChild(hint);
+      selfSteps.appendChild(li);
+    });
+  }
+  resumePendingApiSetup();
+})();
+</script>
+</body>
+</html>

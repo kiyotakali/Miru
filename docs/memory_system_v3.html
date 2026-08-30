@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Miru 记忆系统 — 输入到输出全链路</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", sans-serif;
+    background: #0e0f15;
+    color: #e9eaf0;
+    line-height: 1.7;
+    padding: 32px 24px 80px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 28px; font-weight: 600; margin-bottom: 8px;
+    background: linear-gradient(90deg, #8b9eff 0%, #c7a4ff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede { color: #97a0b8; font-size: 14px; margin-bottom: 32px; }
+
+  h2 {
+    font-size: 18px; font-weight: 600; margin: 32px 0 12px;
+    color: #d4d8ea; padding-bottom: 6px;
+    border-bottom: 1px solid #1f2230;
+  }
+  h3 { font-size: 15px; font-weight: 600; margin: 18px 0 10px; color: #b6bcd6; }
+
+  /* ============ Stage Diagram ============ */
+  .stage-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: 1fr; margin: 24px 0;
+  }
+  .stage {
+    background: #15171f; border: 1px solid #20242f; border-radius: 10px;
+    padding: 16px 18px; position: relative;
+  }
+  .stage::before {
+    content: ""; position: absolute; left: -1px; top: 12px; bottom: 12px;
+    width: 3px; background: var(--accent, #8b9eff); border-radius: 2px;
+  }
+  .stage[data-kind="input"] { --accent: #6dd3a8; }
+  .stage[data-kind="vlm"] { --accent: #f0b96b; }
+  .stage[data-kind="chat"] { --accent: #8b9eff; }
+  .stage[data-kind="router"] { --accent: #c7a4ff; }
+  .stage[data-kind="store"] { --accent: #ff8aa9; }
+  .stage[data-kind="render"] { --accent: #6ad7e2; }
+  .stage[data-kind="output"] { --accent: #ffd166; }
+  .stage[data-kind="block"] { --accent: #5a6172; opacity: 0.85; }
+
+  .stage-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .stage-no {
+    font-family: "JetBrains Mono", "Menlo", monospace; font-size: 11px;
+    color: #6c7184; letter-spacing: 0.1em;
+  }
+  .stage-title { font-weight: 600; color: #f5f6fa; font-size: 16px; }
+  .stage-tag {
+    margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+    background: #20242f; color: #97a0b8;
+  }
+  .stage-tag.llm { background: #2c1f3d; color: #c7a4ff; }
+  .stage-tag.code { background: #1a2c25; color: #6dd3a8; }
+  .stage-tag.async { background: #2d2316; color: #f0b96b; }
+  .stage-body { color: #b6bcd6; font-size: 14px; }
+  .stage-body code, code.inline {
+    font-family: "JetBrains Mono", "Menlo", monospace; font-size: 12.5px;
+    background: #1c2030; padding: 1px 6px; border-radius: 4px;
+    color: #c7a4ff;
+  }
+
+  .arrow { text-align: center; color: #4a5063; font-size: 18px; line-height: 1; }
+
+  /* ============ Source / confidence table ============ */
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13.5px;
+    background: #15171f; border-radius: 8px; overflow: hidden; margin: 12px 0;
+  }
+  th, td {
+    text-align: left; padding: 9px 14px; border-bottom: 1px solid #1f2230;
+  }
+  th {
+    background: #1c2030; font-weight: 600; color: #97a0b8; font-size: 12px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  td.mono { font-family: "JetBrains Mono", "Menlo", monospace; font-size: 12.5px; }
+  td.dim  { color: #6c7184; }
+  .conf-bar {
+    display: inline-block; height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, #ff8aa9, #c7a4ff, #6dd3a8);
+    vertical-align: middle; margin-right: 6px;
+  }
+
+  /* ============ Walkthrough cards ============ */
+  .walkthrough {
+    display: grid; gap: 14px; margin: 24px 0;
+  }
+  .step {
+    display: grid; grid-template-columns: 80px 1fr; gap: 16px;
+    background: #15171f; border: 1px solid #20242f; border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .step-clock {
+    font-family: "JetBrains Mono", "Menlo", monospace; font-size: 12px;
+    color: #6dd3a8; padding-top: 2px;
+  }
+  .step-content { font-size: 13.5px; color: #d4d8ea; }
+  .step-content strong { color: #f5f6fa; }
+
+  pre {
+    background: #11131a; border: 1px solid #1c2030; border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; font-size: 12.5px;
+    line-height: 1.6; margin: 10px 0;
+    font-family: "JetBrains Mono", "Menlo", monospace;
+    color: #c8cbe0;
+  }
+  pre .k { color: #c7a4ff; }
+  pre .s { color: #6dd3a8; }
+  pre .n { color: #f0b96b; }
+  pre .c { color: #6c7184; font-style: italic; }
+
+  /* ============ Slot card mock ============ */
+  .slot-card {
+    max-width: 520px; margin: 12px 0;
+    background: #15171f; border: 1px solid #20242f; border-radius: 12px;
+    padding: 18px 20px; box-shadow: 0 2px 16px rgba(139,158,255,0.08);
+  }
+  .slot-head { display: flex; align-items: center; gap: 8px; }
+  .slot-icon { font-size: 22px; }
+  .slot-title { font-size: 17px; font-weight: 600; color: #f5f6fa; }
+  .slot-pin { margin-left: auto; color: #c7a4ff; font-size: 12px; }
+  .slot-summary { color: #97a0b8; font-size: 13.5px; margin: 6px 0 14px; }
+  .fact-row { display: grid; grid-template-columns: 110px 1fr; gap: 10px;
+              align-items: center; margin: 8px 0; }
+  .bar-track { width: 100%; height: 7px; background: #1c2030; border-radius: 999px; overflow: hidden; }
+  .bar-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #6dd3a8 0%, #c7a4ff 100%);
+  }
+  .fact-text { font-size: 13.5px; color: #d4d8ea; }
+  .fact-meta { font-size: 11px; color: #6c7184; margin-top: 2px; }
+  .src-tag {
+    display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 3px;
+    background: #1c2030; color: #97a0b8; margin-right: 4px;
+  }
+  .src-tag.identity { background: #2c1f3d; color: #c7a4ff; }
+  .src-tag.user_chat { background: #1a2c25; color: #6dd3a8; }
+  .src-tag.screenshot_text { background: #2d2316; color: #f0b96b; }
+  .superseded { opacity: 0.5; text-decoration: line-through; }
+
+  ul { list-style: none; padding: 0; }
+  ul.bullet li {
+    padding-left: 20px; position: relative; margin: 5px 0; font-size: 13.5px;
+    color: #b6bcd6;
+  }
+  ul.bullet li::before {
+    content: "▸"; position: absolute; left: 0; color: #c7a4ff;
+  }
+
+  .callout {
+    background: #1a1c26; border-left: 3px solid #f0b96b;
+    padding: 12px 16px; border-radius: 4px; margin: 14px 0;
+    font-size: 13.5px; color: #d4d8ea;
+  }
+  .callout.green { border-left-color: #6dd3a8; }
+  .callout.red   { border-left-color: #ff8aa9; }
+
+  /* legend */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 14px; margin: 12px 0;
+    font-size: 12px; color: #97a0b8;
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Miru 记忆系统 v3 — 输入到输出全链路</h1>
+<p class="lede">
+  保留 4-pass router 作为质量内核 · 砍掉真冗余（双队列、translate 层、双视图）<br>
+  数据真理统一到 <code class="inline">facts.json</code> · 用户视角 ≡ Miru 视角 (renderer)
+</p>
+
+<!-- ============ 整体架构 ============ -->
+<h2>1. 整体架构（基于实际代码）</h2>
+
+<div class="legend">
+  <span><span class="dot" style="background:#6dd3a8"></span>用户输入</span>
+  <span><span class="dot" style="background:#f0b96b"></span>VLM</span>
+  <span><span class="dot" style="background:#8b9eff"></span>主对话 LLM</span>
+  <span><span class="dot" style="background:#c7a4ff"></span>4-pass router LLM</span>
+  <span><span class="dot" style="background:#ff8aa9"></span>存储</span>
+  <span><span class="dot" style="background:#6ad7e2"></span>渲染</span>
+  <span><span class="dot" style="background:#ffd166"></span>输出</span>
+  <span><span class="dot" style="background:#5a6172"></span>不进 memory</span>
+</div>
+
+<div class="stage-grid">
+  <div class="stage" data-kind="input">
+    <div class="stage-head">
+      <span class="stage-no">INPUT-A</span>
+      <span class="stage-title">用户聊天文字</span>
+      <span class="stage-tag">POST /api/chat</span>
+    </div>
+    <div class="stage-body">
+      用户在前端发消息 → <code class="inline">core.handle_user_message(text)</code>
+    </div>
+  </div>
+  <div class="arrow">↓</div>
+
+  <div class="stage" data-kind="chat">
+    <div class="stage-head">
+      <span class="stage-no">SYNC-1</span>
+      <span class="stage-title">Chat Agent 主对话</span>
+      <span class="stage-tag llm">1 LLM (chat tier)</span>
+    </div>
+    <div class="stage-body">
+      <code class="inline">prompt._build_agent_system_prompt</code> 注入
+      <strong>identity ground truth</strong> +
+      <strong>active slot overview</strong>（来自 <code class="inline">renderer</code>）
+      → 主对话 LLM 生成 reply →
+      <strong>立刻 return 给前端</strong>，<em>不等记忆写完</em>。
+    </div>
+  </div>
+  <div class="arrow">↓ (reply 已 return) ⇣ 异步触发</div>
+
+  <div class="stage" data-kind="router">
+    <div class="stage-head">
+      <span class="stage-no">ASYNC</span>
+      <span class="stage-title">4-Pass Router (后台线程)</span>
+      <span class="stage-tag llm">3-4 LLM (memory tier)</span>
+      <span class="stage-tag async">fire-and-forget</span>
+    </div>
+    <div class="stage-body">
+      <code class="inline">memory_router.trigger_route_async(content, source_type="chat")</code><br><br>
+      <strong>Pass 1 — Domain 分类</strong>：person / project / topic / self / none<br>
+      <strong>Pass 2 — Slot 路由</strong>：看全部现有 slots + aliases，决定 match 还是 new<br>
+      <strong>Pass 3 — Metadata</strong>（仅 new slot）：稳定 kebab-case id + 标题 + icon<br>
+      <strong>Pass 4 — Fact 抽取</strong>：从内容抽原子事实，比对现有 facts<br><br>
+      ⚠️ 每个 Pass 的 system prompt 都注入了 <strong>identity ground truth</strong>。
+    </div>
+  </div>
+  <div class="arrow">↓</div>
+
+  <div class="stage" data-kind="router">
+    <div class="stage-head">
+      <span class="stage-no">MERGE</span>
+      <span class="stage-title">fact_resolver.reconsider (纯 Python)</span>
+      <span class="stage-tag code">无 LLM · ~5 ms</span>
+    </div>
+    <div class="stage-body">
+      新事实 vs 现有事实，确定性仲裁：<strong>reinforce</strong> (+0.15) /
+      <strong>supersede</strong> (高置信吃低置信) / <strong>reject_pinned</strong> /
+      <strong>reject_lowconf</strong>。<br>
+      30 天没加固自动 ×0.9 衰减。
+    </div>
+  </div>
+  <div class="arrow">↓</div>
+
+  <div class="stage" data-kind="store">
+    <div class="stage-head">
+      <span class="stage-no">STORE</span>
+      <span class="stage-title">facts.json 单一真理</span>
+      <span class="stage-tag code">原子写</span>
+    </div>
+    <div class="stage-body">
+      <code class="inline">slots/&lt;domain&gt;/&lt;slot_id&gt;/facts.json</code> 原子替换。<br>
+      同时更新 <code class="inline">_slots/&lt;domain&gt;.json</code> 的 slot 元数据
+      (<code class="inline">last_active</code>, status)，重建 <code class="inline">memory/index.md</code>。
+    </div>
+  </div>
+  <div class="arrow">↓</div>
+
+  <div class="stage" data-kind="output">
+    <div class="stage-head">
+      <span class="stage-no">SSE</span>
+      <span class="stage-title">memory_changed 推前端</span>
+      <span class="stage-tag">广播</span>
+    </div>
+    <div class="stage-body">
+      <code class="inline">sse.broadcast("memory_changed", {domain, slot_id, action})</code><br>
+      前端记忆栏目立刻拉新 slot 卡，用户看到事实更新（典型 7 秒）。
+    </div>
+  </div>
+</div>
+
+<h3>截屏链路（结构对称）</h3>
+<div class="stage-grid">
+  <div class="stage" data-kind="input">
+    <div class="stage-head">
+      <span class="stage-no">INPUT-B</span>
+      <span class="stage-title">桌面 / 手机截屏</span>
+      <span class="stage-tag">POST /api/device/screenshot</span>
+    </div>
+    <div class="stage-body">
+      sensor 拍图 → 上传 →
+      <code class="inline">screen_analyzer.analyze(jpeg_bytes)</code><br>
+      先写 <code class="inline">screenshot_log.json</code>（活动痕迹，sleep_inference 用）。
+    </div>
+  </div>
+  <div class="arrow">↓</div>
+  <div class="stage" data-kind="vlm">
+    <div class="stage-head">
+      <span class="stage-no">VLM</span>
+      <span class="stage-title">VLM 一句话观测</span>
+      <span class="stage-tag llm">1 LLM (vision tier)</span>
+    </div>
+    <div class="stage-body">
+      <code class="inline">call_screen_observation(image)</code> →
+      "<strong>显著性数字 | 一句话描述</strong>"。<br>
+      prompt 注入 <strong>identity 用户名 hint</strong> 防 OCR 误读 (李垦↔李昱)。<br>
+      同时 push <code class="inline">care_engine.notify_signal("screenshot")</code>。
+    </div>
+  </div>
+  <div class="arrow">↓ 同上 4-pass router (异步) → facts.json</div>
+</div>
+
+<h3>onboarding / 设置页（直写，无 LLM）</h3>
+<div class="stage-grid">
+  <div class="stage" data-kind="input">
+    <div class="stage-head">
+      <span class="stage-no">INPUT-C</span>
+      <span class="stage-title">权威身份直写</span>
+      <span class="stage-tag code">无 LLM</span>
+    </div>
+    <div class="stage-body">
+      <code class="inline">identity.update({name, role, occupation, ...})</code><br>
+      → 写 <code class="inline">identity.json</code> 镜像备份<br>
+      → <code class="inline">curator.cascade_identity</code> →
+      <code class="inline">slots/self/identity/facts.json</code><br>
+      所有 fact 标记 <strong>pinned · confidence 1.0 · source=identity</strong>。
+    </div>
+  </div>
+</div>
+
+<h3>Miru 主动消息（不进记忆）</h3>
+<div class="stage-grid">
+  <div class="stage" data-kind="block">
+    <div class="stage-head">
+      <span class="stage-no">PROACTIVE</span>
+      <span class="stage-title">CareEngine + 早安消息</span>
+      <span class="stage-tag">无记忆写入</span>
+    </div>
+    <div class="stage-body">
+      Miru 主动说话 = CareEngine v3 自己 LLM 决策 + <code class="inline">_deliver()</code>，
+      或定时早安走 <code class="inline">_send_via_agent</code>。<br>
+      <strong>都不进 router</strong> — Miru 自言自语不变事实，避免反馈环。
+    </div>
+  </div>
+</div>
+
+<!-- ============ 置信度公式 ============ -->
+<h2>2. 置信度仲裁规则（fact_resolver）</h2>
+
+<table>
+  <thead>
+    <tr><th>来源 (source_type)</th><th>初始置信度</th><th>一句话理解</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="mono">identity</td>
+        <td><span class="conf-bar" style="width:160px"></span> 1.00 (pinned)</td>
+        <td>onboarding/设置页直接写，永不被推翻</td></tr>
+    <tr><td class="mono">user_chat</td>
+        <td><span class="conf-bar" style="width:112px"></span> 0.70</td>
+        <td>用户在对话里直说</td></tr>
+    <tr><td class="mono">user_implicit</td>
+        <td><span class="conf-bar" style="width:80px"></span> 0.50</td>
+        <td>从用户行为/语气推断</td></tr>
+    <tr><td class="mono">screenshot_text</td>
+        <td><span class="conf-bar" style="width:48px"></span> 0.30</td>
+        <td>截屏 OCR / 场景描述</td></tr>
+    <tr><td class="mono">screenshot_inf</td>
+        <td><span class="conf-bar" style="width:32px"></span> 0.20</td>
+        <td>VLM 看图猜（最不可信）</td></tr>
+  </tbody>
+</table>
+
+<ul class="bullet">
+  <li><strong>加固</strong>：再次看见同一事实 → confidence + 0.15（封顶 1.0）</li>
+  <li><strong>取代</strong>：高置信吃低置信，旧的标 superseded（保留历史）</li>
+  <li><strong>钉子</strong>：identity 派生的 pinned facts 永远不被推翻</li>
+  <li><strong>衰减</strong>：30 天没被加固一次 → ×0.9（pinned 不衰减）</li>
+  <li><strong>渲染门槛</strong>：confidence &lt; 0.30 不渲染到 main.md（仍在 facts 里）</li>
+</ul>
+
+<!-- ============ 端到端走一遍 ============ -->
+<h2>3. 一个具体例子：从用户发消息到看到卡片更新</h2>
+
+<p style="color:#97a0b8; font-size:13px; margin-bottom:14px">
+情景：晚上 11 点，用户在 VSCode 写代码，截屏自动上传；接着用户给 Miru 发消息。
+</p>
+
+<div class="walkthrough">
+  <div class="step">
+    <div class="step-clock">T+0.0s</div>
+    <div class="step-content">
+      <strong>截屏自动上传</strong>。VLM 看图，prompt 里已注入"用户姓名: 李垦"。
+      VLM 输出 <code class="inline">"4|用户在 VSCode 编辑 fact_resolver.py，旁边微信和'司晨阳'聊周三组会"</code>。
+      此时<strong>没有任何记忆写入</strong> —— 异步 router 已启动。
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+1.5s</div>
+    <div class="step-content">
+      Pass 1 (domain) ：<strong>project</strong>（用户在做的项目占主体）。<br>
+      Pass 2 (slot route) 看到 active slots 列表里没有"ContextLife"，决定 <strong>new</strong>。<br>
+      Pass 3 (metadata)：<code class="inline">id=contextlife</code>, <code class="inline">title=ContextLife</code>, icon=📝。<br>
+      Pass 4 (fact 抽取)：facts = [<code class="inline">activity: 在改 fact_resolver.py</code>]。
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+2.0s</div>
+    <div class="step-content">
+      fact_resolver 给 fact 打 <strong>source_type=screenshot_text → confidence 0.30</strong>。
+      facts.json 写入。SSE 推 <code class="inline">memory_changed</code>。
+      <strong>用户记忆栏右侧：新增 ContextLife 卡片亮起。</strong>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-clock">T+12s</div>
+    <div class="step-content">
+      用户输入：<em>「我导师司晨阳今天让我把 ContextLife 改完」</em><br>
+      <code class="inline">core.handle_user_message</code> 立刻 append chat_history + SSE 推到其他设备。
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+12.3s</div>
+    <div class="step-content">
+      Chat Agent (1 LLM, chat tier) 看到的 prompt 包含：<br>
+      &nbsp;&nbsp;· 顶部：identity ground truth ("姓名: 李垦, 身份: 研究生")<br>
+      &nbsp;&nbsp;· 活跃 slot overview ("ContextLife (project): 在改 fact_resolver.py")<br>
+      生成 reply：<em>"好的，记得早点交～导师这阵子催得紧吧"</em>。<strong>立刻 return 给前端</strong>。
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+12.4s</div>
+    <div class="step-content">
+      异步：<code class="inline">trigger_route_async(content="我导师司晨阳今天让我把 ContextLife 改完", source_type="chat")</code>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+13.5s</div>
+    <div class="step-content">
+      <strong>Pass 1</strong> classify：内容主语含"导师"和"项目改完" → 输出 <code class="inline">person</code>（主要在讲人）。<br>
+      <em>注：Pass 1 看到 ground truth 知道"李垦 = 用户本人"，不会把"我"误归类。</em>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+14.5s</div>
+    <div class="step-content">
+      <strong>Pass 2</strong> route：<br>
+      &nbsp;&nbsp;输入：<em>"我导师司晨阳..."</em> + 当前 person slots（空）+ aliases。<br>
+      &nbsp;&nbsp;输出：<code class="inline">decision="new"</code>。
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+15.5s</div>
+    <div class="step-content">
+      <strong>Pass 3</strong> metadata：<code class="inline">id=si-chenyang, title=司晨阳, icon=👤, summary="用户的导师"</code>。
+      Aliases = ["晨阳", "司导"]。<strong>id 经过 collision check</strong>。
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+17.0s</div>
+    <div class="step-content">
+      <strong>Pass 4</strong> facts：<br>
+      &nbsp;&nbsp;[<code class="inline">relationship_to_user: 司晨阳是用户的导师</code>,
+      <code class="inline">activity: 导师让交报告</code>]<br>
+      <strong>fact_resolver</strong> 给两条事实打 source_type=user_chat → 0.70。无冲突，全部 added。<br>
+      facts.json 写入 person/si-chenyang。SSE 推 memory_changed。
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-clock">T+17.2s</div>
+    <div class="step-content">
+      <strong>用户记忆栏右侧：司晨阳卡片亮起更新</strong>。同时 ContextLife 卡片也加固
+      <em>（Pass 4 看到 ContextLife 已有 fact，加固 0.30 → 0.45）</em>。
+    </div>
+  </div>
+</div>
+
+<!-- ============ Slot 卡片视图 mock ============ -->
+<h2>4. 用户在记忆栏看到的卡片（renderer mode="card"）</h2>
+
+<p style="color:#97a0b8; font-size:13px">
+点开"司晨阳"卡片 → 后端 <code class="inline">renderer.render_slot("person", "si-chenyang", mode="card")</code>
+返回结构化 JSON → 前端渲染如下。<strong>这份数据和 Miru 在 chat 工具调用 archival_search
+时拿到的 markdown 来自同一个函数</strong>。
+</p>
+
+<div class="slot-card">
+  <div class="slot-head">
+    <span class="slot-icon">👤</span>
+    <span class="slot-title">司晨阳</span>
+    <span class="slot-pin">📌 pin</span>
+  </div>
+  <div class="slot-summary">用户的导师</div>
+
+  <h3 style="margin:14px 0 8px; font-size:13px;">📊 当前事实</h3>
+
+  <div class="fact-row">
+    <div>
+      <div class="bar-track"><div class="bar-fill" style="width:85%"></div></div>
+      <div class="fact-meta">0.85</div>
+    </div>
+    <div>
+      <div class="fact-text">司晨阳是用户的导师</div>
+      <div class="fact-meta">
+        <span class="src-tag user_chat">💬 聊天 ×3</span>
+        最早 3-15 · 最后加固 2 小时前
+      </div>
+    </div>
+  </div>
+
+  <div class="fact-row">
+    <div>
+      <div class="bar-track"><div class="bar-fill" style="width:70%"></div></div>
+      <div class="fact-meta">0.70</div>
+    </div>
+    <div>
+      <div class="fact-text">导师让交报告（ContextLife 项目）</div>
+      <div class="fact-meta">
+        <span class="src-tag user_chat">💬 聊天</span>
+        刚刚
+      </div>
+    </div>
+  </div>
+
+  <div class="fact-row">
+    <div>
+      <div class="bar-track"><div class="bar-fill" style="width:30%"></div></div>
+      <div class="fact-meta">0.30</div>
+    </div>
+    <div>
+      <div class="fact-text">和司晨阳约了周三组会</div>
+      <div class="fact-meta">
+        <span class="src-tag screenshot_text">📸 截屏</span>
+        来源：微信窗口 OCR
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin:18px 0 6px; font-size:13px; color:#6c7184;">🕰️ 历史记录 (1)</h3>
+  <div class="fact-row">
+    <div>
+      <div class="bar-track"><div class="bar-fill" style="width:20%"></div></div>
+      <div class="fact-meta superseded">0.20</div>
+    </div>
+    <div>
+      <div class="fact-text superseded">同学</div>
+      <div class="fact-meta">
+        <span class="src-tag screenshot_text">📸 截屏</span>
+        3-10 已被取代
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px; font-size:12px; color:#6c7184">
+    🔗 关联：ContextLife (项目) · 论文写作 (话题)<br>
+    <span style="margin-top:8px; display:inline-block">[✏️ 编辑]&nbsp;&nbsp;[🔀 合并]&nbsp;&nbsp;[🗄️ 归档]</span>
+  </div>
+</div>
+
+<div class="callout green">
+  <strong>关键约束：用户屏幕上看到的 ≡ Miru prompt 里塞的</strong><br>
+  两侧都通过 <code class="inline">renderer.render_slot()</code> 出
+  → 不可能出现"用户看着对的，AI 记错的"鬼 bug。
+</div>
+
+<!-- ============ 4-pass 为什么不能砍 ============ -->
+<h2>5. 为什么坚持 4 次 LLM 调用而不是合并成 1 次？</h2>
+
+<table>
+  <thead>
+    <tr><th>Pass</th><th>它真正做的事</th><th>为什么必须独立</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="mono">Pass 1<br>Domain</td>
+      <td>把"项目协作群"放到 project 而不是 person</td>
+      <td>边角分类需要专门的 prompt 工程，混在大 prompt 里会被稀释</td>
+    </tr>
+    <tr>
+      <td class="mono">Pass 2<br>Slot Route</td>
+      <td>"晨阳..." → 已有 person/si-chenyang 而不是新建</td>
+      <td><strong>必须看全部现有 slots + aliases</strong>。这是 retrieval 问题，看不到全景必出错</td>
+    </tr>
+    <tr>
+      <td class="mono">Pass 3<br>Metadata</td>
+      <td>给新 slot 稳定 kebab-case id + collision check</td>
+      <td>id 漂移会导致同一项目出现 contextlife / context-life / miru-project 多张卡</td>
+    </tr>
+    <tr>
+      <td class="mono">Pass 4<br>Fact 抽取</td>
+      <td>从内容抽原子事实，比对 slot 现有 facts</td>
+      <td>看 facts 列表才能判断"是新事实还是加固已有事实"</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  每个 Pass <strong>看不同的上下文</strong>：Pass 2 看 slot inventory，Pass 3 看 used ids，
+  Pass 4 看 slot facts。压到一个 prompt 等于让 LLM 同时做 4 件需要不同输入的事——做不好。
+</div>
+
+<!-- ============ 砍掉的真冗余 ============ -->
+<h2>6. 这次重构砍掉的冗余</h2>
+
+<table>
+  <thead>
+    <tr><th>砍掉的东西</th><th>为什么是冗余</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="inline">sleep_agent</code> + <code class="inline">summarizer</code> 双队列</td>
+      <td>它们的 cheap LLM 总结又被 router 重新分类，等于做了一次没人用的中间总结</td>
+    </tr>
+    <tr>
+      <td>3 分钟 debounce</td>
+      <td>记忆延迟 3 分钟无意义。改成异步 fire-and-forget，立刻触发，不卡 chat reply</td>
+    </tr>
+    <tr>
+      <td><code class="inline">try_route_legacy_op</code> 翻译层</td>
+      <td>把旧 LLM 输出的 path 翻译成 domain hint —— 既然 chat / screenshot 直接调 router 就不需要</td>
+    </tr>
+    <tr>
+      <td>Miru 主动消息进 sleep_agent</td>
+      <td>Miru 自言自语反馈环：让自己的话变成"事实"。已删 (Phase A)</td>
+    </tr>
+    <tr>
+      <td>用户名同时存 4 处</td>
+      <td>identity.json + self_profile.json + core_memory.human + slot facts → 现统一到 slots/self/identity/facts</td>
+    </tr>
+    <tr>
+      <td>UI 卡片 vs archival_search 各自渲染</td>
+      <td>同一份 facts.json 出两套样式 → 数据真理可能漂移。已统一到 <code class="inline">renderer.render_slot</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============ 数字对比 ============ -->
+<h2>7. LLM 数对比</h2>
+<table>
+  <thead>
+    <tr><th>动作</th><th>旧最坏情况</th><th>简化后</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>用户一条聊天消息</td>
+      <td>chat 1 + sleep_agent 1 + router 4 = <strong>6</strong></td>
+      <td>chat 1（同步）+ router 4（异步）= <strong>5</strong></td>
+    </tr>
+    <tr>
+      <td>一次截屏</td>
+      <td>VLM 1 + summarizer 1 + router 4 = <strong>6</strong></td>
+      <td>VLM 1（同步）+ router 4（异步）= <strong>5</strong></td>
+    </tr>
+    <tr>
+      <td>Miru 主动消息</td>
+      <td>CareEngine 1 + sleep_agent 1（错误）= <strong>2+</strong></td>
+      <td>CareEngine 1（不进 memory）= <strong>1</strong></td>
+    </tr>
+    <tr>
+      <td>onboarding 5 字段填写</td>
+      <td>0（直写）<em>+ cascade 4 文件</em></td>
+      <td>0（直写到 slot facts，单文件）</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  LLM 数没大幅减少 —— <strong>简化的目标不是省成本</strong>，是把数据真理统一、删掉模糊路径、让用户看到的和 AI 用的一致。
+</div>
+
+<!-- ============ 改动文件总览 ============ -->
+<h2>8. 实际改动的文件</h2>
+
+<table>
+  <thead><tr><th>文件</th><th>改动</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">memory_router.py</td><td>新增 <code class="inline">trigger_route_async</code> 异步触发器</td></tr>
+    <tr><td class="mono">memory_prompts_v2.py</td><td>Pass 1/2/3 prompt 注入 ground truth (<code class="inline">_ground_truth_addendum</code>)</td></tr>
+    <tr><td class="mono">core.py</td><td>chat handler → <code class="inline">trigger_route_async</code>；删 Miru proactive enqueue (3 处)</td></tr>
+    <tr><td class="mono">screen_analyzer.py</td><td>VLM 输出 → <code class="inline">trigger_route_async</code>；删 summarizer 队列</td></tr>
+    <tr><td class="mono">screen_observer.py</td><td>同上（legacy fallback）</td></tr>
+    <tr><td class="mono">care_engine.py</td><td>删 _deliver 内的 sleep_agent enqueue</td></tr>
+    <tr><td class="mono">renderer.py (新)</td><td>4 mode 视图（card/markdown/overview/ground_truth）</td></tr>
+    <tr><td class="mono">curator.py (新)</td><td>identity cascade 直写 slot</td></tr>
+    <tr><td class="mono">identity.py</td><td>cascade 双写（identity.json + slot facts）；ground_truth 改读 renderer</td></tr>
+    <tr><td class="mono">memory_prompts.py</td><td>删 chat_observer / screen_observer_v2（错误简化的撤回）</td></tr>
+    <tr><td class="mono">tests/...</td><td>30 个新 unit test：renderer / curator / observer-curator e2e / async router</td></tr>
+  </tbody>
+</table>
+
+<h2>9. 一句话总结</h2>
+<div class="callout green">
+  <strong>4-pass router 是质量内核（保留）</strong>：每个 Pass 看不同上下文做专业决策，不能合并。<br>
+  <strong>真冗余被砍光（双队列、translate 层、双视图、自言自语反馈环）</strong>：异步触发 + 单一渲染 + Miru 主动消息隔离。<br>
+  <strong>数据真理只在 facts.json</strong>：UI 卡片和 Miru prompt 走同一个 renderer.render_slot，绝不漂移。
+</div>
+
+</div>
+</body>
+</html>

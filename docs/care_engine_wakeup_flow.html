@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>CareEngine 唤起机制图解</title>
+<style>
+  body {
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    background: #0e1116;
+    color: #e6edf3;
+    margin: 0;
+    padding: 24px 12px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { color: #f0a868; font-size: 24px; margin-bottom: 6px; }
+  h2 { color: #79c0ff; font-size: 18px; margin: 28px 0 10px; border-left: 3px solid #79c0ff; padding-left: 10px; }
+  h3 { color: #ffa657; font-size: 15px; margin: 14px 0 6px; }
+  .sub { color: #8b949e; font-size: 13px; margin-bottom: 18px; }
+
+  .core {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border: 2px solid #f0a868;
+    border-radius: 14px;
+    padding: 22px 24px;
+    text-align: center;
+    margin: 18px 0;
+    position: relative;
+  }
+  .core .name { color: #f0a868; font-size: 20px; font-weight: 600; }
+  .core .desc { color: #c9d1d9; font-size: 13px; margin-top: 4px; }
+
+  .ring {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .src {
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 10px 8px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .src .icon { font-size: 16px; }
+  .src .title { color: #79c0ff; font-weight: 600; margin: 4px 0 2px; font-size: 12px; }
+  .src .who  { color: #8b949e; font-size: 11px; }
+  .src .does { color: #56d364; font-size: 11px; margin-top: 4px; font-family: monospace; }
+  .src .timer { background: #382c1a; }
+  .src.signal { border-left: 3px solid #56d364; }
+  .src.timer { border-left: 3px solid #d29922; }
+  .src.stop { border-left: 3px solid #f85149; }
+
+  .arrow-down { text-align: center; color: #f0a868; font-size: 22px; margin: 6px 0; }
+
+  .gates {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .gate {
+    flex: 1;
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .gate .num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #f85149;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .gate .why { color: #8b949e; font-size: 11px; margin-top: 4px; }
+
+  .deliver {
+    background: linear-gradient(135deg, #1a2f1a 0%, #0d1f0d 100%);
+    border: 2px solid #56d364;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    margin: 12px 0;
+  }
+  .deliver .name { color: #56d364; font-size: 16px; font-weight: 600; }
+  .deliver .step { color: #c9d1d9; font-size: 12px; margin-top: 4px; font-family: monospace; }
+
+  .timeline { margin: 14px 0; }
+  .row {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #30363d;
+    align-items: start;
+  }
+  .row:last-child { border: 0; }
+  .t { color: #79c0ff; font-family: monospace; font-size: 12px; padding-top: 2px; }
+  .ev { font-size: 13px; }
+  .ev code { background: #1c2128; padding: 1px 6px; border-radius: 3px; font-size: 11px; color: #e6edf3; }
+  .ev .tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; margin-right: 6px; font-weight: 600; }
+  .ev .tag.signal { background: #1f3a1f; color: #56d364; }
+  .ev .tag.gate   { background: #3a1f1f; color: #f85149; }
+  .ev .tag.eval   { background: #1a2a3f; color: #79c0ff; }
+  .ev .tag.send   { background: #3a2a1a; color: #f0a868; }
+  .ev .tag.wait   { background: #2a2a3a; color: #b083ff; }
+  .ev .why { color: #8b949e; font-size: 12px; margin-left: 6px; }
+
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #8b949e;
+  }
+
+  .key-rules {
+    background: #1a1f29;
+    border-left: 4px solid #b083ff;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 14px 0;
+  }
+  .key-rules ol { margin: 6px 0 0 0; padding-left: 20px; }
+  .key-rules li { margin: 4px 0; font-size: 13px; }
+  .key-rules code { background: #0e1116; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+
+  .myth {
+    background: #2a1a1a;
+    border-left: 4px solid #f85149;
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 13px;
+  }
+  .myth .q { color: #f85149; font-weight: 600; }
+  .myth .a { color: #c9d1d9; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>CareEngine 唤起机制图解</h1>
+<p class="sub">Per-user 后台线程在「等待 → 醒来 → 评估 → 接着等」无限循环。任何人可以打断它的等待，但不能让它跳过 4 层硬地板。</p>
+
+<!-- ========== 中心：_loop 主循环 ========== -->
+<div class="core">
+  <div class="name">🌙 _loop 主循环</div>
+  <div class="desc">
+    <code>self._wake.wait(timeout=wait_secs)</code> → 醒来后必跑 <code>_tick()</code> → 回到 wait
+    <br>每个用户独立线程，各等各的，互不影响
+  </div>
+</div>
+
+<!-- ========== 5 种唤起源 ========== -->
+<h2>谁能让 _loop 醒过来？— 5 个入口</h2>
+
+<div class="ring">
+  <div class="src signal">
+    <div class="icon">📷</div>
+    <div class="title">screenshot</div>
+    <div class="who">screen_analyzer 完成 VLM 分析</div>
+    <div class="does">notify_signal()</div>
+  </div>
+  <div class="src signal">
+    <div class="icon">💬</div>
+    <div class="title">chat_in</div>
+    <div class="who">用户发了消息</div>
+    <div class="does">notify_signal() + 切 IN</div>
+  </div>
+  <div class="src signal">
+    <div class="icon">📤</div>
+    <div class="title">chat_out</div>
+    <div class="who">Miru 回复送出</div>
+    <div class="does">notify_signal() + 切 POST<br>+ 设 _next_wake=now+5min</div>
+  </div>
+  <div class="src signal">
+    <div class="icon">🔄</div>
+    <div class="title">state</div>
+    <div class="who">_tick 内部检测到<br>active/idle/offline 切换</div>
+    <div class="does">notify_signal()</div>
+  </div>
+  <div class="src stop">
+    <div class="icon">🛑</div>
+    <div class="title">stop</div>
+    <div class="who">用户被删 / 实例 cleanup</div>
+    <div class="does">_stop_event + _wake</div>
+  </div>
+</div>
+
+<div class="ring" style="grid-template-columns: 1fr 1fr;">
+  <div class="src timer">
+    <div class="icon">⏱</div>
+    <div class="title">_next_wake_at 到期</div>
+    <div class="who">上次 LLM 设的 wait_minutes 时间到</div>
+    <div class="does">wait 自然 timeout</div>
+  </div>
+  <div class="src timer">
+    <div class="icon">💤</div>
+    <div class="title">HEARTBEAT 兜底</div>
+    <div class="who">_next_wake_at == 0 时<br>每 30 分钟兜底叫醒一次</div>
+    <div class="does">wait_secs = 1800</div>
+  </div>
+</div>
+
+<div class="legend">
+  <div>🟢 signal 类（_wake.set）→ 立刻打断 wait</div>
+  <div>🟡 timer 类（自然 timeout）→ wait_secs 自然到期</div>
+</div>
+
+<div class="arrow-down">↓ 醒来后必经 4 层硬地板 ↓</div>
+
+<!-- ========== 4 层硬地板 ========== -->
+<h2>_tick 里的 4 层硬地板（任一不过 → 不评估，回去等下一轮）</h2>
+
+<div class="gates">
+  <div class="gate">
+    <div class="num">A</div>
+    <div><b>对话状态</b></div>
+    <div class="why">conv_state 是 IN 或 POST → 跳过<br><i>用户在聊天 / 刚结束</i></div>
+  </div>
+  <div class="gate">
+    <div class="num">B</div>
+    <div><b>评估节流 60s</b></div>
+    <div class="why">最近 60s 已评估过 → 跳过<br><i>cost cap</i></div>
+  </div>
+  <div class="gate">
+    <div class="num">C</div>
+    <div><b>发送冷却 5min</b></div>
+    <div class="why">最近 5min 主动发过消息 → 跳过<br><i>不连珠炮</i></div>
+  </div>
+  <div class="gate">
+    <div class="num">D</div>
+    <div><b>睡眠窗口</b></div>
+    <div class="why">offline 且超过 typical_window<br>末尾 60min → 跳过（在睡了）</div>
+  </div>
+</div>
+
+<div class="arrow-down">↓ 4 层都过才会 evaluate ↓</div>
+
+<!-- ========== 评估和决策 ========== -->
+<h2>评估 + 决策（单次 LLM 调用）</h2>
+
+<div style="background:#1a2a3f; border:2px solid #79c0ff; border-radius:10px; padding:14px; margin:10px 0;">
+  <div style="color:#79c0ff; font-weight:600; font-size:15px; text-align:center;">_evaluate(snapshot, catchup)</div>
+  <div style="color:#8b949e; font-size:13px; text-align:center; margin-top:6px;">
+    输入：完整 snapshot（today_chat / human / persona / identity / 情绪曲线 / 信号 buffer / 活跃 DDL / 日记片段）
+    <br>输出 JSON：<code style="color:#79c0ff;">{ speak, wait_minutes, message, thought }</code>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin:10px 0;">
+  <div class="deliver">
+    <div class="name">📨 speak: true</div>
+    <div class="step">→ _deliver(message)</div>
+    <div class="step" style="color:#8b949e;">写 chat_history<br>+ SSE 推送<br>+ Web Push<br>+ 记 last_send_time</div>
+  </div>
+  <div style="background:#2a2a3a; border:2px solid #b083ff; border-radius:10px; padding:14px; text-align:center;">
+    <div style="color:#b083ff; font-weight:600;">⏳ wait_minutes: 1-30</div>
+    <div style="font-family:monospace; font-size:12px; margin-top:4px; color:#c9d1d9;">_next_wake_at = now + N×60</div>
+    <div style="color:#8b949e; font-size:11px; margin-top:4px;">N 分钟后再来评估</div>
+  </div>
+  <div style="background:#1f2a1f; border:2px solid #56d364; border-radius:10px; padding:14px; text-align:center;">
+    <div style="color:#56d364; font-weight:600;">🤐 wait_minutes: 0</div>
+    <div style="font-family:monospace; font-size:12px; margin-top:4px; color:#c9d1d9;">_next_wake_at = 0</div>
+    <div style="color:#8b949e; font-size:11px; margin-top:4px;">不主动调度，等用户来</div>
+  </div>
+</div>
+
+<!-- ========== 关键规则 ========== -->
+<div class="key-rules">
+  <div style="color:#b083ff; font-weight:600; margin-bottom:4px;">📐 它们怎么不冲突？</div>
+  <ol>
+    <li><b>signal 永远不能直接发消息</b>——只能让 _loop 醒一次跑 _tick；4 层硬地板不过就回去继续等</li>
+    <li><code>_next_wake_at</code> 只有两个写入者：<b>chat_out</b>（设 5min cooloff）和 <b>LLM 决策</b>（设 wait_minutes 或 0）。后写覆盖前写。chat_out 优先级最高（"刚结束的对话比之前的等待更重要"）</li>
+    <li><b>HEARTBEAT 30min</b> 是死锁预防——只有当 <code>_next_wake_at == 0</code> 时才生效</li>
+    <li>所有 signal 都进 <b>buffer 不丢失</b>，IN/POST 期间硬地板挡住评估，但信号继续累积；POST 结束时一次性 catchup 评估</li>
+    <li>每个用户<b>独立 1 个线程 + 1 个 _wake event + 1 个 buffer</b>，多用户互不影响</li>
+  </ol>
+</div>
+
+<!-- ========== 时间线场景 ========== -->
+<h2>真实场景演练</h2>
+
+<h3>场景 1：用户聊天中收到新截屏（不冲突）</h3>
+<div class="timeline">
+  <div class="row">
+    <div class="t">14:00:00</div>
+    <div class="ev"><span class="tag signal">signal</span> 用户发"你好" → <code>chat_in</code> + 切 IN
+    <span class="why">_wake.set，state=IN_CONVERSATION</span></div>
+  </div>
+  <div class="row">
+    <div class="t">14:00:00.05</div>
+    <div class="ev"><span class="tag gate">gate A</span> _tick 醒来 → 硬地板 A：state=IN → return
+    <span class="why">不评估，但 signal 入 buffer</span></div>
+  </div>
+  <div class="row">
+    <div class="t">14:00:10</div>
+    <div class="ev"><span class="tag signal">signal</span> 截屏分析完 → <code>screenshot</code>
+    <span class="why">_wake.set，再次入 buffer</span></div>
+  </div>
+  <div class="row">
+    <div class="t">14:00:10.01</div>
+    <div class="ev"><span class="tag gate">gate A</span> _tick → 仍然 IN → return
+    <span class="why">截屏数据还在 buffer</span></div>
+  </div>
+  <div class="row">
+    <div class="t">14:00:30</div>
+    <div class="ev"><span class="tag signal">signal</span> Miru 回复送出 → <code>chat_out</code> + 切 POST
+    <span class="why">_next_wake_at = now+5min</span></div>
+  </div>
+  <div class="row">
+    <div class="t">14:05:30</div>
+    <div class="ev"><span class="tag eval">eval</span> 5min cooloff 到期 → 4 层都过 → catchup 评估
+    <span class="why">LLM 看到完整对话+期间截屏，决定要不要追加一句</span></div>
+  </div>
+</div>
+
+<h3>场景 2：LLM 设 wait_minutes=10，5 分钟后被 chat_in 打断</h3>
+<div class="timeline">
+  <div class="row">
+    <div class="t">10:00:00</div>
+    <div class="ev"><span class="tag eval">eval</span> LLM 决策 wait_minutes=10
+    <span class="why">_next_wake_at = 10:10:00</span></div>
+  </div>
+  <div class="row">
+    <div class="t">10:05:00</div>
+    <div class="ev"><span class="tag signal">signal</span> 用户发消息 → <code>chat_in</code>
+    <span class="why">_wake.set 提前打断（原本要等到 10:10）</span></div>
+  </div>
+  <div class="row">
+    <div class="t">10:05:00.01</div>
+    <div class="ev"><span class="tag gate">gate A</span> 硬地板 A：state=IN → return
+    <span class="why">原来的 _next_wake_at=10:10 还在但已无意义</span></div>
+  </div>
+  <div class="row">
+    <div class="t">10:05:30</div>
+    <div class="ev"><span class="tag signal">signal</span> chat_out → POST → _next_wake_at = <b>10:10:30</b>
+    <span class="why">covered 10:10:00（5min cooloff 比 LLM 之前的 10min 更短，但 chat_out 总是覆盖）</span></div>
+  </div>
+  <div class="row">
+    <div class="t">10:10:30</div>
+    <div class="ev"><span class="tag eval">eval</span> POST 5min 到期 → catchup 评估</div>
+  </div>
+</div>
+
+<h3>场景 3：HEARTBEAT 兜底（用户半天没动）</h3>
+<div class="timeline">
+  <div class="row">
+    <div class="t">10:00</div>
+    <div class="ev"><span class="tag eval">eval</span> LLM 决策 wait_minutes=null → _next_wake_at 不变（保持 0）
+    <span class="why">"我没意见，让系统兜底"</span></div>
+  </div>
+  <div class="row">
+    <div class="t">10:00 算 wait_secs</div>
+    <div class="ev">_next_wake_at(0) > now? 不 → wait_secs = HEARTBEAT_INTERVAL = 1800</div>
+  </div>
+  <div class="row">
+    <div class="t">10:30</div>
+    <div class="ev"><span class="tag eval">eval</span> 30min 自然 timeout → 4 层硬地板 → 评估
+    <span class="why">兜底循环</span></div>
+  </div>
+</div>
+
+<h3>场景 4：LLM 输出 wait_minutes=0（"等用户主动"）</h3>
+<div class="timeline">
+  <div class="row">
+    <div class="t">15:00</div>
+    <div class="ev"><span class="tag eval">eval</span> LLM 觉得"这事不该我管，等用户" → wait_minutes=0
+    <span class="why">_next_wake_at = 0</span></div>
+  </div>
+  <div class="row">
+    <div class="t">15:00 算 wait_secs</div>
+    <div class="ev">_next_wake_at(0) > now? 不 → wait_secs = 1800（依然走 HEARTBEAT）
+    <span class="why">这是<b>故意</b>的安全网——防止"等用户主动"持续不被叫醒</span></div>
+  </div>
+  <div class="row">
+    <div class="t">15:30</div>
+    <div class="ev"><span class="tag eval">eval</span> HEARTBEAT 醒来 → 评估
+    <span class="why">如果 LLM 还输出 0，每 30min 一次评估，不烦不丢</span></div>
+  </div>
+</div>
+
+<!-- ========== 常见误解 ========== -->
+<h2>常见误解</h2>
+
+<div class="myth">
+  <div class="q">Q：signal 来了会不会打断正在跑的 LLM 评估？</div>
+  <div class="a">A：<b>不会</b>。_tick 是同步执行的（包括 LLM 调用）。signal 在 _tick 期间来只是 _wake.set()，等 _tick 结束 _loop 回到 wait 时立刻看到 _wake 已 set，再跑一次 _tick。但下一次会被 EVAL_THROTTLE 60s 挡掉。</div>
+</div>
+
+<div class="myth">
+  <div class="q">Q：用户刷屏发 10 条消息会不会让 CareEngine 评估 10 次？</div>
+  <div class="a">A：<b>不会</b>。第一条 chat_in 切 IN_CONVERSATION，之后所有 signal 都被硬地板 A 挡住——signal 进 buffer 但不评估。chat_out 后 5min cooloff 才会做<b>1 次</b> catchup 评估，看到这 10 条全部消息。</div>
+</div>
+
+<div class="myth">
+  <div class="q">Q：HEARTBEAT 和 wait_minutes 会不会同时触发？</div>
+  <div class="a">A：<b>不会</b>。它们是 wait_secs 计算的二选一：<code>if _next_wake_at > now: wait_secs = _next_wake_at - now; else: wait_secs = 1800</code>。HEARTBEAT 只在 _next_wake_at == 0 或已过期时才生效。</div>
+</div>
+
+<div class="myth">
+  <div class="q">Q：Miru 之前发过的话和 thought，下次评估时还能看到吗？</div>
+  <div class="a">A：<b>部分能看到</b>。
+    <ul style="margin:4px 0 0 0; padding-left:18px;">
+      <li>📤 message 通过 chat_history.json 看到（修复后通过 today_chat 字段，包含当日所有"Miru主动: ..."）</li>
+      <li>💭 thought <b>只看到最近一次</b>（_last_thought 是内存字段不持久化），重启会丢</li>
+      <li>⚠️ <b>这是新发现的 bug</b>：应该让 LLM 看到自己今日所有 thought 轨迹，而不是只一条。修复方案：从 care_log.json 拉今日记录加进 snapshot</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
+</content>
+</invoke>

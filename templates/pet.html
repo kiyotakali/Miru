@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ContextLife AIRI Pet</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+#pet-canvas-wrap {
+  position: absolute; inset: 0;
+  z-index: 1;
+}
+#pet-canvas-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  background: transparent !important;
+}
+
+/* ── Sakura petals (matches contextlife.vue) ── */
+.sakura-container { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: visible; }
+.sakura-petal {
+  position: absolute;
+  top: -30px;
+  border-radius: 50% 0 50% 0;
+  opacity: 0;
+  animation: petal-fall linear infinite;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 0 2px rgba(255,160,180,0.3));
+}
+.petal-1 {
+  left: 8%; width: 22px; height: 18px;
+  background: radial-gradient(ellipse at 35% 30%, rgba(255,140,170,0.85), rgba(255,183,197,0.3) 60%, transparent 100%);
+  animation-duration: 12s; animation-delay: 0s;
+}
+.petal-2 {
+  left: 28%; width: 16px; height: 14px;
+  background: radial-gradient(ellipse at 35% 30%, rgba(255,160,185,0.80), rgba(255,190,205,0.25) 60%, transparent 100%);
+  animation-duration: 15s; animation-delay: 2.5s;
+}
+.petal-3 {
+  left: 52%; width: 26px; height: 20px;
+  background: radial-gradient(ellipse at 35% 30%, rgba(255,130,165,0.80), rgba(255,183,197,0.25) 60%, transparent 100%);
+  animation-duration: 10s; animation-delay: 1s;
+}
+.petal-4 {
+  left: 72%; width: 14px; height: 12px;
+  background: radial-gradient(ellipse at 35% 30%, rgba(255,150,178,0.85), rgba(255,200,215,0.3) 60%, transparent 100%);
+  animation-duration: 14s; animation-delay: 4s;
+}
+.petal-5 {
+  left: 90%; width: 20px; height: 16px;
+  background: radial-gradient(ellipse at 35% 30%, rgba(255,140,170,0.75), rgba(255,183,197,0.2) 60%, transparent 100%);
+  animation-duration: 11s; animation-delay: 6s;
+}
+.petal-6 {
+  left: 42%; width: 13px; height: 11px;
+  background: radial-gradient(ellipse at 35% 30%, rgba(255,160,185,0.80), rgba(255,200,215,0.25) 60%, transparent 100%);
+  animation-duration: 13s; animation-delay: 8s;
+}
+.petal-7 {
+  left: 65%; width: 24px; height: 18px;
+  background: radial-gradient(ellipse at 35% 30%, rgba(255,135,168,0.70), rgba(255,183,197,0.15) 60%, transparent 100%);
+  animation-duration: 16s; animation-delay: 3s;
+}
+@keyframes petal-fall {
+  0% { transform: translateY(-10px) translateX(0px) rotate(0deg) scale(1); opacity: 0; }
+  6% { opacity: 0.85; }
+  25% { transform: translateY(25vh) translateX(35px) rotate(80deg) scale(0.95); opacity: 0.7; }
+  50% { transform: translateY(50vh) translateX(-20px) rotate(190deg) scale(0.85); opacity: 0.5; }
+  75% { transform: translateY(75vh) translateX(50px) rotate(300deg) scale(0.7); opacity: 0.3; }
+  100% { transform: translateY(105vh) translateX(25px) rotate(400deg) scale(0.55); opacity: 0; }
+}
+
+/* ── Touch layer (dynamically sized to model bounds by JS) ── */
+.pet-touch-layer {
+  position: absolute;
+  left: 0; right: 0;
+  top: 30%; bottom: 10%;
+  z-index: 10;
+  cursor: grab;
+}
+.pet-touch-layer:active { cursor: grabbing; }
+
+/* ── Top area (caption + input) ── */
+.pet-top-area {
+  position: absolute;
+  bottom: 69%;
+  left: 12%; right: 12%;
+  z-index: 20;
+  display: flex; flex-direction: column; gap: 4px;
+  pointer-events: auto;
+  transition: bottom 0.3s ease;
+}
+
+#petCaptionWrap {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: visible;
+}
+.pet-caption {
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  cursor: default;
+  max-height: 200px;  /* JS overrides this dynamically based on available space */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+  word-break: break-word;
+}
+.pet-caption p {
+  margin: 0;
+  color: rgba(255,255,255,0.92);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.pet-caption--user { background: rgba(59,130,246,0.45); }
+.pet-caption--thinking p {
+  animation: thinking-pulse 1.2s ease-in-out infinite;
+}
+@keyframes thinking-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Markdown in caption */
+.pet-caption-md { color: rgba(255,255,255,0.92); font-size: 0.82rem; line-height: 1.5; }
+.pet-caption-md p { margin: 0 0 0.3em; }
+.pet-caption-md p:last-child { margin-bottom: 0; }
+.pet-caption-md strong { font-weight: 600; color: #fff; }
+.pet-caption-md code { padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,0.12); font-family: 'SF Mono','Menlo',monospace; font-size: 0.76rem; }
+.pet-caption-md pre { margin: 4px 0; padding: 6px 8px; border-radius: 6px; background: rgba(0,0,0,0.4); overflow-x: auto; }
+.pet-caption-md pre code { padding: 0; background: none; font-size: 0.74rem; white-space: pre; }
+.pet-caption-md ul { margin: 2px 0; padding-left: 1.2em; list-style: disc; }
+.pet-caption-md a { color: rgb(147,197,253); text-decoration: underline; text-underline-offset: 2px; }
+
+/* ── Chat input ── */
+.pet-chat-input {
+  display: flex; gap: 6px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.pet-chat-field {
+  flex: 1; min-width: 0;
+  min-height: 32px; max-height: 96px; height: 32px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 16px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: 0.8rem; font-family: inherit;
+  line-height: 1.4;
+  outline: none; resize: none;
+  overflow-y: auto;
+  white-space: pre-wrap; word-wrap: break-word;
+}
+.pet-chat-field::placeholder { color: rgba(255,255,255,0.4); }
+.pet-chat-field:focus { border-color: rgba(59,130,246,0.6); }
+.pet-chat-field:disabled { opacity: 0.5; }
+
+.pet-chat-send {
+  flex-shrink: 0; width: 32px; height: 32px;
+  border: none; border-radius: 50%;
+  background: rgba(59,130,246,0.8); color: #fff;
+  font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s;
+}
+.pet-chat-send:hover:not(:disabled) { background: rgb(59,130,246); }
+.pet-chat-send:disabled { opacity: 0.35; cursor: default; }
+
+/* ── Toolbar dot (collapsed) ── */
+.pet-toolbar-dot {
+  position: absolute; bottom: 6px; right: 6px;
+  z-index: 9999;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(30,64,120,0.85);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(96,165,250,0.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.15);
+  cursor: pointer; pointer-events: auto;
+  transition: background 0.15s, transform 0.2s;
+}
+.pet-toolbar-dot:hover {
+  background: rgba(37,99,235,0.85);
+  border-color: rgba(147,197,253,0.7);
+  transform: scale(1.15);
+}
+
+/* ── Bottom bar (expanded toolbar) ── */
+.pet-bottom-bar {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  z-index: 20;
+  width: fit-content;
+  display: flex; gap: 2px; align-items: center; justify-content: center;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: rgba(15,23,42,0.82);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  pointer-events: auto;
+}
+.pet-bottom-bar button {
+  padding: 5px 9px;
+  border: none; border-radius: 10px;
+  background: transparent; color: rgba(255,255,255,0.8);
+  font-size: 0.78rem; cursor: pointer;
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", system-ui, sans-serif;
+  transition: background 0.12s, color 0.12s;
+}
+.pet-bottom-bar button:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.pet-bar-sep {
+  width: 1px; height: 14px;
+  background: rgba(255,255,255,0.15);
+  margin: 0 3px;
+}
+.pet-close-btn:hover { background: rgba(239,68,68,0.3) !important; color: #fca5a5 !important; }
+.pet-exit-btn:hover { background: rgba(239,68,68,0.5) !important; color: #fca5a5 !important; }
+.pet-layout-active { background: rgba(59,130,246,0.4) !important; color: #93c5fd !important; }
+
+/* ── Layout edit overlay ── */
+.pet-layout-overlay {
+  position: absolute; inset: 0;
+  z-index: 15;
+  cursor: move;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 12px;
+}
+.pet-layout-hint {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.72rem;
+  pointer-events: none;
+}
+
+/* ── Dismiss overlay ── */
+.pet-dismiss-overlay {
+  position: absolute; inset: 0;
+  z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+}
+.pet-dismiss-card {
+  text-align: center; padding: 20px 24px;
+  border-radius: 16px;
+  background: rgba(15,23,42,0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  max-width: 260px;
+}
+.pet-dismiss-icon { font-size: 2rem; margin-bottom: 8px; }
+.pet-dismiss-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+.pet-dismiss-body { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 10px; }
+.pet-dismiss-kbd {
+  display: inline-block; padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.15);
+  font-family: inherit; font-size: 0.78rem;
+}
+.pet-dismiss-check { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 10px; font-size: 0.75rem; color: rgba(255,255,255,0.6); cursor: pointer; }
+.pet-dismiss-check input { accent-color: rgb(59,130,246); }
+.pet-dismiss-ok {
+  padding: 6px 20px; border: none; border-radius: 10px;
+  background: rgba(59,130,246,0.7); color: #fff;
+  font-size: 0.82rem; cursor: pointer;
+  transition: background 0.15s;
+}
+.pet-dismiss-ok:hover { background: rgba(59,130,246,0.9); }
+
+/* ── Transitions (simple opacity) ── */
+.fade-enter { opacity: 0; transform: translateY(-8px); }
+.fade-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.fade-leave { opacity: 0; transform: translateY(-8px); transition: opacity 0.15s ease, transform 0.15s ease; }
+
+/* ── Attention pulse ── */
+@keyframes attention-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+  50% { box-shadow: 0 0 20px 6px rgba(59,130,246,0.4); }
+}
+.pet-attention-pulse { animation: attention-pulse 1.4s ease-in-out 2; }
+</style>
+</head>
+<body>
+
+<div class="sakura-container" aria-hidden="true">
+  <div class="sakura-petal petal-1"></div>
+  <div class="sakura-petal petal-2"></div>
+  <div class="sakura-petal petal-3"></div>
+  <div class="sakura-petal petal-4"></div>
+  <div class="sakura-petal petal-5"></div>
+  <div class="sakura-petal petal-6"></div>
+  <div class="sakura-petal petal-7"></div>
+</div>
+
+<div id="pet-canvas-wrap"></div>
+
+<!-- Touch layer: transparent click-catcher for dragging + panel toggle -->
+<div class="pet-touch-layer" id="petTouchLayer"></div>
+
+<!-- Top area: caption + input (OUTSIDE touch layer to avoid event conflicts) -->
+<div class="pet-top-area" id="petTopArea" style="display:none"
+     onmousedown="event.stopPropagation()" onclick="event.stopPropagation()"
+     onmouseenter="_controlsHovered=true" onmouseleave="_controlsHovered=false;_scheduleAutoCollapse()">
+  <div id="petCaptionWrap" style="display:none">
+    <div class="pet-caption" id="petCaption"></div>
+  </div>
+  <div class="pet-chat-input">
+    <textarea id="petInput" class="pet-chat-field" rows="1" placeholder="..."></textarea>
+    <button id="petSendBtn" class="pet-chat-send" type="button">&#8593;</button>
+  </div>
+</div>
+
+<!-- Expanded toolbar (OUTSIDE touch layer) -->
+<div class="pet-bottom-bar" id="petBottomBar" style="display:none"
+     onmousedown="event.stopPropagation()" onclick="event.stopPropagation()"
+     onmouseenter="_controlsHovered=true" onmouseleave="_controlsHovered=false;_scheduleAutoCollapse()">
+  <button onclick="petScaleWindow(0.9)" title="Smaller">&minus;</button>
+  <button onclick="petScaleWindow(1.1)" title="Larger">+</button>
+  <span class="pet-bar-sep"></span>
+  <button id="petLayoutBtn" onclick="petToggleLayoutEdit()" title="Adjust model position">&#8982;</button>
+  <span class="pet-bar-sep"></span>
+  <button id="petScreenshotBtn" onclick="petToggleScreenshot()" title="Screenshot observation">&#128247;</button>
+  <span class="pet-bar-sep"></span>
+  <button onclick="petOpenWeb()" title="Open ContextLife Web">&#8599;</button>
+  <button onclick="petLogout()" title="Logout">&#9099;</button>
+  <button class="pet-exit-btn" onclick="petShutdown()" title="Exit ContextLife">&#9211;</button>
+  <span class="pet-bar-sep"></span>
+  <button onclick="petCollapseToolbar()" title="Collapse">&#9662;</button>
+</div>
+
+<!-- Collapsed toolbar dot (OUTSIDE touch layer) -->
+<div class="pet-toolbar-dot" id="petToolbarDot" style="display:none"
+     onmousedown="event.stopPropagation()" onclick="event.stopPropagation();petExpandToolbar()">
+  <span style="font-size:15px;color:rgb(191,219,254);line-height:1">&#9881;</span>
+</div>
+
+<!-- Layout edit overlay -->
+<div class="pet-layout-overlay" id="petLayoutOverlay" style="display:none">
+  <div class="pet-layout-hint">Drag to move / Scroll to scale / ESC to save</div>
+</div>
+
+<!-- Dismiss overlay -->
+<div class="pet-dismiss-overlay" id="petDismissOverlay" style="display:none">
+  <div class="pet-dismiss-card">
+    <div class="pet-dismiss-icon">&#128075;</div>
+    <div class="pet-dismiss-title" id="petDismissTitle">Hidden</div>
+    <div class="pet-dismiss-body">
+      Press <kbd class="pet-dismiss-kbd" id="petHotkeyKbd">&#8984;&#8679;A</kbd> to bring her back
+    </div>
+    <label class="pet-dismiss-check">
+      <input type="checkbox" id="petDismissNeverShow">
+      <span>Don't show again</span>
+    </label>
+    <button class="pet-dismiss-ok" type="button" onclick="petConfirmDismiss()">OK</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════
+//  ContextLife Pet — Lightweight vanilla-JS desktop pet
+//  Replaces the Vue/Vite contextlife.vue pet mode entirely.
+// ════════════════════════════════════════════════════════════════════════
+
+// ── Client Mode: redirect only chat API calls to VPS ──
+// Model/layout/pet-specific APIs stay local (Live2D files are local).
+// Client mode: redirect API calls to VPS with auth token.
+var _clientModeServerUrl = '';
+var _clientModeToken = '';
+(function() {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/client-config', false);
+    xhr.send();
+    if (xhr.status === 200) {
+      var cfg = JSON.parse(xhr.responseText);
+      if (cfg.client_mode && cfg.server_url) {
+        _clientModeServerUrl = cfg.server_url;
+        _clientModeToken = cfg.auth_token || '';
+        console.log('[Pet Client Mode] API → ' + _clientModeServerUrl);
+      }
+    }
+  } catch(e) {}
+  if (_clientModeServerUrl) {
+    var _vpsApis = ['/api/chat', '/api/character', '/api/emotion', '/api/miru-emotion', '/api/settings'];
+    var _origFetch = window.fetch;
+    window.fetch = function(url, opts) {
+      opts = opts || {};
+      if (typeof url === 'string' && _clientModeServerUrl) {
+        var shouldRedirect = _vpsApis.some(function(prefix) { return url.startsWith(prefix); });
+        if (shouldRedirect) {
+          url = _clientModeServerUrl + url;
+          opts.headers = opts.headers || {};
+          var token = _clientModeToken || '';
+          if (!token) { try { token = localStorage.getItem('miru_auth_token') || ''; } catch(e) {} }
+          if (token && !opts.headers['Authorization']) {
+            opts.headers['Authorization'] = 'Bearer ' + token;
+          }
+        }
+      }
+      return _origFetch.call(this, url, opts);
+    };
+  }
+})();
+
+var _petApp = null;
+var _petModel = null;
+var _petModelInitW = 0;
+var _petModelInitH = 0;
+var _lastModelId = '';
+var _lastLayoutVersion = 0;
+var _cursorX = 0;
+var _cursorY = 0;
+// _sending removed — pet now uses async fire-and-forget like index.html
+var _panelExpanded = false;
+var _toolbarExpanded = false;
+var _layoutEditMode = false;
+var _layoutDragStart = null;
+var _sentText = '';
+var _latestMessage = null;
+var _charName = 'Miru'; // loaded from /api/character on init
+var _dismissNeverShow = false;
+var _modelScale = 1;
+var _modelPosX = 0;
+var _modelPosY = 0;
+var _autoCollapseTimer = null;
+var _autoCollapseDelay = 4000;
+var _settingsChatPosition = 69;    // chat bubble bottom % (from settings)
+var _settingsToolbarPosition = 4;  // toolbar bottom px (from settings)
+var _petCursorInsideWindow = false;
+var _controlsHovered = false;
+var _chatInputFocused = false;
+var _modelBoundsTop = 0;
+var _modelBoundsBottom = 0;
+var _modelBoundsLeft = 0;
+var _modelBoundsRight = 0;
+
+var PET_REF_W = 420;
+var PET_REF_H = 760;
+
+// ── localStorage helpers ──
+function _readBool(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v === '1' || v === 'true'; } catch(e) { return d; } }
+function _readStr(k, d) { try { return localStorage.getItem(k) || d; } catch(e) { return d; } }
+function _readNum(k, d) { try { var v = localStorage.getItem(k); if (v == null) return d; var n = Number(v); return isFinite(n) ? n : d; } catch(e) { return d; } }
+function _write(k, v) { try { localStorage.setItem(k, String(v)); } catch(e) {} }
+
+// ── Tauri IPC ──
+function _getInvoke() {
+  if (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke)
+    return window.__TAURI__.core.invoke;
+  if (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke)
+    return window.__TAURI_INTERNALS__.invoke;
+  return null;
+}
+// Tauri v2 event API — works even without withGlobalTauri
+// Uses __TAURI_INTERNALS__ which is always available in Tauri WebView
+function _tauriListen(eventName, handler) {
+  var internals = window.__TAURI_INTERNALS__;
+  if (!internals || !internals.invoke) return Promise.resolve(function(){});
+
+  // Tauri v2 internal: plugin:event|listen
+  return internals.invoke('plugin:event|listen', {
+    event: eventName,
+    target: { kind: 'Any' },
+    handler: internals.transformCallback(handler)
+  });
+}
+
+function _getEventApi() {
+  if (window.__TAURI__ && window.__TAURI__.event) return window.__TAURI__.event;
+  // Fallback: build a minimal event API from __TAURI_INTERNALS__
+  var internals = window.__TAURI_INTERNALS__;
+  if (internals && internals.invoke && internals.transformCallback) {
+    return { listen: _tauriListen };
+  }
+  return null;
+}
+function _invoke(cmd, args) {
+  var fn = _getInvoke();
+  if (fn) return fn(cmd, args || {});
+  return Promise.resolve();
+}
+
+// ── Hotkey display ──
+var _isMac = navigator.platform && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+function _formatHotkey(spec) {
+  var parts = spec.toLowerCase().split('+');
+  var mods = [], key = '';
+  for (var i = 0; i < parts.length; i++) {
+    var p = parts[i].trim();
+    if (['cmd','command','meta'].indexOf(p) >= 0) mods.push(_isMac ? '\u2318' : 'Win');
+    else if (['ctrl','control'].indexOf(p) >= 0) mods.push(_isMac ? '\u2303' : 'Ctrl');
+    else if (p === 'shift') mods.push(_isMac ? '\u21E7' : 'Shift');
+    else if (['alt','option','opt'].indexOf(p) >= 0) mods.push(_isMac ? '\u2325' : 'Alt');
+    else key = p.toUpperCase();
+  }
+  return _isMac ? mods.join('') + key : mods.concat(key).join('+');
+}
+
+// ── Mini markdown renderer ──
+function _renderMd(md) {
+  if (!md) return '';
+  var h = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h = h.replace(/```(\w*)\n([\s\S]*?)```/g, function(_,__,code) { return '<pre><code>'+code.trim()+'</code></pre>'; });
+  h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+  h = h.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  h = h.replace(/~~(.+?)~~/g, '<del>$1</del>');
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+  h = h.replace(/\n\n+/g, '</p><p>');
+  h = h.replace(/\n/g, '<br>');
+  return '<p>' + h + '</p>';
+}
+
+// ── Live2D script loading ──
+var _l2dReady = null;
+function _loadScript(src) {
+  return new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = function() { reject(new Error('Failed to load: ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+
+function _ensureLive2D() {
+  if (_l2dReady) return _l2dReady;
+  _l2dReady = (async function() {
+    await _loadScript('https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js');
+    await _loadScript('/assets/js/live2d/live2d.min.js');
+    await _loadScript('/assets/js/live2d/CubismSdkForWeb-5-r.3/Core/live2dcubismcore.min.js');
+    await _loadScript('https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js');
+    await _loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+
+    // Configure ZipLoader
+    var ZL = PIXI.live2d.ZipLoader;
+    ZL.zipReader = function(data) { return JSZip.loadAsync(data); };
+    ZL.readText = function(zip, path) {
+      var f = zip.file(path);
+      if (!f) throw new Error('File not found in zip: ' + path);
+      return f.async('text');
+    };
+    ZL.getFilePaths = function(zip) {
+      var p = []; zip.forEach(function(r) { p.push(r); });
+      return Promise.resolve(p);
+    };
+    ZL.getFiles = function(zip, paths) {
+      return Promise.all(paths.map(function(path) {
+        var name = path.split('/').pop();
+        return zip.file(path).async('blob').then(function(b) { return new File([b], name); });
+      }));
+    };
+
+    // Fallback createSettings for zips without model3.json
+    var _defaultCS = ZL.createSettings;
+    ZL.createSettings = async function(reader) {
+      var fps = Object.keys(reader.files);
+      var has = fps.some(function(f) { return f.endsWith('model3.json') || f.endsWith('model.json'); });
+      if (has) { try { return await _defaultCS(reader); } catch(e) { console.warn('[ZipLoader] fallback:', e); } }
+      var mocs = fps.filter(function(f) { return f.endsWith('.moc3') || f.endsWith('.moc'); });
+      if (mocs.length !== 1) throw new Error('Expected 1 moc, got ' + mocs.length);
+      var moc = mocs[0], name = moc.split('/').pop().replace(/\.moc3?$/, '');
+      var texs = fps.filter(function(f) { return f.endsWith('.png'); });
+      if (!texs.length) throw new Error('No textures found');
+      var physics = fps.find(function(f) { return f.includes('physics'); });
+      var motions = fps.filter(function(f) { return f.endsWith('.motion3.json') || f.endsWith('.mtn'); });
+      var s = new PIXI.live2d.Cubism4ModelSettings({
+        url: name + '.model3.json', Version: 3,
+        FileReferences: { Moc: moc, Textures: texs, Physics: physics || undefined,
+          Motions: motions.length ? { '': motions.map(function(m) { return { File: m }; }) } : undefined }
+      });
+      s.name = name;
+      s._objectURL = 'example://' + s.url;
+      return s;
+    };
+
+    // URI-encode middleware for non-ASCII filenames
+    function _tryEnc(obj, prop) { if (obj && typeof obj[prop] === 'string') obj[prop] = encodeURI(obj[prop]); }
+    var _encMw = function(ctx, next) {
+      if (typeof ctx.source !== 'object' || !ctx.source) return next();
+      var s = ctx.source.settings;
+      if (!s) return next();
+      _tryEnc(s, 'moc');
+      if (Array.isArray(s.textures)) { for (var j = 0; j < s.textures.length; j++) _tryEnc(s.textures, j); }
+      _tryEnc(s, 'physics'); _tryEnc(s, 'url');
+      return next();
+    };
+    var mws = PIXI.live2d.Live2DFactory.live2DModelMiddlewares;
+    var flIdx = mws.indexOf(PIXI.live2d.FileLoader.factory);
+    if (flIdx >= 0) mws.splice(flIdx, 0, _encMw); else mws.push(_encMw);
+  })();
+  return _l2dReady;
+}
+
+// ── Model layout logic (same as index.html _applyLayoutToModel) ──
+function _isCubism4(model) {
+  try { return model.internalModel && typeof model.internalModel.coreModel.setParameterValueById === 'function'; }
+  catch(e) { return true; }
+}
+
+function _applyLayout(model, scale, posX, posY, canvasW, canvasH, initW, initH) {
+  if (!model) return;
+  var mW = initW || model.width;
+  var mH = initH || model.height;
+  var factor = 2.2;
+  var hScale = canvasH * 0.95 / mH * factor;
+  var wScale = canvasW * 0.95 / mW * factor;
+  var base = Math.min(hScale, wScale);
+  if (!isFinite(base) || base <= 0) base = 1;
+  model.scale.set(base * scale);
+
+  var refX = canvasW / PET_REF_W;
+  var refY = canvasH / PET_REF_H;
+
+  if (_isCubism4(model)) {
+    model.anchor.set(0.5, 0.5);
+    model.x = canvasW / 2 + posX * refX;
+    model.y = canvasH + posY * refY;
+  } else {
+    model.anchor.set(0, 0);
+    model.x = canvasW / 2 + posX * refX;
+    model.y = canvasH * 0.55 + posY * refY;
+  }
+}
+
+function _applyCurrentLayout() {
+  if (!_petModel || !_petApp) return;
+  var w = _petApp.screen.width;
+  var h = _petApp.screen.height;
+  _applyLayout(_petModel, _modelScale, _modelPosX, _modelPosY, w, h, _petModelInitW, _petModelInitH);
+}
+
+// ── Live2D focus tracking ──
+function _updateFocus() {
+  if (!_petModel || !_petModel.internalModel) return;
+  try {
+    var core = _petModel.internalModel.coreModel;
+    if (core && typeof core.setParameterValueById === 'function') {
+      // Map cursor position to [-1,1] range relative to model center
+      var mx = _petModel.x, my = _petModel.y;
+      var dx = (_cursorX - mx) / 300;
+      var dy = (_cursorY - my) / 300;
+      dx = Math.max(-1, Math.min(1, dx));
+      dy = Math.max(-1, Math.min(1, dy));
+      core.setParameterValueById('ParamAngleX', dx * 30);
+      core.setParameterValueById('ParamAngleY', -dy * 30);
+      core.setParameterValueById('ParamBodyAngleX', dx * 10);
+      core.setParameterValueById('ParamEyeBallX', dx);
+      core.setParameterValueById('ParamEyeBallY', -dy);
+    }
+  } catch(e) {}
+}
+
+// ── Create PIXI app + load model ──
+async function _initPetCanvas() {
+  await _ensureLive2D();
+  if (!window.PIXI || !PIXI.live2d) return;
+
+  var wrap = document.getElementById('pet-canvas-wrap');
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+
+  // macOS WKWebView in a transparent panel (Tauri pet window) sometimes
+  // reports devicePixelRatio=1 even on Retina displays — known WebKit
+  // behavior for windows with setOpaque:false + clearColor background.
+  // Force at least 2x so the Live2D model stays crisp.
+  var renderRes = Math.max(2, window.devicePixelRatio || 1);
+
+  _petApp = new PIXI.Application({
+    width: w, height: h,
+    backgroundAlpha: 0,
+    useContextAlpha: 'notMultiplied',
+    resolution: renderRes,
+    autoDensity: true,
+    antialias: true,
+    preserveDrawingBuffer: true,
+  });
+  wrap.appendChild(_petApp.view);
+
+  // Focus tracking ticker
+  _petApp.ticker.add(_updateFocus);
+
+  // Handle resize
+  window.addEventListener('resize', function() {
+    if (!_petApp) return;
+    var nw = window.innerWidth, nh = window.innerHeight;
+    _petApp.renderer.resize(nw, nh);
+    _applyCurrentLayout();
+    _recapCaptionHeight();
+  });
+}
+
+async function _loadModel(modelUrl, layout) {
+  if (!_petApp || !PIXI.live2d) return;
+
+  // Remove old model
+  if (_petModel) {
+    try { _petApp.stage.removeChild(_petModel); _petModel.destroy(); } catch(e) {}
+    _petModel = null;
+  }
+
+  try {
+    var model = await PIXI.live2d.Live2DModel.from(modelUrl, { autoInteract: false });
+    _petApp.stage.addChild(model);
+    _petModel = model;
+    _petModelInitW = model.width;
+    _petModelInitH = model.height;
+
+    _modelScale = (layout && typeof layout.scale === 'number') ? layout.scale : 1;
+    _modelPosX = (layout && typeof layout.x === 'number') ? layout.x : 0;
+    _modelPosY = (layout && typeof layout.y === 'number') ? layout.y : 0;
+
+    var w = _petApp.screen.width;
+    var h = _petApp.screen.height;
+    _applyLayout(model, _modelScale, _modelPosX, _modelPosY, w, h, _petModelInitW, _petModelInitH);
+
+    // Compute bounds immediately so pass-through logic has correct data
+    _pollModelBounds();
+
+    // Auto-capture avatar after settling
+    setTimeout(function() { _captureAvatar(); }, 2000);
+  } catch(e) {
+    console.warn('[pet] Model load failed:', e);
+  }
+}
+
+function _captureAvatar() {
+  // Bundled-model mode: avatar is static, no need to capture/upload.
+  // (Left as no-op to keep call sites in _loadModel intact.)
+}
+
+// ── Bundled model loader ──
+// The Live2D model is packaged into the app bundle (assets/live2d/Hiyori)
+// and served by local Flask. No VPS roundtrip, no /api/models/* polling.
+// VPS-side model library endpoints still exist server-side but are not
+// consumed by the client under bundled-mode.
+var BUNDLED_MODEL_ID = 'hiyori-bundled';
+var BUNDLED_MODEL_URL = '/assets/live2d/Hiyori/Hiyori.model3.json';
+var BUNDLED_DEFAULT_LAYOUT = { scale: 0.45, x: 4, y: -377 };
+
+// Layout key includes a user-token hash so pet position/size is per-user.
+// On a shared device (one DMG, multiple accounts), each user gets their
+// own layout — adjusting the pet doesn't bleed across accounts. Multi-tenant
+// audit 2026-05-08.
+function _layoutStorageKey() {
+  var token = '';
+  try { token = (typeof _clientModeToken !== 'undefined' && _clientModeToken) || localStorage.getItem('miru_auth_token') || ''; }
+  catch(e) {}
+  // Same hash slice MiruCache uses for IndexedDB scoping in the main app.
+  // When token is missing (very early boot) we fall back to a generic
+  // "_anon" scope so we don't accidentally write into the prior user's slot.
+  var scope = token ? token.slice(0, 12) : '_anon';
+  return 'miru_pet_layout_' + BUNDLED_MODEL_ID + '_' + scope;
+}
+
+function _loadLayoutFromStorage() {
+  try {
+    var raw = localStorage.getItem(_layoutStorageKey());
+    if (!raw) return null;
+    var ly = JSON.parse(raw);
+    if (!ly || typeof ly !== 'object') return null;
+    return {
+      scale: typeof ly.scale === 'number' ? ly.scale : BUNDLED_DEFAULT_LAYOUT.scale,
+      x: typeof ly.x === 'number' ? ly.x : BUNDLED_DEFAULT_LAYOUT.x,
+      y: typeof ly.y === 'number' ? ly.y : BUNDLED_DEFAULT_LAYOUT.y,
+    };
+  } catch(e) { return null; }
+}
+
+async function _syncModel() {
+  // Idempotent: if already loaded, skip.
+  if (_lastModelId === BUNDLED_MODEL_ID && _petModel) return;
+  _lastModelId = BUNDLED_MODEL_ID;
+  var layout = _loadLayoutFromStorage() || BUNDLED_DEFAULT_LAYOUT;
+  try {
+    await _loadModel(BUNDLED_MODEL_URL, layout);
+  } catch(e) {
+    console.warn('[pet] Bundled model load failed:', e);
+  }
+}
+
+// ── Layout version polling (bundled mode: no-op) ──
+async function _pollLayoutVersion() {
+  // Intentionally empty — layout is local, persisted via _saveLayout to localStorage.
+}
+
+// ── Model screen bounds ──
+function _pollModelBounds() {
+  var vh = window.innerHeight;
+  var topArea = document.getElementById('petTopArea');
+  var bar = document.getElementById('petBottomBar');
+  var dot = document.getElementById('petToolbarDot');
+  var touchLayer = document.getElementById('petTouchLayer');
+
+  if (!_petModel || !_petApp) {
+    // Fallback: use values from settings
+    if (topArea) topArea.style.bottom = _settingsChatPosition + '%';
+    var fallbackTb = _settingsToolbarPosition;
+    if (bar) bar.style.bottom = fallbackTb + 'px';
+    if (dot) dot.style.bottom = (fallbackTb + 2) + 'px';
+    if (touchLayer) { touchLayer.style.top = '30%'; touchLayer.style.bottom = '10%'; }
+    return;
+  }
+
+  // Use PIXI getBounds() for accurate screen-space bounds
+  var bounds = _petModel.getBounds();
+  _modelBoundsTop = bounds.y;
+  _modelBoundsBottom = bounds.y + bounds.height;
+  _modelBoundsLeft = bounds.x;
+  _modelBoundsRight = bounds.x + bounds.width;
+
+  // Position chat area above model head
+  var pct = ((vh - _modelBoundsTop + 8) / vh) * 100;
+  pct = Math.max(15, Math.min(95, pct));
+  if (topArea) topArea.style.bottom = pct + '%';
+
+  // Recalculate caption max-height after repositioning
+  _recapCaptionHeight();
+
+  // Position toolbar below model feet
+  var tbPx = Math.max(4, vh - _modelBoundsBottom - 8);
+  if (bar) bar.style.bottom = tbPx + 'px';
+  if (dot) dot.style.bottom = (tbPx + 2) + 'px';
+
+  // Clip touch layer to model bounds (full width, model top→bottom)
+  if (touchLayer) {
+    touchLayer.style.top = Math.max(0, _modelBoundsTop) + 'px';
+    touchLayer.style.bottom = Math.max(0, vh - _modelBoundsBottom) + 'px';
+  }
+}
+
+// ── Chat — shares the same backend system as index.html ──
+// All messages go through the async CSM path (receive_chat_message).
+// This pet UI is just a thin display layer over the shared chat_history.json.
+
+var _lastSeenMsgId = '';   // tracks last message id to detect new ones
+var _backendTyping = false; // mirrors backend typing status (polled)
+
+// Optimistic typing window — see petSend() for the race we're guarding.
+// While Date.now() < _optimisticTypingDeadline, the typing poll is NOT
+// allowed to flip _backendTyping from true→false. Without this lock the
+// poll races with the backend's _csm_pending queue (which only flips
+// _csm_typing to true once _csm_do_full_reply actually starts), causing
+// the caption to flash the previous assistant reply ("history message")
+// before the real "thinking..." appears.
+var _optimisticTypingDeadline = 0;
+
+async function petSend() {
+  var input = document.getElementById('petInput');
+  var text = input.value.trim();
+  if (!text) return;
+
+  // Show user text briefly in caption
+  _sentText = text;
+  input.value = '';
+  _autoResizeInput();
+  _updateSendBtn();
+
+  // Briefly show the user's own message
+  _showUserCaption(text);
+
+  // Ensure panel is visible
+  if (!_panelExpanded) { _panelExpanded = true; _updateUI(); }
+
+  // ── Optimistic thinking + race lock ──────────────────────────────────────
+  // First fix attempt only set _backendTyping = true here. That broke under
+  // race: the next /api/chat/typing poll often arrived while the backend's
+  // _csm_pending queue had not yet been consumed (_csm_do_full_reply not
+  // started → _csm_typing still false). The poll then flipped _backendTyping
+  // back to false and called _updateCaption, which fell through to display
+  // _latestMessage — the previous assistant reply. That's the "history
+  // message" flash users complained about.
+  //
+  // Real fix: declare a 15-second optimistic window during which the poll
+  // is forbidden to overwrite a true→false transition. The lock is released
+  // when (a) the backend confirms typing=true, (b) a new assistant message
+  // arrives via the history poll, or (c) the deadline elapses (LLM stuck).
+  // 15s is generous because the user's API host can be slow.
+  _backendTyping = true;
+  _optimisticTypingDeadline = Date.now() + 15000;
+
+  // Fire-and-forget — same async path as index.html
+  try {
+    var res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Device-Id': _petDeviceId(),
+      },
+      body: JSON.stringify({ text: text })
+    });
+    if (!res.ok) {
+      _backendTyping = false;  // request rejected — don't strand thinking dots
+      _optimisticTypingDeadline = 0;  // close window so poll can take over
+      var err = await res.json().catch(function() { return {}; });
+      _latestMessage = { role: 'assistant', text: 'Error: ' + (err.error || '未知错误') };
+      _updateCaption(); _scheduleAutoCollapse();
+    }
+  } catch(e) {
+    _backendTyping = false;  // network error — don't strand thinking dots
+    _optimisticTypingDeadline = 0;  // close window so poll can take over
+    _latestMessage = { role: 'assistant', text: 'Error: ' + e.message };
+    _updateCaption(); _scheduleAutoCollapse();
+  }
+}
+
+// Stable per-device id, mirroring the main webview's _getDeviceId().
+// Stored under a separate key because pet.html runs in its own WKWebView
+// origin (different localStorage namespace) and must not collide with the
+// main app's miru_device_id when both happen to share storage.
+function _petDeviceId() {
+  try {
+    var id = localStorage.getItem('miru_pet_device_id');
+    if (id) return id;
+    var raw = [navigator.userAgent, screen.width + 'x' + screen.height,
+               navigator.language, new Date().getTimezoneOffset()].join('|');
+    var h = 0;
+    for (var i = 0; i < raw.length; i++) {
+      h = ((h << 5) - h + raw.charCodeAt(i)) | 0;
+    }
+    id = 'pet_' + (h >>> 0).toString(16).padStart(8, '0');
+    localStorage.setItem('miru_pet_device_id', id);
+    return id;
+  } catch(e) {
+    return 'pet_unknown';
+  }
+}
+
+// Show user's own text in caption for 600ms, then let polling take over
+function _showUserCaption(text) {
+  var wrap = document.getElementById('petCaptionWrap');
+  var el = document.getElementById('petCaption');
+  if (!wrap || !el) return;
+  wrap.style.display = '';
+  el.className = 'pet-caption pet-caption--user';
+  el.innerHTML = '<p>' + text.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>';
+  // After 600ms, refresh to show current state (thinking or latest msg)
+  setTimeout(function() { _updateCaption(); }, 600);
+}
+
+// ── Unified polling — purely driven by backend state ──
+
+function _pollChat() {
+  // 1) Poll typing status — always, not gated by any frontend flag
+  fetch('/api/chat/typing', { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var newTyping = !!d.typing;
+      var inOptimistic = Date.now() < _optimisticTypingDeadline;
+
+      // Race guard: while we're in the optimistic window AND currently
+      // showing thinking, refuse to flip back to false. The backend's
+      // _csm_pending buffer means typing=false here doesn't actually mean
+      // "LLM idle", it just means "LLM hasn't started yet". Letting the
+      // poll win this race causes the previous assistant reply to flash
+      // ("history message") before real thinking shows up.
+      if (inOptimistic && _backendTyping && !newTyping) {
+        return;
+      }
+
+      var wasTyping = _backendTyping;
+      _backendTyping = newTyping;
+      // Backend has confirmed typing=true → optimistic window is no longer
+      // needed; let subsequent polls drive state normally.
+      if (newTyping) {
+        _optimisticTypingDeadline = 0;
+      }
+      if (_backendTyping !== wasTyping) _updateCaption();
+    }).catch(function() {});
+
+  // 2) Check for any new assistant message (reply, care, morning, reminder, etc.)
+  fetch('/api/chat/history?limit=3', { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var msgs = data.messages || data;
+      if (!Array.isArray(msgs) || !msgs.length) return;
+
+      // Find the latest assistant message
+      var lastAssistant = null;
+      for (var i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].role !== 'user') {
+          lastAssistant = msgs[i];
+          break;
+        }
+      }
+      if (!lastAssistant) return;
+
+      var newId = lastAssistant.id || '';
+      if (newId === _lastSeenMsgId) return;
+
+      // New message detected — LLM finished. Release the optimistic lock
+      // and clear the typing flag so _updateCaption shows the new reply
+      // (otherwise the lock would keep displaying "thinking..." until the
+      // 15s deadline elapses, hiding the actual response).
+      _lastSeenMsgId = newId;
+      _latestMessage = lastAssistant;
+      _backendTyping = false;
+      _optimisticTypingDeadline = 0;
+
+      _updateCaption();
+      _updateSendBtn();
+
+      // Auto-expand panel to show the new message
+      if (!_panelExpanded) {
+        _panelExpanded = true;
+        _updateUI();
+      }
+      _scheduleAutoCollapse();
+    })
+    .catch(function() {});
+}
+
+// Recalculate .pet-caption max-height based on available viewport space
+// above the input field. Called after layout changes (model reposition,
+// window resize via +/- buttons, etc.).
+function _recapCaptionHeight() {
+  var el = document.getElementById('petCaption');
+  var inputEl = document.querySelector('.pet-chat-input');
+  if (!el || !inputEl) return;
+  var inputRect = inputEl.getBoundingClientRect();
+  var available = inputRect.top - 8 - 4;
+  el.style.maxHeight = Math.max(48, Math.min(available, 300)) + 'px';
+}
+
+// ── Caption display — driven by backend typing status + latest message ──
+function _updateCaption() {
+  var wrap = document.getElementById('petCaptionWrap');
+  var el = document.getElementById('petCaption');
+  if (!wrap || !el) return;
+
+  var text = '';
+  var role = 'assistant';
+  var isThinking = false;
+
+  if (_backendTyping) {
+    text = _charName + ' thinking...';
+    isThinking = true;
+  } else if (_latestMessage && _latestMessage.text) {
+    text = _latestMessage.text;
+    role = _latestMessage.role || 'assistant';
+  }
+
+  if (!text) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = '';
+  el.className = 'pet-caption';
+  if (role === 'user') el.className += ' pet-caption--user';
+  if (isThinking) el.className += ' pet-caption--thinking';
+
+  if (isThinking) {
+    el.innerHTML = '<p>' + text.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>';
+  } else {
+    el.innerHTML = '<div class="pet-caption-md">' + _renderMd(text) + '</div>';
+  }
+
+  // Dynamically cap caption height so it never extends above the viewport.
+  // The pet-top-area grows upward from its `bottom` position; without a cap
+  // the caption can overflow above y=0 and get clipped invisibly.
+  requestAnimationFrame(function() {
+    var inputEl = document.querySelector('.pet-chat-input');
+    if (inputEl) {
+      var inputRect = inputEl.getBoundingClientRect();
+      // Available space = from viewport top (with 8px margin) to the input top (minus 4px gap)
+      var available = inputRect.top - 8 - 4;
+      var capped = Math.max(48, Math.min(available, 300));
+      el.style.maxHeight = capped + 'px';
+    }
+    el.scrollTop = 0;
+  });
+}
+
+function _updateSendBtn() {
+  var btn = document.getElementById('petSendBtn');
+  var input = document.getElementById('petInput');
+  if (!btn) return;
+  btn.disabled = !(input && input.value.trim());
+  btn.textContent = _backendTyping ? '\u00B7\u00B7\u00B7' : '\u2191';
+}
+
+function _autoResizeInput() {
+  var el = document.getElementById('petInput');
+  if (!el) return;
+  el.style.height = '32px';
+  el.style.height = Math.min(el.scrollHeight, 96) + 'px';
+}
+
+// ── UI state ──
+function _updateUI() {
+  var topArea = document.getElementById('petTopArea');
+  var bar = document.getElementById('petBottomBar');
+  var dot = document.getElementById('petToolbarDot');
+  var overlay = document.getElementById('petLayoutOverlay');
+
+  if (topArea) topArea.style.display = _panelExpanded && !_layoutEditMode ? '' : 'none';
+  if (bar) bar.style.display = _panelExpanded && _toolbarExpanded && !_layoutEditMode ? '' : 'none';
+  if (dot) dot.style.display = _panelExpanded && !_toolbarExpanded && !_layoutEditMode ? '' : 'none';
+  if (overlay) overlay.style.display = _layoutEditMode ? '' : 'none';
+}
+
+// ── Panel expand/collapse ──
+function _scheduleAutoCollapse() {
+  if (_autoCollapseTimer) clearTimeout(_autoCollapseTimer);
+  if (!_panelExpanded) return;
+  if (_controlsHovered || _chatInputFocused) return;
+  if (_backendTyping) return;
+
+  _autoCollapseTimer = setTimeout(function() {
+    if (!_controlsHovered && !_chatInputFocused && !_backendTyping) {
+      _panelExpanded = false;
+      _updateUI();
+    }
+  }, _autoCollapseDelay);
+}
+
+// ── Manual pet window drag (same as contextlife.vue) ──
+var _petDragStartX = 0, _petDragStartY = 0;
+var _petDragWinX = 0, _petDragWinY = 0;
+var _petDragging = false;
+
+function _beginManualPetDrag(e, invoke) {
+  invoke('get_airi_window_position').then(function(pos) {
+    _petDragWinX = pos[0];
+    _petDragWinY = pos[1];
+  }).catch(function() {});
+
+  var pendingMove = null;
+  var rafId = 0;
+
+  function onMove(ev) {
+    var dx = ev.screenX - _petDragStartX;
+    var dy = ev.screenY - _petDragStartY;
+    if (!_petDragging && (Math.abs(dx) > 3 || Math.abs(dy) > 3))
+      _petDragging = true;
+    if (_petDragging) {
+      pendingMove = { x: _petDragWinX + dx, y: _petDragWinY + dy };
+      if (!rafId) {
+        rafId = requestAnimationFrame(function() {
+          rafId = 0;
+          if (pendingMove && invoke)
+            invoke('move_airi_window', pendingMove).catch(function(){});
+        });
+      }
+    }
+  }
+
+  function onUp() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    if (pendingMove && invoke)
+      invoke('move_airi_window', pendingMove).catch(function(){});
+    pendingMove = null;
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('mouseup', onUp);
+  }
+
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+}
+
+function _onPetMouseDown(e) {
+  _petDragging = false;
+  _petDragStartX = e.screenX;
+  _petDragStartY = e.screenY;
+
+  var invoke = _getInvoke();
+  if (!invoke) return;
+
+  _setPassThrough(false);
+
+  var nativeReady = false;
+  var nativeStarting = false;
+  var nativeRaf = 0;
+
+  function removeNativeListeners() {
+    window.removeEventListener('mousemove', onNativeMove);
+    window.removeEventListener('mouseup', onNativeUp);
+  }
+
+  function onNativeMove(ev) {
+    var dx = ev.screenX - _petDragStartX;
+    var dy = ev.screenY - _petDragStartY;
+    if (!_petDragging && (Math.abs(dx) > 3 || Math.abs(dy) > 3))
+      _petDragging = true;
+
+    if (_petDragging && !nativeReady && !nativeStarting) {
+      nativeStarting = true;
+      // Native side records NSEvent.mouseLocation + NSWindow.frame once
+      // the gesture is known to be a drag. Subsequent moves use Cocoa deltas,
+      // so dragging stays stable when crossing displays with different scale
+      // factors, while ordinary clicks never enter the drag IPC path.
+      invoke('start_airi_window_drag').then(function() {
+        nativeReady = true;
+      }).catch(function() {
+        removeNativeListeners();
+        _beginManualPetDrag(e, invoke);
+      });
+    }
+
+    if (_petDragging && nativeReady && !nativeRaf) {
+      nativeRaf = requestAnimationFrame(function() {
+        nativeRaf = 0;
+        invoke('update_airi_window_drag').catch(function(){});
+      });
+    }
+  }
+
+  function onNativeUp() {
+    if (nativeRaf) { cancelAnimationFrame(nativeRaf); nativeRaf = 0; }
+    if (nativeReady) {
+      if (_petDragging) invoke('update_airi_window_drag').catch(function(){});
+      invoke('end_airi_window_drag').catch(function(){});
+    }
+    removeNativeListeners();
+  }
+
+  window.addEventListener('mousemove', onNativeMove);
+  window.addEventListener('mouseup', onNativeUp);
+}
+
+function _onPetClick(e) {
+  if (_petDragging) return; // was a drag, not a click
+  _panelExpanded = !_panelExpanded;
+  _toolbarExpanded = false;
+  _updateUI();
+  if (_panelExpanded) _scheduleAutoCollapse();
+}
+
+// ── Touch layer events ──
+function _initTouchEvents() {
+  var layer = document.getElementById('petTouchLayer');
+
+  layer.addEventListener('mousedown', _onPetMouseDown);
+  layer.addEventListener('click', _onPetClick);
+
+  // Input events
+  var input = document.getElementById('petInput');
+  var sendBtn = document.getElementById('petSendBtn');
+  if (input) {
+    // Enter 发送, Shift+Enter 换行. IME composing 期间不触发, 跟主 chat
+    // (index.html line ~4332) 同款三重保险:
+    //   1. e.isComposing  — W3C 标准属性
+    //   2. _petImeComposing — 自维护 flag, compositionend 后延迟 100ms 才清,
+    //      因为 compositionend 先于 Enter keydown 触发, 在 keydown 时 isComposing
+    //      已经是 false, 需要 flag 兜底让"上屏"的那次 Enter 不被误发
+    //   3. e.keyCode !== 229 — 老式 IME 在 composing 期间 keyCode 是 229
+    // macOS WKWebView (Tauri 桌宠所在环境) 三类都可能发生.
+    var _petImeComposing = false;
+    input.addEventListener('compositionstart', function() { _petImeComposing = true; });
+    input.addEventListener('compositionend', function() {
+      setTimeout(function() { _petImeComposing = false; }, 100);
+    });
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey
+          && !e.isComposing && !_petImeComposing && e.keyCode !== 229) {
+        e.preventDefault();
+        petSend();
+      }
+    });
+    input.addEventListener('input', function() { _autoResizeInput(); _updateSendBtn(); });
+    input.addEventListener('focus', function() { _chatInputFocused = true; });
+    input.addEventListener('blur', function() { _chatInputFocused = false; _scheduleAutoCollapse(); });
+  }
+  if (sendBtn) {
+    sendBtn.addEventListener('click', function() { petSend(); });
+  }
+}
+
+// ── Toolbar actions ──
+function petExpandToolbar() { _toolbarExpanded = true; _updateUI(); _fetchScreenshotState(); }
+function petCollapseToolbar() { _toolbarExpanded = false; _updateUI(); }
+
+function petScaleWindow(factor) {
+  _invoke('scale_airi_window', { factor: factor }).catch(function(){});
+}
+
+// ── Screenshot toggle ──
+var _screenshotEnabled = false;
+
+function _updateScreenshotBtn() {
+  var btn = document.getElementById('petScreenshotBtn');
+  if (!btn) return;
+  btn.style.opacity = _screenshotEnabled ? '1' : '0.4';
+  btn.title = _screenshotEnabled ? 'Screenshot ON — click to disable' : 'Screenshot OFF — click to enable';
+}
+
+// Track the hotkey we told Tauri about so we only re-register on change.
+var _lastSyncedHotkey = null;
+
+function _fetchScreenshotState() {
+  // Pull screenshot_enabled + pet_hotkey + pet_collapse_delay from LOCAL
+  // Flask user_settings.json (per-device source of truth on Mac DMG).
+  // On launch this re-registers the saved global hotkey to Tauri — no
+  // longer depends on SSE broadcast timing from the chat WebView (which
+  // was unreliable on app restart and was the "must press save again to
+  // make hotkey work" bug).
+  fetch('/api/user-settings', { cache: 'no-store' }).then(function(r) {
+    return r.json();
+  }).then(function(body) {
+    var data = (body && body.settings) ? body.settings : body;
+    _screenshotEnabled = !!data.screenshot_enabled;
+    _updateScreenshotBtn();
+
+    // Re-register global hotkey if it differs from what Tauri last got.
+    // Idempotent: same value → skip (no Tauri churn).
+    var hk = data.pet_hotkey;
+    if (hk && hk !== _lastSyncedHotkey) {
+      _invoke('update_global_hotkey', { hotkey: hk })
+        .then(function() {
+          _lastSyncedHotkey = hk;
+          console.log('[pet] LOCAL pull → hotkey =', hk);
+        })
+        .catch(function(e) {
+          console.warn('[pet] update_global_hotkey failed (LOCAL pull):', e);
+        });
+    }
+    // Sync auto-collapse delay
+    var cd = data.pet_collapse_delay;
+    if (typeof cd === 'number' && cd >= 1000 && cd !== _autoCollapseDelay) {
+      _autoCollapseDelay = cd;
+    }
+  }).catch(function(){});
+}
+
+// Pull immediately on launch so the saved hotkey gets re-registered to Tauri
+// (whose global shortcut state is process-scoped and wiped on each restart).
+// Small delay so _clientModeToken/_clientModeServerUrl have settled.
+setTimeout(_fetchScreenshotState, 300);
+setInterval(_fetchScreenshotState, 5000);
+
+// SSE for realtime pet runtime updates — the main window broadcasts
+// `pet_runtime_changed` whenever the user saves a new hotkey or auto-
+// collapse delay. We update Tauri immediately. This replaces the old
+// 5 s poll-on-user-settings approach (which doesn't work post-localStorage
+// migration because the main window no longer writes these to the VPS).
+function _connectPetRuntimeSSE() {
+  if (typeof EventSource === 'undefined') return;
+  var token = _clientModeToken || '';
+  if (!token) {
+    try { token = localStorage.getItem('miru_auth_token') || ''; } catch (e) {}
+  }
+  if (!token) {
+    console.warn('[pet] SSE: no auth token — skipping');
+    return;
+  }
+  // device_id helps the backend tag the connection but isn't strictly
+  // required for receiving broadcasts (we listen for our user_id's events).
+  var base = _clientModeServerUrl || '';
+  var url = base + '/api/events?token=' + encodeURIComponent(token);
+
+  var es;
+  try {
+    es = new EventSource(url);
+  } catch (e) {
+    console.warn('[pet] SSE: EventSource construction failed', e);
+    return;
+  }
+
+  es.addEventListener('pet_runtime_changed', function(ev) {
+    var payload;
+    try { payload = JSON.parse(ev.data); } catch (e) { return; }
+    if (payload && payload.pet_hotkey && payload.pet_hotkey !== _lastSyncedHotkey) {
+      var newKey = payload.pet_hotkey;
+      _invoke('update_global_hotkey', { hotkey: newKey })
+        .then(function() {
+          _lastSyncedHotkey = newKey;
+          console.log('[pet] SSE → hotkey switched to', newKey);
+        })
+        .catch(function(e) {
+          console.warn('[pet] SSE update_global_hotkey failed:', e);
+        });
+    }
+    if (payload && typeof payload.pet_collapse_delay === 'number'
+        && payload.pet_collapse_delay >= 1000) {
+      _autoCollapseDelay = payload.pet_collapse_delay;
+      console.log('[pet] SSE → collapse delay =', _autoCollapseDelay, 'ms');
+    }
+  });
+
+  es.onerror = function() {
+    // Reconnect after a short delay; EventSource also auto-reconnects but
+    // we want some logging to surface flaky network conditions.
+    console.warn('[pet] SSE error — letting EventSource reconnect');
+  };
+}
+
+// Kick off SSE connection. Slight delay so token/server-URL fetches have
+// settled (those happen synchronously above but a tick of headroom hurts
+// nothing and avoids a transient 401 if the auth token is just being set).
+setTimeout(_connectPetRuntimeSSE, 500);
+
+function petToggleScreenshot() {
+  _screenshotEnabled = !_screenshotEnabled;
+  _updateScreenshotBtn();
+  fetch('/api/user-settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ screenshot_enabled: _screenshotEnabled }),
+  }).catch(function() {
+    // Revert on failure
+    _screenshotEnabled = !_screenshotEnabled;
+    _updateScreenshotBtn();
+  });
+}
+
+function petOpenWeb() {
+  fetch('/api/open-webui', { method: 'POST' }).catch(function(){
+    // Fallback: open in browser if native window not available
+    _invoke('open_external_url', { url: 'http://127.0.0.1:5001/' }).catch(function(){});
+  });
+}
+
+function petHideWindow() {
+  var neverShow = _readBool('contextlife.pet.dismissNeverShow', false);
+  if (!neverShow) {
+    document.getElementById('petDismissOverlay').style.display = '';
+    setTimeout(function() { petConfirmDismiss(); }, 3500);
+    return;
+  }
+  _invoke('hide_airi_window').catch(function(){});
+}
+
+function petConfirmDismiss() {
+  document.getElementById('petDismissOverlay').style.display = 'none';
+  _write('contextlife.pet.dismissNeverShow', document.getElementById('petDismissNeverShow').checked ? '1' : '0');
+  _invoke('hide_airi_window').catch(function(){});
+}
+
+function petLogout() {
+  fetch('/api/auth/logout', { method: 'POST' }).catch(function(){});
+  // Pet will be killed by _pet_should_hide_event from the backend.
+}
+
+function petShutdown() {
+  fetch('/api/shutdown', { method: 'POST' }).catch(function(){});
+  _invoke('hide_airi_window').catch(function(){});
+}
+
+// ── Layout edit ──
+function petToggleLayoutEdit() {
+  if (_layoutEditMode) {
+    _exitLayoutEdit();
+  } else {
+    _enterLayoutEdit();
+  }
+}
+
+function _enterLayoutEdit() {
+  _layoutEditMode = true;
+  // Show canvas boundary with warm white background (PIXI v6 API)
+  if (_petApp && _petApp.renderer) {
+    _petApp.renderer.backgroundAlpha = 1;
+    _petApp.renderer.backgroundColor = 0xFFF5EE;
+  }
+  _updateUI();
+  var btn = document.getElementById('petLayoutBtn');
+  if (btn) { btn.textContent = '\u2713'; btn.classList.add('pet-layout-active'); }
+
+  var overlay = document.getElementById('petLayoutOverlay');
+  overlay.addEventListener('mousedown', _onLayoutMouseDown);
+  overlay.addEventListener('wheel', _onLayoutWheel, { passive: false });
+  window.addEventListener('keydown', _onLayoutKeyDown);
+}
+
+function _exitLayoutEdit() {
+  _layoutEditMode = false;
+  // Restore transparent background (PIXI v6 API)
+  if (_petApp && _petApp.renderer) {
+    _petApp.renderer.backgroundAlpha = 0;
+    _petApp.renderer.backgroundColor = 0x000000;
+  }
+  _updateUI();
+  var btn = document.getElementById('petLayoutBtn');
+  if (btn) { btn.textContent = '\u2316'; btn.classList.remove('pet-layout-active'); }
+
+  window.removeEventListener('keydown', _onLayoutKeyDown);
+  _saveLayout();
+}
+
+function _onLayoutKeyDown(e) {
+  if (e.key === 'Escape') { _exitLayoutEdit(); }
+}
+
+function _onLayoutMouseDown(e) {
+  _layoutDragStart = { x: e.clientX, y: e.clientY, sx: _modelPosX, sy: _modelPosY };
+  window.addEventListener('mousemove', _onLayoutMouseMove);
+  window.addEventListener('mouseup', _onLayoutMouseUp);
+}
+
+function _onLayoutMouseMove(e) {
+  if (!_layoutDragStart) return;
+  var dx = e.clientX - _layoutDragStart.x;
+  var dy = e.clientY - _layoutDragStart.y;
+  _modelPosX = _layoutDragStart.sx + dx;
+  _modelPosY = _layoutDragStart.sy + dy;
+  _applyCurrentLayout();
+}
+
+function _onLayoutMouseUp() {
+  _layoutDragStart = null;
+  window.removeEventListener('mousemove', _onLayoutMouseMove);
+  window.removeEventListener('mouseup', _onLayoutMouseUp);
+}
+
+function _onLayoutWheel(e) {
+  e.preventDefault();
+  var delta = e.deltaY > 0 ? -0.05 : 0.05;
+  _modelScale = Math.max(0.1, Math.min(3.0, _modelScale + delta));
+  _applyCurrentLayout();
+}
+
+function _saveLayout() {
+  // Bundled-model mode: layout is purely client-local, persisted to
+  // localStorage. No VPS roundtrip — each user on this device has their
+  // own pet placement (key includes token-hash; see _layoutStorageKey).
+  if (!_lastModelId) return;
+  try {
+    localStorage.setItem(_layoutStorageKey(), JSON.stringify({
+      scale: _modelScale, x: _modelPosX, y: _modelPosY
+    }));
+  } catch(e) {}
+}
+
+// ── UI-active heartbeat polling ──
+// Legacy browser fallback only. The Tauri/DMG pet is meant to be always-on:
+// if this polling runs inside the real desktop pet, any stale main-window
+// heartbeat can hide the pet again right after the user summons it with the
+// hotkey. Keep the helper for non-Tauri debug pages, but do not start it from
+// the Tauri bridge.
+function _startUiActivePolling() {
+  var _busy = false;
+  setInterval(async function() {
+    if (_busy) return;
+    _busy = true;
+    try {
+      var res = await fetch('/api/pet/ui-active', { cache: 'no-store' });
+      var invoke = _getInvoke();
+      if (!invoke || !res.ok) { _busy = false; return; }
+      var data = await res.json();
+      if (data.active) {
+        invoke('hide_airi_window').catch(function(){});
+      }
+    } catch(e) {} finally { _busy = false; }
+  }, 1500);
+}
+
+// ── Pass-through: let clicks go to desktop when cursor is outside model/UI ──
+// true = clicks pass to desktop, false = window catches clicks
+var _lastPassThrough = false; // default: window catches clicks (safe)
+var _cursorEventsCount = 0;
+var _passThroughActivated = false; // becomes true after first successful toggle
+function _setPassThrough(enabled) {
+  if (_lastPassThrough === enabled) return;
+  _lastPassThrough = enabled;
+  _invoke('set_airi_window_pass_through', { enabled: enabled });
+}
+
+function _updatePassThrough(localX, localY, insideWindow) {
+  // Layout edit mode: capture everything
+  if (_layoutEditMode) {
+    _setPassThrough(false);
+    return;
+  }
+
+  if (!insideWindow) {
+    _setPassThrough(true);
+    return;
+  }
+
+  var interactive = false;
+
+  // Check model bounds (always active)
+  if (_petModel
+    && localX >= _modelBoundsLeft && localX <= _modelBoundsRight
+    && localY >= _modelBoundsTop && localY <= _modelBoundsBottom) {
+    interactive = true;
+  }
+
+  // Toolbar dot is always interactive (used to expand/collapse panel)
+  var dot = document.getElementById('petToolbarDot');
+  if (dot && dot.style.display !== 'none') {
+    var r3 = dot.getBoundingClientRect();
+    if (localX >= r3.left && localX <= r3.right && localY >= r3.top && localY <= r3.bottom) interactive = true;
+  }
+
+  // When panel expanded: also check text box area and toolbar bar
+  if (_panelExpanded) {
+    var topArea = document.getElementById('petTopArea');
+    var bar = document.getElementById('petBottomBar');
+    if (topArea && topArea.style.display !== 'none') {
+      var r = topArea.getBoundingClientRect();
+      if (localX >= r.left && localX <= r.right && localY >= r.top && localY <= r.bottom) interactive = true;
+    }
+    if (bar && bar.style.display !== 'none') {
+      var r2 = bar.getBoundingClientRect();
+      if (localX >= r2.left && localX <= r2.right && localY >= r2.top && localY <= r2.bottom) interactive = true;
+    }
+  }
+
+  _setPassThrough(!interactive);
+}
+
+// ── Tauri event listeners ──
+async function _initTauriEvents() {
+  // Wait for Tauri event API to be available (injected async)
+  var eventApi = _getEventApi();
+  if (!eventApi || !eventApi.listen) {
+    for (var i = 0; i < 50; i++) {
+      await new Promise(function(r) { setTimeout(r, 100); });
+      eventApi = _getEventApi();
+      if (eventApi && eventApi.listen) break;
+    }
+  }
+  if (!eventApi || !eventApi.listen) {
+    console.warn('[pet] Tauri event API not available after retries');
+    return;
+  }
+
+  console.log('[pet] Tauri event API ready');
+
+  await eventApi.listen('contextlife://pet-cursor', function(event) {
+    var p = event.payload;
+    if (!p) return;
+    _cursorEventsCount++;
+    if (p.cursor && p.window) {
+      var dpr = window.devicePixelRatio || 1;
+      var cx = p.cursor.x, cy = p.cursor.y;
+      var wx = p.window.x, wy = p.window.y;
+      var ww = p.window.width, wh = p.window.height;
+
+      if (p.coordinateSpace === 'logical' && p.local) {
+        // macOS native side already converted NSEvent/NSWindow.frame into
+        // one logical top-left coordinate space. Trust it instead of
+        // guessing from devicePixelRatio; transparent WKWebViews can report
+        // a transient or forced dpr that differs from the display backing.
+        _cursorX = p.local.x;
+        _cursorY = p.local.y;
+        _petCursorInsideWindow = !!p.insideWindow;
+      } else {
+        // Detect if window coords are physical by comparing to CSS viewport.
+        var windowIsPhysical = (dpr > 1.1 && ww > window.innerWidth * 1.3);
+        if (windowIsPhysical) {
+          // Both cursor and window are physical on all platforms — normalize to logical
+          wx /= dpr; wy /= dpr; ww /= dpr; wh /= dpr;
+          cx /= dpr; cy /= dpr;
+        }
+
+        _cursorX = cx - wx;
+        _cursorY = cy - wy;
+        _petCursorInsideWindow = cx >= wx && cx <= wx + ww
+                              && cy >= wy && cy <= wy + wh;
+      }
+    } else {
+      _petCursorInsideWindow = !!p.insideWindow;
+    }
+
+    if (_cursorEventsCount >= 5 && !_passThroughActivated) {
+      _passThroughActivated = true;
+      console.log('[pet] Cursor events confirmed — activating pass-through');
+    }
+
+    if (_passThroughActivated) {
+      _updatePassThrough(_cursorX, _cursorY, _petCursorInsideWindow);
+    }
+  });
+
+  await eventApi.listen('contextlife://pet-pass-through', function(event) {
+    _lastPassThrough = !!event.payload;
+  });
+}
+
+// ── Fetch app settings ──
+async function _fetchSettings() {
+  try {
+    var res = await fetch('/api/user-settings', { cache: 'no-store' });
+    if (!res.ok) return;
+    var body = await res.json();
+    // /api/user-settings wraps the payload in {ok, settings}; accept either
+    var data = (body && body.settings) ? body.settings : body;
+    if (data.pet_hotkey) {
+      var kbd = document.getElementById('petHotkeyKbd');
+      if (kbd) kbd.textContent = _formatHotkey(data.pet_hotkey);
+    }
+    if (typeof data.pet_collapse_delay === 'number' && data.pet_collapse_delay >= 1000) {
+      _autoCollapseDelay = data.pet_collapse_delay;
+    }
+    _screenshotEnabled = !!data.screenshot_enabled;
+    _updateScreenshotBtn();
+  } catch(e) {}
+}
+
+// ── Link interception ──
+function _initLinkInterception() {
+  document.addEventListener('click', function(e) {
+    var anchor = e.target.closest ? e.target.closest('a[href]') : null;
+    if (!anchor) return;
+    var href = anchor.getAttribute('href');
+    if (!href || href.charAt(0) === '#' || href.indexOf('javascript:') === 0) return;
+    e.preventDefault();
+    _invoke('open_external_url', { url: href }).catch(function() { window.open(href, '_blank'); });
+  });
+}
+
+// ── Main init ──
+//
+// PIXI 初始化竞态防御 (2026-05-17):
+//   Tauri pet 窗口是 macOS 透明 NSPanel + setOpaque:false + clearColor.
+//   这种窗口刚创建时, WKWebView 的 CALayer backing scale 还在抖动 ——
+//   `window.devicePixelRatio` 可能瞬时报 1 (Retina 屏应当 2). PIXI
+//   Application 在构造时**锁死 resolution + canvas backing store**,
+//   一旦在抖动期创建, 后续即使 dpr 恢复, canvas 物理像素密度仍是
+//   错的, 导致 Live2D 模型随机糊.
+//
+//   修复顺序:
+//     1. 先等 Tauri bridge 就绪
+//     2. await resize_airi_window 把窗口拉到目标尺寸
+//     3. 等两个 RAF — macOS WebKit 在这两帧内 commit 透明 layer,
+//        backing scale 在第二帧稳定
+//     4. 再创建 PIXI app — 此时 dpr 一定是该屏幕的正确值
+async function _petInit() {
+  console.log('[pet] Initializing pet page...');
+  _initTouchEvents();
+  _initLinkInterception();
+
+  // Wait for __TAURI__ global (1.5s budget, 30 × 50ms)
+  var invoke = _getInvoke();
+  for (var i = 0; i < 30 && !invoke; i++) {
+    await new Promise(function(r){ setTimeout(r, 50); });
+    invoke = _getInvoke();
+  }
+
+  // Apply stored window size BEFORE PIXI init so PIXI locks the final
+  // inner_size + stable dpr instead of the brief default-420x760 + dpr=1
+  // moment when the transparent panel is mid-commit.
+  if (invoke) {
+    try {
+      var _size = _readStr('contextlife.pet.sizePreset', 'medium');
+      var _anchor = _readStr('contextlife.pet.anchor', 'bottom-right');
+      await invoke('resize_airi_window', { preset: _size }).catch(function(){});
+      await invoke('snap_airi_window', { anchor: _anchor }).catch(function(){});
+    } catch(e) {}
+    // Two RAFs: first kicks the layer commit, second observes the
+    // stabilized backing scale. After this, devicePixelRatio is reliable.
+    await new Promise(function(r){
+      requestAnimationFrame(function(){ requestAnimationFrame(r); });
+    });
+  }
+
+  try {
+    await _initPetCanvas();
+    console.log('[pet] PIXI canvas created (dpr=' + (window.devicePixelRatio || 1) + ')');
+  } catch(e) {
+    console.error('[pet] Canvas init failed:', e);
+    return;
+  }
+
+  try {
+    await _syncModel();
+    console.log('[pet] Model synced');
+  } catch(e) {
+    console.error('[pet] Model sync failed:', e);
+  }
+
+  // Register Tauri event listeners (after PIXI canvas exists)
+  await _initTauriEvents();
+
+  // Start monitor / activity polling (window size already applied above)
+  if (invoke) {
+    _initPetBridge(invoke);
+  } else {
+    _startUiActivePolling();
+  }
+  _fetchSettings();
+
+  // Load character config (name, etc.) from backend
+  fetch('/api/character', { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.name) {
+        _charName = data.name;
+        var title = document.getElementById('petDismissTitle');
+        if (title) title.textContent = _charName + ' Hidden';
+        _updateCaption(); // refresh in case thinking indicator is showing
+      }
+    }).catch(function() {});
+
+  // Bundled-model mode: model is local, no need to poll for changes.
+  // Layout is persisted to localStorage on drag/resize, no remote sync.
+  // Load latest message on startup — expand panel to show it, then auto-collapse
+  fetch('/api/chat/history?limit=1', { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var msgs = data.messages || data;
+      if (Array.isArray(msgs) && msgs.length) {
+        var last = msgs[msgs.length - 1];
+        if (last && last.role !== 'user') {
+          _lastSeenMsgId = last.id || '';
+          _latestMessage = last;
+          _updateCaption();
+          _panelExpanded = true;
+          _updateUI();
+          _scheduleAutoCollapse();
+        }
+      }
+    }).catch(function() {});
+
+  // Poll chat — detect ALL new messages (replies, proactive attention messages, reminders, etc.)
+  // Fast poll (1.5s) when backend is typing, normal poll (5s) otherwise
+  var _lastPollTime = 0;
+  setInterval(function() {
+    var now = Date.now();
+    var interval = _backendTyping ? 1500 : 5000;
+    if (now - _lastPollTime >= interval) {
+      _lastPollTime = now;
+      _pollChat();
+    }
+  }, 1000);
+  // Poll model bounds for UI positioning every 200ms
+  setInterval(_pollModelBounds, 200);
+
+  _updateSendBtn();
+  _updateUI();
+}
+
+var _petMonitorReady = false;
+function _initPetBridge(invoke) {
+  // Start OS-level cursor monitor
+  invoke('start_airi_pet_monitor').then(function() {
+    console.log('[pet] Pet monitor started');
+    _petMonitorReady = true;
+  }).catch(function(e) {
+    console.warn('[pet] Pet monitor failed:', e);
+  });
+
+  // Do NOT enable pass-through here — wait for first cursor events
+  // to confirm monitor is working, then enable from cursor handler
+
+  // Note: resize_airi_window / snap_airi_window already applied in _petInit
+  // BEFORE PIXI init — see PIXI 初始化竞态防御 comment there.
+}
+
+// Go!
+_petInit();
+</script>
+</body>
+</html>

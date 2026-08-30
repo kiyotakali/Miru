@@ -1,0 +1,23 @@
+{
+  "name": "miru-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Miru AI Companion - Android app",
+  "scripts": {
+    "build": "echo 'Static www/ — no build step needed'",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android",
+    "cap:build": "cd android && ./gradlew assembleDebug",
+    "cap:apk": "cd android && ./gradlew assembleDebug && echo 'APK at android/app/build/outputs/apk/debug/app-debug.apk'"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/push-notifications": "^7.0.0",
+    "html5-qrcode": "^2.3.8"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "typescript": "^6.0.2"
+  }
+}

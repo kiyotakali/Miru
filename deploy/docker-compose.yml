@@ -1,0 +1,40 @@
+services:
+  miru:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: miru
+    restart: unless-stopped
+    volumes:
+      - ../data:/app/data
+    env_file: ../.env
+    environment:
+      - DATA_DIR=/app/data
+      - MIRU_HEADLESS=1
+    ports:
+      - "5001:5001"
+    networks:
+      - miru-net
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: miru-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - miru-net
+    depends_on:
+      - miru
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  miru-net:

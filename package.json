@@ -1,0 +1,27 @@
+{
+  "name": "miru-shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cross-platform shell (desktop + mobile) for Miru web core.",
+  "scripts": {
+    "shell:dev": "npx @tauri-apps/cli dev",
+    "shell:build": "npx @tauri-apps/cli build",
+    "shell:android:init": "npx @tauri-apps/cli android init",
+    "shell:android:dev": "npx @tauri-apps/cli android dev",
+    "shell:android:build": "npx @tauri-apps/cli android build",
+    "shell:ios:init": "npx @tauri-apps/cli ios init",
+    "shell:ios:dev": "npx @tauri-apps/cli ios dev",
+    "shell:ios:build": "npx @tauri-apps/cli ios build",
+    "shell:url:local": "python3 scripts/set_shell_url.py --url http://127.0.0.1:5001",
+    "stress:prompt": "python3 scripts/prompt_stress.py",
+    "stress:prompt:matrix": "python3 scripts/prompt_stress_matrix.py",
+    "sync:status": "python3 scripts/sync_db.py --status",
+    "sync:push": "python3 scripts/sync_db.py --mode push",
+    "sync:pull": "python3 scripts/sync_db.py --mode pull",
+    "sync:run": "python3 scripts/sync_db.py --mode bidirectional",
+    "test:unit": "pytest"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.10.0"
+  }
+}

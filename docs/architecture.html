@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Miru Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  body { background: #0d1117; color: #e6edf3; font-family: system-ui; padding: 20px; }
+  h1 { text-align: center; font-size: 1.5em; }
+  h2 { font-size: 1.2em; margin-top: 40px; color: #7ee787; }
+  .mermaid { background: #161b22; border-radius: 8px; padding: 20px; margin: 20px 0; }
+</style>
+</head>
+<body>
+<h1>Miru (見る) — System Architecture</h1>
+
+<h2>1. 总体架构 — 数据流全景</h2>
+<pre class="mermaid">
+graph TB
+    subgraph INPUT["输入层"]
+        Screen["用户屏幕"]
+        Chat["用户消息 (文字/图片)"]
+    end
+
+    subgraph PERCEPTION["感知层 — ScreenObserver"]
+        SO["screen_observer.py<br/>30s 变化检测<br/>像素差异 > 15%"]
+        VLM["VLM API<br/>观察 + 显著性评分 (1-5)"]
+        DEDUP["去重过滤<br/>关键词重叠 > 70% 跳过"]
+        SO -->|截屏| VLM
+        VLM --> DEDUP
+    end
+
+    subgraph MEMORY_WRITE["记忆写入层 — 后台 Agent"]
+        SUM["summarizer.py<br/>Summarizer<br/>3min 防抖 / 12 条上限"]
+        SLEEP["sleep_agent.py<br/>Sleep-time Agent<br/>3min 防抖 / 12 条上限<br/>输出: core_memory_ops<br/>+ archival_ops + emotion_update"]
+    end
+
+    subgraph MEMORY_STORE["记忆存储层"]
+        CORE["core_memory.json<br/>human 块: 关于用户<br/>persona 块: 关于关系"]
+        ARCHIVAL["data/memory/*.md<br/>people/ journal/<br/>commitments/ patterns/<br/>self/ projects/ topics/"]
+        INDEX["index.md<br/>全局索引 ≤ 200行"]
+    end
+
+    subgraph EMOTION["情绪系统"]
+        MIRU_EMO["miru_emotion.py<br/>MiruEmotion 引擎<br/>mood / valence / arousal<br/>14 触发器 × 惯性 × 衰减"]
+        REL_METER["relationship_meter<br/>closeness + trust<br/>→ 动态关系阶段"]
+        USER_EMO["emotion_log.json<br/>用户情绪追踪<br/>mood / valence / source"]
+        MIRU_EMO --- REL_METER
+    end
+
+    subgraph RETRIEVAL["记忆读取层"]
+        PRE["Memory Pre-retrieval<br/>轻量LLM语义匹配<br/>→ 加载相关归档"]
+        SEARCH["archival_memory_search<br/>(Agent 工具)"]
+    end
+
+    subgraph CONTEXT["上下文构建"]
+        CTX["_build_chat_context()<br/>核心记忆 XML<br/>归档索引 (100行)<br/>活跃承诺<br/>用户情绪感知<br/>Miru心情 + 关系阶段"]
+    end
+
+    subgraph AGENT["对话 Agent"]
+        LOOP["call_chat_agent()<br/>Tool-use Loop (max 8轮)<br/>3 工具:<br/>archival_memory_search<br/>add_commitment<br/>complete_commitment"]
+    end
+
+    subgraph PROACTIVE["主动关怀层"]
+        CARE["care_engine.py<br/>CareEngine<br/>每15min扫描<br/>自适应冷却 (30min→1h)<br/>缺席追踪 (3h/12h)"]
+        REMIND["Reminder系统<br/>定时提醒<br/>23:30 复盘/计划"]
+    end
+
+    subgraph OUTPUT["输出层"]
+        WEB["Web UI<br/>templates/index.html"]
+        TAURI["Tauri 桌宠<br/>(开发中)"]
+        PUSH["Web Push 通知"]
+    end
+
+    Screen -->|30s轮询| SO
+    DEDUP -->|all observations| SUM
+    DEDUP -->|score >= 3| CARE
+    SUM -->|archival_ops<br/>index_updates| ARCHIVAL
+    SUM -->|index_updates| INDEX
+
+    Chat -->|用户消息| LOOP
+    Chat -->|触发| MIRU_EMO
+    LOOP -->|enqueue| SLEEP
+    SLEEP -->|core_memory_ops| CORE
+    SLEEP -->|archival_ops| ARCHIVAL
+    SLEEP -->|index_updates| INDEX
+    SLEEP -->|emotion_update| MIRU_EMO
+
+    CORE -->|always in context| CTX
+    INDEX -->|truncated 100 lines| CTX
+    ARCHIVAL -->|活跃承诺| CTX
+    PRE -->|相关文件| CTX
+    MIRU_EMO -->|心情 + 关系阶段| CTX
+    USER_EMO -->|情绪感知| CTX
+
+    Chat -->|用户消息| PRE
+    PRE -->|语义匹配| INDEX
+    SEARCH -->|关键词搜索| ARCHIVAL
+
+    CTX --> LOOP
+    LOOP -->|回复| WEB
+    LOOP -->|add/complete| ARCHIVAL
+
+    CARE -->|读取| ARCHIVAL
+    CARE -->|读取心情| MIRU_EMO
+    CARE -->|触发情绪| MIRU_EMO
+    CARE -->|关怀消息| WEB
+    REMIND -->|提醒消息| WEB
+    REMIND -->|push| PUSH
+
+    style CORE fill:#1a3a1a,stroke:#7ee787,color:#e6edf3
+    style ARCHIVAL fill:#1a2a3a,stroke:#58a6ff,color:#e6edf3
+    style LOOP fill:#3a1a3a,stroke:#d2a8ff,color:#e6edf3
+    style SLEEP fill:#3a2a1a,stroke:#f0883e,color:#e6edf3
+    style SUM fill:#3a2a1a,stroke:#f0883e,color:#e6edf3
+    style CARE fill:#3a1a2a,stroke:#f778ba,color:#e6edf3
+    style MIRU_EMO fill:#3a1a2a,stroke:#f778ba,color:#e6edf3
+    style REL_METER fill:#3a1a2a,stroke:#f778ba,color:#e6edf3
+</pre>
+
+<h2>2. 文件模块依赖关系</h2>
+<pre class="mermaid">
+graph LR
+    subgraph ENTRY["入口"]
+        APP["app.py<br/>Flask 路由"]
+    end
+
+    subgraph CORE_LOGIC["核心逻辑"]
+        CORE["core.py<br/>全部业务逻辑"]
+        COMP["companion.py<br/>伴侣运行时 bootstrap"]
+    end
+
+    subgraph AI["AI 调用"]
+        PROMPT["prompt.py<br/>Prompt 构建 + LLM 调用<br/>Agent Loop"]
+        MEMPROMPT["memory_prompts.py<br/>Summarizer/Sleep/Care<br/>的 Prompt + LLM 调用"]
+    end
+
+    subgraph CHARACTER["角色系统"]
+        SOUL["soul.md<br/>角色人格定义<br/>情绪反应 + 关系阶段"]
+        CHAR["character.py<br/>CharacterConfig 解析器"]
+        AICONF["ai_config.py<br/>模型/provider 配置"]
+    end
+
+    subgraph MEMORY_MOD["记忆模块"]
+        MEM["memory.py<br/>文件系统读写"]
+        CMEM["core_memory.py<br/>核心记忆 JSON"]
+        STOR["storage.py<br/>JSON 持久化"]
+    end
+
+    subgraph EMOTION_MOD["情绪模块"]
+        EMO["miru_emotion.py<br/>Miru 情绪引擎<br/>14 触发器 + 关系仪表盘"]
+    end
+
+    subgraph AGENTS["后台 Agent"]
+        SCROBS["screen_observer.py<br/>变化检测 + 显著性 + 去重"]
+        SUMM["summarizer.py"]
+        SLEEPA["sleep_agent.py<br/>记忆整理 + 情绪评估"]
+        CAREE["care_engine.py<br/>主动关怀 + 自适应冷却<br/>+ 缺席追踪"]
+    end
+
+    subgraph TOOLS["对话工具 (3个)"]
+        T1["archival_memory_search"]
+        T2["add_commitment"]
+        T3["complete_commitment"]
+    end
+
+    APP --> CORE
+    APP --> COMP
+    APP --> SCROBS
+    APP --> CAREE
+
+    CORE --> PROMPT
+    CORE --> STOR
+    CORE --> SLEEPA
+    CORE --> EMO
+    CORE --> CAREE
+    PROMPT --> CHAR
+    PROMPT --> AICONF
+    PROMPT --> CMEM
+    PROMPT --> MEM
+    PROMPT --> EMO
+
+    MEMPROMPT --> CHAR
+
+    SCROBS --> MEMPROMPT
+    SCROBS --> SUMM
+    SCROBS --> CAREE
+    SCROBS --> EMO
+    SUMM --> MEMPROMPT
+    SUMM --> MEM
+    SLEEPA --> MEMPROMPT
+    SLEEPA --> MEM
+    SLEEPA --> CMEM
+    SLEEPA --> EMO
+    CAREE --> MEMPROMPT
+    CAREE --> MEM
+    CAREE --> EMO
+
+    CHAR --> SOUL
+
+    TOOLS --> MEM
+    TOOLS --> CMEM
+
+    CORE --> TOOLS
+
+    EMO --> STOR
+
+    style SOUL fill:#3a2a1a,stroke:#f0883e,color:#e6edf3
+    style CMEM fill:#1a3a1a,stroke:#7ee787,color:#e6edf3
+    style MEM fill:#1a2a3a,stroke:#58a6ff,color:#e6edf3
+    style SLEEPA fill:#3a2a1a,stroke:#f0883e,color:#e6edf3
+    style SUMM fill:#3a2a1a,stroke:#f0883e,color:#e6edf3
+    style EMO fill:#3a1a2a,stroke:#f778ba,color:#e6edf3
+</pre>
+
+<h2>3. 记忆 + 情绪系统详细架构</h2>
+<pre class="mermaid">
+graph TB
+    subgraph INPUTS["记忆/情绪输入源"]
+        CHAT_IN["对话消息<br/>(user + assistant)"]
+        OBS_IN["屏幕观察<br/>(ScreenObserver → VLM)"]
+        TOOL_IN["Agent 工具调用<br/>(add/complete_commitment)"]
+        TIME_IN["时间流逝<br/>(缺席检测 + 衰减)"]
+    end
+
+    subgraph PROCESSING["记忆处理"]
+        SLEEP["Sleep-time Agent<br/>队列 + 3min防抖<br/>LLM分析对话<br/>输出: core_memory_ops<br/>+ archival_ops<br/>+ index_updates<br/>+ emotion_update"]
+        SUM["Summarizer<br/>队列 + 3min防抖<br/>LLM分析观察<br/>输出: operations<br/>+ index_updates"]
+    end
+
+    subgraph CORE_MEM["核心记忆 Core Memory"]
+        CM_FILE["core_memory.json"]
+        CM_H["human 块<br/>身份/工作/关系/偏好/近况"]
+        CM_P["persona 块<br/>相处方式/共同回忆/关系进展"]
+        CM_FILE --- CM_H
+        CM_FILE --- CM_P
+    end
+
+    subgraph ARCH_MEM["归档记忆 Archival Memory"]
+        IDX["index.md<br/>全局索引 ≤200行"]
+        P["people/*.md"]
+        C["commitments/<br/>active.md + done.md"]
+        J["journal/YYYY-MM-DD.md"]
+        PA["patterns/*.md"]
+        S["self/*.md"]
+        PR["projects/*.md"]
+        T["topics/*.md"]
+    end
+
+    subgraph MIRU_EMO["Miru 情绪引擎"]
+        EMO_FILE["miru_emotion.json"]
+        EMO_CUR["current 状态<br/>mood / valence / arousal"]
+        EMO_HIS["history<br/>最近50条变化"]
+        REL["relationship_meter<br/>closeness + trust"]
+        STAGE["动态关系阶段<br/>刚认识 → 熟悉 → 很亲近"]
+        EMO_FILE --- EMO_CUR
+        EMO_FILE --- EMO_HIS
+        EMO_FILE --- REL
+        REL --> STAGE
+    end
+
+    subgraph TRIGGERS["14种情绪触发器"]
+        T_CHAT["chat_positive / negative / neutral"]
+        T_ABS["absence_short / long / explained"]
+        T_PROM["promise_kept / broken"]
+        T_NIGHT["late_night_user / ignored"]
+        T_USER["user_sad / happy"]
+        T_OTHER["morning_greeting / compliment"]
+    end
+
+    subgraph READING["记忆读取"]
+        ALWAYS["始终加载<br/>core_memory (XML)<br/>index.md (100行)<br/>commitments/active.md<br/>Miru心情 + 关系阶段"]
+        PRERETR["预检索加载<br/>LLM语义匹配index<br/>→ 加载相关归档文件"]
+        AGENT_S["Agent主动搜索<br/>archival_memory_search<br/>关键词 + 内容丰富"]
+    end
+
+    CHAT_IN -->|enqueue| SLEEP
+    OBS_IN -->|enqueue| SUM
+    TOOL_IN -->|直接写入| C
+    CHAT_IN -->|触发| TRIGGERS
+    TIME_IN -->|absence / decay| TRIGGERS
+
+    SLEEP -->|append/replace| CORE_MEM
+    SLEEP -->|append/write| ARCH_MEM
+    SLEEP -->|update| IDX
+    SLEEP -->|emotion_update| MIRU_EMO
+    SUM -->|append/write| ARCH_MEM
+    SUM -->|update| IDX
+
+    TRIGGERS -->|update()| MIRU_EMO
+
+    CORE_MEM -->|XML注入context| ALWAYS
+    IDX -->|truncated| ALWAYS
+    C -->|活跃承诺| ALWAYS
+    MIRU_EMO -->|心情+关系| ALWAYS
+    IDX -->|语义匹配| PRERETR
+    ARCH_MEM -->|文件内容| PRERETR
+    ARCH_MEM -->|搜索结果| AGENT_S
+
+    style SLEEP fill:#3a2a1a,stroke:#f0883e,color:#e6edf3
+    style SUM fill:#3a2a1a,stroke:#f0883e,color:#e6edf3
+    style CORE_MEM fill:#1a3a1a,stroke:#7ee787,color:#e6edf3
+    style ARCH_MEM fill:#1a2a3a,stroke:#58a6ff,color:#e6edf3
+    style MIRU_EMO fill:#3a1a2a,stroke:#f778ba,color:#e6edf3
+    style TRIGGERS fill:#2a1a3a,stroke:#d2a8ff,color:#e6edf3
+</pre>
+
+<h2>4. 对话处理流程（时序）</h2>
+<pre class="mermaid">
+sequenceDiagram
+    participant U as 用户
+    participant APP as app.py
+    participant CORE as core.py
+    participant EMO as MiruEmotion
+    participant CARE as CareEngine
+    participant PRE as Memory Pre-retrieval
+    participant CTX as Context Builder
+    participant AGENT as Agent Loop (prompt.py)
+    participant LLM as LLM API
+    participant TOOLS as Tools (3个)
+    participant SLEEP as Sleep-time Agent
+    participant STOR as storage.py
+
+    U->>APP: POST /api/chat {text, image?}
+    APP->>CORE: receive_chat_message(text, image)
+    CORE->>STOR: append_chat_message(user_msg)
+    CORE->>CARE: on_user_message() 重置自适应冷却
+    CORE->>SLEEP: enqueue("user", text)
+    Note over CORE: 1.5s quiet period (等用户打完字)
+
+    CORE->>PRE: 语义预检索(user_text)
+    PRE->>LLM: 轻量LLM分析 → 匹配index
+    LLM-->>PRE: 相关文件路径
+    PRE->>PRE: 加载归档文件
+
+    CORE->>CTX: _build_chat_context()
+    Note over CTX: 核心记忆 XML<br/>归档索引 (100行)<br/>活跃承诺<br/>用户情绪感知<br/>Miru心情 + 关系阶段<br/>+ 预检索文件
+
+    CORE->>AGENT: call_chat_agent(context, history, text, tools)
+
+    loop Tool-use Loop (max 8轮)
+        AGENT->>LLM: system_prompt + context + messages + tools
+        LLM-->>AGENT: response (text or tool_use)
+        opt 如果 LLM 调用工具
+            AGENT->>TOOLS: execute(args)
+            TOOLS-->>AGENT: result
+        end
+    end
+
+    AGENT-->>CORE: {reply, tool_calls}
+    CORE->>STOR: append_chat_message(reply_msg)
+    CORE->>SLEEP: enqueue("assistant", reply)
+
+    CORE->>EMO: update(trigger, reason) 基于缺席时长
+    CORE->>EMO: record_interaction()
+
+    CORE-->>APP: reply
+    APP-->>U: SSE / JSON response
+
+    Note over SLEEP: 3min后无新消息 → flush
+    SLEEP->>LLM: 分析对话 → 记忆 + 情绪更新
+    LLM-->>SLEEP: {core_memory_ops, archival_ops,<br/>index_updates, emotion_update}
+    SLEEP->>SLEEP: 应用核心记忆 + 归档更新
+    SLEEP->>EMO: update(trigger, reason) 精准情绪评估
+</pre>
+
+<h2>5. 后台系统运行时序</h2>
+<pre class="mermaid">
+sequenceDiagram
+    participant SCREEN as 用户屏幕
+    participant SO as ScreenObserver
+    participant VLM as VLM API
+    participant SUM as Summarizer
+    participant MEM as memory/*.md
+    participant EMO as MiruEmotion
+    participant CARE as CareEngine
+    participant LLM as LLM API
+    participant CHAT as Chat UI
+
+    loop 每30秒
+        SO->>SCREEN: 截取缩略图
+        SO->>SO: 像素差异比较
+        alt 变化 > 15% & VLM冷却期已过(5min)
+            SO->>VLM: 发送截屏
+            VLM-->>SO: "3|用户在VS Code编辑Python文件"
+            SO->>SO: 去重检查 (关键词重叠 > 70%?)
+            alt 非重复 & 任何分数
+                SO->>SUM: enqueue("observation", text)
+            end
+            alt 显著性 >= 3
+                SO->>CARE: add_observation(text)
+            end
+            opt 深夜时段 (23:00-05:00)
+                SO->>EMO: update("late_night_user")
+            end
+        end
+    end
+
+    Note over SUM: 3min防抖 / 12条上限
+    SUM->>LLM: 批量消息 + 现有文件 → 分析
+    LLM-->>SUM: {operations, index_updates}
+    SUM->>MEM: 写入journal/、people/等
+    SUM->>MEM: 更新index.md
+
+    loop 每15分钟
+        CARE->>CARE: 检查缺席时长
+        opt 缺席 >= 3h
+            CARE->>EMO: update("absence_short")
+        end
+        opt 缺席 >= 12h
+            CARE->>EMO: update("absence_long")
+        end
+        CARE->>MEM: 读取 commitments/active.md
+        CARE->>MEM: 读取 journal/today.md
+        CARE->>MEM: 读取 patterns/*.md
+        CARE->>EMO: 获取 Miru 当前心情
+        CARE->>LLM: 评估6条关怀规则 + Miru心情
+        alt should_send = true
+            LLM-->>CARE: 角色语气的关怀消息
+            CARE->>EMO: update(触发类型)
+            CARE->>CHAT: 推送关怀消息
+            Note over CARE: 连续未回应 >= 2次<br/>→ 冷却从30min拉长到1h
+        end
+    end
+</pre>
+
+<h2>6. 情绪引擎详细架构</h2>
+<pre class="mermaid">
+graph TB
+    subgraph TRIGGERS["14种触发器"]
+        direction LR
+        CP["chat_positive<br/>+0.5 valence"]
+        CN["chat_negative<br/>-0.3 valence"]
+        AS["absence_short<br/>3h无消息"]
+        AL["absence_long<br/>12h无消息"]
+        AE["absence_explained<br/>回来解释了"]
+        PK["promise_kept<br/>+trust"]
+        PB["promise_broken<br/>-trust"]
+        LN["late_night_user<br/>深夜活跃"]
+        LI["late_night_ignored<br/>说了不听"]
+        US["user_sad<br/>共情"]
+        UH["user_happy<br/>跟着开心"]
+        MG["morning_greeting"]
+        CM["compliment<br/>+arousal"]
+        CTN["chat_neutral"]
+    end
+
+    subgraph INERTIA["惯性机制"]
+        BLEND["新情绪 = 0.6 x 触发 + 0.4 x 当前<br/>防止情绪跳变"]
+    end
+
+    subgraph DECAY["时间衰减"]
+        VD["valence 每小时向 0 衰减 10%"]
+        AD["arousal 每小时向 0.2 衰减 10%"]
+    end
+
+    subgraph STATE["当前状态"]
+        MOOD["mood: happy / lonely / annoyed / ..."]
+        VAL["valence: -1.0 ~ +1.0"]
+        ARO["arousal: 0.0 ~ 1.0"]
+    end
+
+    subgraph REL["关系仪表盘 (慢变量)"]
+        CLOSE["closeness: 0.0 ~ 1.0<br/>有意义对话 +0.02<br/>长期缺席 -0.01"]
+        TRUST["trust: 0.0 ~ 1.0<br/>守承诺 +0.05<br/>爽约 -0.03"]
+    end
+
+    subgraph STAGES["动态关系阶段"]
+        S1["< 0.3: 刚认识<br/>礼貌克制 / 好奇但距离感"]
+        S2["0.3-0.6: 熟悉之后<br/>开玩笑 / 吐槽 / 分享想法"]
+        S3[">= 0.6: 很亲近<br/>撒娇 / 使小性子 / 在意被忽视"]
+    end
+
+    subgraph INJECTION["注入到各系统"]
+        CHAT_CTX["对话上下文<br/>你现在的心情 + 当前关系阶段"]
+        CARE_CTX["CareEngine<br/>你的心情 → 关怀语气"]
+        GREET["每日问候<br/>心情影响问候风格"]
+        SLEEP_OUT["Sleep-time Agent<br/>emotion_update 精准评估"]
+    end
+
+    TRIGGERS --> INERTIA
+    INERTIA --> STATE
+    DECAY --> STATE
+    TRIGGERS --> REL
+
+    REL --> STAGES
+    CLOSE --> S1
+    CLOSE --> S2
+    CLOSE --> S3
+
+    STATE --> INJECTION
+    STAGES --> INJECTION
+
+    style INERTIA fill:#3a2a1a,stroke:#f0883e,color:#e6edf3
+    style STATE fill:#3a1a2a,stroke:#f778ba,color:#e6edf3
+    style REL fill:#1a3a1a,stroke:#7ee787,color:#e6edf3
+    style STAGES fill:#1a2a3a,stroke:#58a6ff,color:#e6edf3
+</pre>
+
+<h2>7. 数据存储结构</h2>
+<pre class="mermaid">
+graph LR
+    subgraph DATA["data/ 目录"]
+        subgraph JSON_FILES["JSON 文件"]
+            CM["core_memory.json<br/>核心记忆 (human + persona)"]
+            ME["miru_emotion.json<br/>Miru情绪状态<br/>current + history + relationship"]
+            CH["chat_history.json<br/>对话历史"]
+            EL["emotion_log.json<br/>用户情绪日志"]
+            TL["timeline.json<br/>时间线"]
+            RM["reminders.json<br/>提醒"]
+            TP["tomorrow_plan.json<br/>明日计划"]
+            CP["character_plan.json<br/>角色日程"]
+            AS["app_settings.json<br/>应用设置"]
+        end
+
+        subgraph MEM_DIR["memory/ 目录 (归档记忆)"]
+            IDX["index.md — 全局索引"]
+            PEOPLE["people/<br/>alice.md, bob.md..."]
+            COMMIT["commitments/<br/>active.md, done.md"]
+            JOURNAL["journal/<br/>2026-03-23.md..."]
+            PATTERN["patterns/<br/>sleep.md, work.md..."]
+            SELF["self/<br/>preferences.md..."]
+            PROJ["projects/<br/>contextlife.md..."]
+            TOPIC["topics/<br/>..."]
+        end
+
+        subgraph OTHER["其他"]
+            PERSONA["personas/<br/>角色数据 + soul.md"]
+            SOUL2["soul.md<br/>角色人格定义<br/>情绪反应 + 关系阶段"]
+        end
+    end
+
+    style CM fill:#1a3a1a,stroke:#7ee787,color:#e6edf3
+    style ME fill:#3a1a2a,stroke:#f778ba,color:#e6edf3
+    style MEM_DIR fill:#1a2a3a,stroke:#58a6ff,color:#e6edf3
+</pre>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true,
+    background: '#161b22',
+    primaryColor: '#1f6feb',
+    primaryTextColor: '#e6edf3',
+    secondaryColor: '#21262d',
+    tertiaryColor: '#30363d',
+    lineColor: '#8b949e',
+    fontSize: '14px',
+  },
+  flowchart: { curve: 'basis', padding: 15 },
+  sequence: { mirrorActors: false },
+});
+</script>
+</body>
+</html>
