@@ -57,7 +57,8 @@ def _function_source(source: str, name: str) -> str:
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node not available")
-def test_windows_capture_recovery_never_sends_user_to_macos_permissions():
+@pytest.mark.parametrize("platform", ["windows", "linux"])
+def test_windows_capture_recovery_never_sends_user_to_macos_permissions(platform):
     html = INDEX_HTML.read_text(encoding="utf-8")
     functions = "\n".join(
         _function_source(html, name)
@@ -128,6 +129,9 @@ run().catch(function(error) {
   process.exit(1);
 });
 """
+    if platform == "linux":
+        harness = harness.replace("__MIRU_DESKTOP_PLATFORM__: 'windows'", "__MIRU_DESKTOP_PLATFORM__: 'linux'")
+        harness = harness.replace("Windows 不需要单独授予屏幕录制权限", "Linux 预览版支持 X11 桌面")
     proc = subprocess.run(
         ["node"],
         input=harness,

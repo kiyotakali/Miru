@@ -28,6 +28,7 @@ from desktop_paths import (
 
 
 PORT = 5001
+DESKTOP_PLATFORM = "windows"
 
 
 def _bundle_dir() -> Path:
@@ -58,7 +59,7 @@ def _desktop_url(url: str) -> str:
     parts = urlsplit(url)
     query = dict(parse_qsl(parts.query, keep_blank_values=True))
     query["desktop"] = "1"
-    query["desktop_platform"] = "windows"
+    query["desktop_platform"] = DESKTOP_PLATFORM
     return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
 
 
@@ -122,6 +123,7 @@ def _wait_for_flask(timeout: float = 20.0) -> bool:
 
 
 def _show_error(message: str) -> None:
+    print(message, file=sys.stderr)
     try:
         import ctypes
 
@@ -134,9 +136,11 @@ def _configure_logging() -> None:
     log_dir = app_support_dir() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     stream = open(log_dir / "miru.log", "a", encoding="utf-8", buffering=1)
-    if getattr(sys, "frozen", False) or sys.stdout is None:
+    if DESKTOP_PLATFORM == "linux":
+        os.chmod(log_dir / "miru.log", 0o600)
+    if getattr(sys, "frozen", False) or sys.stdout is None or DESKTOP_PLATFORM == "linux":
         sys.stdout = stream
-    if getattr(sys, "frozen", False) or sys.stderr is None:
+    if getattr(sys, "frozen", False) or sys.stderr is None or DESKTOP_PLATFORM == "linux":
         sys.stderr = stream
 
 
@@ -175,6 +179,11 @@ class MiruDesktopApi:
             return {"ok": False, "error": str(exc)}
 
     def check_screen_permission(self) -> dict:
+        if DESKTOP_PLATFORM == "linux":
+            from linux_launcher import x11_session_available
+            supported = x11_session_available()
+            return {"ok": True, "platform": "linux", "granted": supported,
+                    "requires_opt_in": True, "supported": supported}
         # Windows has no macOS-style TCC prompt. This only reports platform
         # capability; pixels are not captured until the user clicks Enable.
         return {
@@ -190,10 +199,10 @@ class MiruDesktopApi:
 
             instance = sensor.get_sensor()
             result = instance.probe_capture()
-            result["platform"] = "windows"
+            result["platform"] = DESKTOP_PLATFORM
             return result
         except Exception as exc:
-            return {"ok": False, "platform": "windows", "error": str(exc)}
+            return {"ok": False, "platform": DESKTOP_PLATFORM, "error": str(exc)}
 
     def notify_app_ready(self, payload: dict | None = None) -> dict:
         path = str((payload or {}).get("path") or "")
@@ -276,13 +285,16 @@ def _runtime_coordinator(window, app_module, state: dict) -> None:
         time.sleep(0.25)
 
 
-def main() -> int:
-    if sys.platform != "win32":
-        raise RuntimeError("windows_launcher.py must run on Windows")
-
-    from windows.platform import set_process_dpi_awareness
-
-    set_process_dpi_awareness()
+def main(platform_name: str = "windows") -> int:
+    global DESKTOP_PLATFORM
+    DESKTOP_PLATFORM = platform_name
+    if platform_name == "windows":
+        if sys.platform != "win32":
+            raise RuntimeError("windows_launcher.py must run on Windows")
+        from windows.platform import set_process_dpi_awareness
+        set_process_dpi_awareness()
+    elif platform_name != "linux" or not sys.platform.startswith("linux"):
+        raise RuntimeError("unsupported desktop platform")
     _configure_logging()
 
     if _existing_instance_ready():
@@ -322,7 +334,7 @@ def main() -> int:
     )
     backend_thread.start()
     if not _wait_for_flask():
-        _show_error("Miru local service did not start. See LocalAppData\\Miru\\logs\\miru.log.")
+        _show_error(f"Miru local service did not start. See {support / 'logs' / 'miru.log'}.")
         return 1
 
     import webview
@@ -356,13 +368,13 @@ def main() -> int:
 
     storage = webview_storage_dir()
     storage.mkdir(parents=True, exist_ok=True)
-    icon = root / "src-tauri" / "icons" / "icon.ico"
+    icon = root / "src-tauri" / "icons" / ("128x128.png" if platform_name == "linux" else "icon.ico")
     debug_port = str(os.environ.get("MIRU_WEBVIEW_DEBUG_PORT") or "").strip()
     if debug_port:
         webview.settings["REMOTE_DEBUGGING_PORT"] = int(debug_port)
     try:
         webview.start(
-            gui="edgechromium",
+            gui="gtk" if platform_name == "linux" else "edgechromium",
             private_mode=False,
             storage_path=str(storage),
             icon=str(icon) if icon.exists() else None,

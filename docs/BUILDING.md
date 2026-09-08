@@ -58,6 +58,12 @@ powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
 The installer is created under `dist\windows-installer\`. The public build is
 not Authenticode-signed.
 
+## Ubuntu desktop preview (X11)
+
+See [UBUNTU_DESKTOP.md](UBUNTU_DESKTOP.md) for the source-only Ubuntu 22.04
+desktop path. It uses GTK for the main window and PySide6/Qt WebEngine for the
+transparent pet; it does not build a Tauri Linux executable.
+
 ## Android arm64
 
 Prerequisites: Node.js, Java 21, Android SDK, NDK 27.3.13750724, Python 3.12,

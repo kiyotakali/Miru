@@ -71,6 +71,11 @@ Miru is free software; you bring your own model API keys (any OpenAI-compatible 
 3. You get a long invitation code.
 4. Log in on Mac, Windows, and Android with the same code — the same account and memory on every connected device.
 
+### Ubuntu desktop preview
+
+Ubuntu 22.04 / X11 users can run the desktop client from source. See the
+[Ubuntu setup guide](docs/UBUNTU_DESKTOP.md) for dependencies and limitations.
+
 ### 🐳 Server image — advanced
 
 Prefer to deploy by hand? Grab `Miru-Server-linux-amd64.tar.gz` from Releases, run `docker load`, and start it on an x86-64 Linux server. See [the deployment guide](deploy/README.md).

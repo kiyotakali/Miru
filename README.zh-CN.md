@@ -71,6 +71,11 @@ Miru 是免费软件；你自备模型 API Key（任何 OpenAI-compatible 服务
 3. 拿到一串长邀请码。
 4. Mac、Windows 和 Android 用同一串码登录——账号和记忆在所有已连接设备间一致。
 
+### Ubuntu 桌面预览版
+
+Ubuntu 22.04 / X11 用户可以从源码运行桌面客户端。依赖安装和支持范围见
+[Ubuntu 使用说明](docs/UBUNTU_DESKTOP.md)。
+
 ### 🐳 服务器镜像 —— 进阶
 
 想手动部署？从 Releases 下载 `Miru-Server-linux-amd64.tar.gz`，执行 `docker load` 后在 x86-64 Linux 服务器运行。具体步骤见[部署说明](deploy/README.md)。

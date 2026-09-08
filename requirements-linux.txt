@@ -1,0 +1,5 @@
+-r requirements.txt
+pywebview>=6.2.1,<7
+PySide6>=6.8,<7
+QtPy>=2.4,<3
+python-xlib>=0.33

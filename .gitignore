@@ -39,6 +39,10 @@ miru-mobile/*.apk
 .pytest_cache/
 *.spec.bak
 
+# Personal desktop runtime assets; see THIRD_PARTY_NOTICES.md.
+assets/js/live2d/
+assets/live2d/
+
 # System files
 .DS_Store
 Thumbs.db

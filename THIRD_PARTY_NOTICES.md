@@ -28,6 +28,12 @@ Apache-2.0 license grants rights to redistribute these components or assets.
 
 ## Other dependencies
 
+The Ubuntu desktop preview additionally uses PySide6 (Qt for Python), Qt
+WebEngine and python-xlib. Their upstream licenses apply independently of
+Miru's Apache-2.0 source license. See the [Qt for Python license
+documentation](https://doc.qt.io/qtforpython-6/licenses.html) for Qt and its
+third-party components. This source contribution does not bundle Qt binaries.
+
 Python, Rust, Node, Android, and bundled JavaScript dependencies retain the
 licenses declared by their upstream projects. Dependency manifests are kept in
 the repository so their exact license texts can be inspected upstream.

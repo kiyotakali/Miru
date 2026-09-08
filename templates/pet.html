@@ -466,6 +466,8 @@ function _write(k, v) { try { localStorage.setItem(k, String(v)); } catch(e) {} 
 
 // ── Tauri IPC ──
 function _getInvoke() {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.invoke)
+    return function(command, args) { return window.pywebview.api.invoke(command, args || {}); };
   if (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke)
     return window.__TAURI__.core.invoke;
   if (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke)
@@ -487,6 +489,13 @@ function _tauriListen(eventName, handler) {
 }
 
 function _getEventApi() {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.invoke) {
+    return { listen: function(name, handler) {
+      var listener = function(event) { handler({payload: event.detail}); };
+      window.addEventListener(name, listener);
+      return Promise.resolve(function() { window.removeEventListener(name, listener); });
+    }};
+  }
   if (window.__TAURI__ && window.__TAURI__.event) return window.__TAURI__.event;
   // Fallback: build a minimal event API from __TAURI_INTERNALS__
   var internals = window.__TAURI_INTERNALS__;
@@ -686,16 +695,19 @@ async function _initPetCanvas() {
   // reports devicePixelRatio=1 even on Retina displays — known WebKit
   // behavior for windows with setOpaque:false + clearColor background.
   // Force at least 2x so the Live2D model stays crisp.
-  var renderRes = Math.max(2, window.devicePixelRatio || 1);
+  var isLinuxPet = new URLSearchParams(window.location.search).get('desktop_platform') === 'linux';
+  var renderRes = isLinuxPet ? (window.devicePixelRatio || 1) : Math.max(2, window.devicePixelRatio || 1);
 
   _petApp = new PIXI.Application({
     width: w, height: h,
     backgroundAlpha: 0,
-    useContextAlpha: 'notMultiplied',
+    useContextAlpha: isLinuxPet ? true : 'notMultiplied',
     resolution: renderRes,
     autoDensity: true,
     antialias: true,
-    preserveDrawingBuffer: true,
+    // The Linux transparent Qt window needs fresh, premultiplied frames.
+    preserveDrawingBuffer: !isLinuxPet,
+    clearBeforeRender: true,
   });
   wrap.appendChild(_petApp.view);
 
@@ -1644,6 +1656,9 @@ async function _initTauriEvents() {
   await eventApi.listen('contextlife://pet-cursor', function(event) {
     var p = event.payload;
     if (!p) return;
+    if (window.pywebview && window.pywebview.api && typeof p.passThrough === 'boolean') {
+      _lastPassThrough = p.passThrough;
+    }
     _cursorEventsCount++;
     if (p.cursor && p.window) {
       var dpr = window.devicePixelRatio || 1;
@@ -1652,8 +1667,8 @@ async function _initTauriEvents() {
       var ww = p.window.width, wh = p.window.height;
 
       if (p.coordinateSpace === 'logical' && p.local) {
-        // macOS native side already converted NSEvent/NSWindow.frame into
-        // one logical top-left coordinate space. Trust it instead of
+        // The native side supplied one logical top-left coordinate space.
+        // This also handles fractional X11 scaling. Trust it instead of
         // guessing from devicePixelRatio; transparent WKWebViews can report
         // a transient or forced dpr that differs from the display backing.
         _cursorX = p.local.x;
