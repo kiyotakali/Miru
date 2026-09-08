@@ -131,21 +131,25 @@ def stream_generator(q: queue.Queue):
     """Flask Response generator for SSE streaming.
 
     Yields SSE-formatted messages from the queue.
-    Sends a heartbeat comment every 30 seconds to keep the connection alive.
+    Sends an empty message every 30 seconds for the client's onmessage watchdog.
     """
     # Initial connection confirmation
     yield "event: connected\ndata: {}\n\n"
+    next_heartbeat = time.monotonic() + 30
     try:
         while True:
             try:
-                msg = q.get(timeout=30)
+                msg = q.get(timeout=max(0, next_heartbeat - time.monotonic()))
                 # None sentinel = forcible disconnect (admin suspend / self-delete)
                 if msg is None:
                     return
                 yield msg
             except queue.Empty:
-                # Heartbeat to keep connection alive
-                yield ": heartbeat\n\n"
+                pass
+            if time.monotonic() >= next_heartbeat:
+                # EventSource ignores comments; data dispatches onmessage.
+                yield "data: {}\n\n"
+                next_heartbeat = time.monotonic() + 30
     except GeneratorExit:
         pass
     finally:

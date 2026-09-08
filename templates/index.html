@@ -10444,6 +10444,7 @@ function _connectSSE() {
 function _sseAppendMessage(msg) {
   // Only render if we're on the companion/chat view
   if (!companionChatMessages) return;
+  const nearBottom = companionChatMessages.scrollHeight - companionChatMessages.scrollTop - companionChatMessages.clientHeight < 120;
   // Render using existing bubble functions; pass msg.time so the timeline
   // grouper can decide whether to insert a date separator / time anchor.
   const t = msg.time || null;
@@ -10455,8 +10456,8 @@ function _sseAppendMessage(msg) {
   }
   emptyCompanionState.style.display = 'none';
   // Auto-scroll if user is near bottom
-  const nearBottom = companionChatMessages.scrollHeight - companionChatMessages.scrollTop - companionChatMessages.clientHeight < 120;
   if (nearBottom) scrollCompanionChatToBottom();
+  else _showCompanionNewMsgBadge(true);
 }
 
 function _getDeviceId() {
