@@ -58,6 +58,22 @@ powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
 The installer is created under `dist\windows-installer\`. The public build is
 not Authenticode-signed.
 
+## Ubuntu 22.04 desktop (X11 preview)
+
+This source-run client uses PySide6/Qt WebEngine. Run it inside an X11 desktop
+session; Wayland is not supported. Obtain the desktop Live2D files listed above.
+
+```bash
+sudo apt-get install python3-venv libxcb-cursor0 libxkbcommon-x11-0
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-linux.txt
+.venv/bin/python -s linux_launcher.py
+```
+
+The default pet shortcut is `Ctrl+Alt+M`. Closing the main window exits the
+client; minimizing keeps it running. Data is stored under
+`${XDG_DATA_HOME:-~/.local/share}/Miru`. No Linux installer package is built.
+
 ## Android arm64
 
 Prerequisites: Node.js, Java 21, Android SDK, NDK 27.3.13750724, Python 3.12,

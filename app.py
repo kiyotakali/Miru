@@ -3700,6 +3700,7 @@ def api_shutdown():
     def _do_shutdown():
         import time as _t
         _t.sleep(0.5)  # let the response reach the client
+        linux_desktop = _is_linux_desktop()
 
         # 1) Kill child processes (pet, etc.).
         # In Flask debug mode, _launch_full_stack runs in the *master*
@@ -3711,7 +3712,7 @@ def api_shutdown():
 
         # (a) Kill child PIDs saved to disk
         _pid_file = _pet_pid_dir() / ".child_pids"
-        if _pid_file.exists():
+        if _pid_file.exists() and not linux_desktop:
             try:
                 for _line in _pid_file.read_text().splitlines():
                     _cpid = int(_line.strip())
@@ -3753,6 +3754,11 @@ def api_shutdown():
             for proc in _pet_children_list:
                 if proc.poll() is None:
                     proc.kill()
+
+        # The Linux desktop owns Flask in a thread, not a reloader child.
+        # Its parent is the user's shell/session and must never be signalled.
+        if linux_desktop:
+            os._exit(0)
 
         # 2) Kill the Flask master process (reloader parent).
         #    On Windows, /T kills the entire tree rooted at the master,
@@ -4008,6 +4014,11 @@ _pet_env = None
 _pet_children_list = None
 
 
+def _is_linux_desktop(env=None):
+    env = os.environ if env is None else env
+    return sys.platform.startswith("linux") and env.get("MIRU_DESKTOP_PLATFORM") == "linux"
+
+
 def _pet_pid_dir():
     """Stable directory for .pet.pid — not _MEIPASS in PyInstaller."""
     from pathlib import Path
@@ -4026,6 +4037,7 @@ def _kill_pet():
     pid_file = pid_dir / ".pet.pid"
     child_pid_file = pid_dir / ".child_pids"
     pet_lock_file = pid_dir / "data" / ".pet.lock"
+    linux_desktop = _is_linux_desktop()
 
     def _terminate_pid(pid: int) -> None:
         if os.name == "nt":
@@ -4058,7 +4070,7 @@ def _kill_pet():
             except Exception:
                 pass
         _pet_process = None
-    elif pid_file.exists():
+    elif pid_file.exists() and not linux_desktop:
         try:
             old_pid = int(pid_file.read_text().strip())
             if os.name == "nt":
@@ -4076,6 +4088,10 @@ def _kill_pet():
                 pass  # already gone
         except Exception:
             pass
+
+    # Linux uses flock plus an owning-parent watcher, never persisted PIDs.
+    if linux_desktop:
+        return
 
     # Clean up PID/lock files so the next app launch always starts a fresh
     # visible pet instead of inheriting a hidden/stale singleton state.
@@ -4113,16 +4129,27 @@ def _find_tauri_binary():
 
 
 def _launch_pet_tauri(pet_url, pet_hotkey, env, cwd):
-    """Launch the Tauri pet binary with env-var config. Returns Popen or None."""
+    """Launch the native pet: Qt on Linux, Tauri on Windows/macOS."""
     import subprocess
-    tauri_bin = _find_tauri_binary()
-    if not tauri_bin:
-        return None
     pet_env = (env or os.environ).copy()
+    if _is_linux_desktop(pet_env):
+        from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
+        parts = urlsplit(pet_url)
+        query = dict(parse_qsl(parts.query, keep_blank_values=True))
+        query["desktop_platform"] = "linux"
+        pet_url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+        from pathlib import Path
+        command = [sys.executable, "-s", str(Path(__file__).resolve().parent / "linux_pet.py")]
+        pet_env["AIRI_PET_PARENT_PID"] = str(os.getpid())
+    else:
+        tauri_bin = _find_tauri_binary()
+        if not tauri_bin:
+            return None
+        command = [str(tauri_bin)]
     pet_env["AIRI_PET_URL"] = pet_url
     pet_env["AIRI_PET_HOTKEY"] = pet_hotkey
-    print(f"[pet] Starting Tauri pet → {pet_url}  (hotkey: {pet_hotkey})")
-    return subprocess.Popen([str(tauri_bin)], cwd=cwd, env=pet_env)
+    print(f"[pet] Starting native pet (hotkey: {pet_hotkey})")
+    return subprocess.Popen(command, cwd=cwd, env=pet_env)
 
 
 def _respawn_pet():
@@ -4156,7 +4183,8 @@ def _respawn_pet():
 
         # Write PID file
         try:
-            (_pet_pid_dir() / ".pet.pid").write_text(str(pet.pid))
+            if not _is_linux_desktop():
+                (_pet_pid_dir() / ".pet.pid").write_text(str(pet.pid))
         except Exception:
             pass
 
@@ -4211,6 +4239,7 @@ def _launch_full_stack():
         _pid_dir = ROOT
 
     env = os.environ.copy()
+    use_pid_files = not _is_linux_desktop(env)
 
     children: list[subprocess.Popen] = []
     global _pet_children_list, _pet_env
@@ -4221,6 +4250,8 @@ def _launch_full_stack():
 
     def _save_child_pids():
         """Persist child PIDs to disk so the Flask worker can read them on shutdown."""
+        if not use_pid_files:
+            return
         try:
             pids = [str(p.pid) for p in children if p.poll() is None]
             _child_pid_file.write_text("\n".join(pids), encoding="utf-8")
@@ -4247,6 +4278,8 @@ def _launch_full_stack():
         for proc in children:
             if proc.poll() is None:
                 proc.kill()
+        if not use_pid_files:
+            return
         # Remove pet PID file
         try:
             (_pet_pid_dir() / ".pet.pid").unlink(missing_ok=True)
@@ -4271,7 +4304,7 @@ def _launch_full_stack():
 
         # Check if a pet process is already running (PID file guard)
         pet_pid_file = _pid_dir / ".pet.pid"
-        if pet_pid_file.exists():
+        if use_pid_files and pet_pid_file.exists():
             try:
                 old_pid = int(pet_pid_file.read_text().strip())
                 # Check if old process is still alive
@@ -4317,7 +4350,8 @@ def _launch_full_stack():
 
         # Write PID file for duplicate-guard
         try:
-            pet_pid_file.write_text(str(pet.pid))
+            if use_pid_files:
+                pet_pid_file.write_text(str(pet.pid))
         except Exception:
             pass
         _save_child_pids()
