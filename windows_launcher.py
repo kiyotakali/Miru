@@ -139,10 +139,14 @@ def _configure_logging() -> None:
     log_dir.mkdir(parents=True, exist_ok=True)
     stream = open(log_dir / "miru.log", "a", encoding="utf-8", buffering=1)
     if DESKTOP_PLATFORM == "linux":
-        os.chmod(log_dir / "miru.log", 0o600)
+        try:
+            os.chmod(log_dir / "miru.log", 0o600)
+        except OSError:
+            pass
     if getattr(sys, "frozen", False) or sys.stdout is None or DESKTOP_PLATFORM == "linux":
         sys.stdout = stream
-    if getattr(sys, "frozen", False) or sys.stderr is None or DESKTOP_PLATFORM == "linux":
+    # Source runs keep terminal stderr so startup failures remain visible.
+    if getattr(sys, "frozen", False) or sys.stderr is None:
         sys.stderr = stream
 
 

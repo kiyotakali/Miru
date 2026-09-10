@@ -5896,7 +5896,9 @@ function settingsRenderAiPanel() {
       ? '这部手机中'
       : window.__MIRU_DESKTOP_PLATFORM__ === 'windows'
         ? '这台 Windows 电脑中'
-        : '这台 Mac 中')
+        : window.__MIRU_DESKTOP_PLATFORM__ === 'linux'
+          ? '这台 Linux 电脑中'
+          : '这台 Mac 中')
     : '当前 Miru 私有服务器中';
   html += '<div style="max-width:860px;">';
   html += '<div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">';
@@ -6959,6 +6961,8 @@ function settingsRenderSystemPanel() {
       ? '当前是本地单设备模式。切换账号只会退出当前界面，不会删除这部手机上的本地 Miru 数据。'
       : isWindowsDesktop
       ? '当前是本地单设备模式。切换账号只会退出当前界面，不会删除这台 Windows 电脑上的本地 Miru 数据。'
+      : window.__MIRU_DESKTOP_PLATFORM__ === 'linux'
+      ? '当前是本地单设备模式。切换账号只会退出当前界面，不会删除这台 Linux 电脑上的本地 Miru 数据。'
       : '当前是本地单设备模式。切换账号只会退出当前界面，不会删除这台 Mac 上的本地 Miru 数据。')
     : '当前是多设备模式。切换账号只会清掉这台设备的登录状态，服务器里的 Miru 数据不会被删除。';
   html += '<div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:10px;">' + accountScopeText + '</div>';
@@ -7026,7 +7030,9 @@ function _loadSettingsInvitationCode() {
           ? '当前 Miru 只在这部手机上使用，其他设备不会同步。需要多设备时，请回到首启页选择私有服务器。'
           : window.__MIRU_DESKTOP_PLATFORM__ === 'windows'
             ? '当前 Miru 只在这台 Windows 电脑上使用，手机和其他电脑不会同步。需要多设备时，请回到首启页选择私有服务器。'
-            : '当前 Miru 只在这台 Mac 上使用，手机和其他电脑不会同步。需要多设备时，请回到首启页选择私有服务器。';
+            : window.__MIRU_DESKTOP_PLATFORM__ === 'linux'
+              ? '当前 Miru 只在这台 Linux 电脑上使用，手机和其他电脑不会同步。需要多设备时，请回到首启页选择私有服务器。'
+              : '当前 Miru 只在这台 Mac 上使用，手机和其他电脑不会同步。需要多设备时，请回到首启页选择私有服务器。';
       }
       return;
     }
@@ -7097,6 +7103,8 @@ async function settingsSwitchAccount() {
       ? '要回到 Miru 初始界面吗？\n\n本地单设备数据会继续留在这部手机上。之后再次选择“只在这部手机使用”，会回到同一个本地 Miru。'
       : isWindowsDesktop
       ? '要回到 Miru 初始界面吗？\n\n本地单设备数据会继续留在这台 Windows 电脑上。之后再次选择“只在这台电脑使用”，会回到同一个本地 Miru。'
+      : window.__MIRU_DESKTOP_PLATFORM__ === 'linux'
+      ? '要回到 Miru 初始界面吗？\n\n本地单设备数据会继续留在这台 Linux 电脑上。之后再次选择“只在这台电脑使用”，会回到同一个本地 Miru。'
       : '要回到 Miru 初始界面吗？\n\n本地单设备数据会继续留在这台 Mac 上。之后再次选择“只在这台 Mac 使用”，会回到同一个本地 Miru。')
     : '要回到 Miru 初始界面吗？\n\n这只会退出这台设备，不会删除服务器上的聊天、记忆或邀请码。';
   if (!await _confirm(msg, { confirmText: '切换账号' })) return;

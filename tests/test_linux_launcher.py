@@ -1,6 +1,7 @@
 from urllib.parse import parse_qs, urlsplit
 from pathlib import Path
 import ast
+import io
 import sys
 from types import SimpleNamespace
 
@@ -8,6 +9,80 @@ import pytest
 
 import linux_launcher
 import windows_launcher
+
+
+@pytest.mark.parametrize("failure", ["port-conflict", "flask-start"])
+def test_linux_startup_failures_remain_visible_in_terminal(monkeypatch, tmp_path, failure):
+    terminal = io.StringIO()
+    monkeypatch.setattr(sys, "stderr", terminal)
+    monkeypatch.setattr(sys, "stdout", io.StringIO())
+    monkeypatch.setattr(sys, "frozen", False, raising=False)
+    monkeypatch.setattr(sys, "platform", "linux")
+    monkeypatch.setattr(windows_launcher, "DESKTOP_PLATFORM", "linux")
+    monkeypatch.setattr(windows_launcher, "app_support_dir", lambda: tmp_path)
+    monkeypatch.setattr(windows_launcher, "data_dir", lambda: tmp_path / "data")
+    monkeypatch.setattr(windows_launcher, "_existing_instance_ready", lambda: False)
+    monkeypatch.setattr(windows_launcher, "_port_in_use", lambda: failure == "port-conflict")
+    monkeypatch.setattr(windows_launcher, "_wait_for_flask", lambda: False)
+    monkeypatch.setattr(windows_launcher, "_load_config", lambda: {})
+    monkeypatch.setattr(windows_launcher.os, "chdir", lambda path: None)
+    monkeypatch.setenv("DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setitem(sys.modules, "app", SimpleNamespace(run_client_mode=lambda *args: None))
+    try:
+        assert windows_launcher.main(platform_name="linux") == 1
+        expected = "Port 5001 is already in use" if failure == "port-conflict" else "Miru local service did not start"
+        assert expected in terminal.getvalue()
+        assert sys.stderr is terminal
+    finally:
+        if sys.stdout is not terminal:
+            sys.stdout.close()
+
+
+def test_linux_log_permissions_are_best_effort(monkeypatch, tmp_path):
+    terminal = io.StringIO()
+    monkeypatch.setattr(sys, "stderr", terminal)
+    monkeypatch.setattr(sys, "stdout", io.StringIO())
+    monkeypatch.setattr(sys, "frozen", False, raising=False)
+    monkeypatch.setattr(windows_launcher, "DESKTOP_PLATFORM", "linux")
+    monkeypatch.setattr(windows_launcher, "app_support_dir", lambda: tmp_path)
+    def unsupported(path, mode):
+        assert mode == 0o600
+        raise OSError("filesystem does not support chmod")
+    monkeypatch.setattr(windows_launcher.os, "chmod", unsupported)
+    windows_launcher._configure_logging()
+    try:
+        print("Linux log remains writable")
+        windows_launcher._show_error("Startup failure remains visible")
+        assert "Startup failure remains visible" in terminal.getvalue()
+        assert "Linux log remains writable" in (tmp_path / "logs" / "miru.log").read_text()
+    finally:
+        sys.stdout.close()
+
+
+@pytest.mark.parametrize("platform,frozen,has_terminal,redirected", [
+    ("windows", False, True, False), ("windows", True, True, True),
+    ("linux", True, True, True), ("linux", False, False, True),
+])
+def test_logging_preserves_packaged_and_windowless_behavior(monkeypatch, tmp_path,
+                                                          platform, frozen, has_terminal, redirected):
+    terminal = io.StringIO() if has_terminal else None
+    stdout = io.StringIO()
+    monkeypatch.setattr(sys, "stderr", terminal)
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "frozen", frozen, raising=False)
+    monkeypatch.setattr(windows_launcher, "DESKTOP_PLATFORM", platform)
+    monkeypatch.setattr(windows_launcher, "app_support_dir", lambda: tmp_path)
+    windows_launcher._configure_logging()
+    try:
+        if redirected:
+            assert sys.stderr is sys.stdout
+            assert Path(sys.stderr.name) == tmp_path / "logs" / "miru.log"
+        else:
+            assert sys.stderr is terminal
+            assert sys.stdout is stdout
+    finally:
+        if sys.stdout is not stdout:
+            sys.stdout.close()
 
 
 def test_linux_url_retains_auth_and_platform(monkeypatch):
