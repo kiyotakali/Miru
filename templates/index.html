@@ -5896,7 +5896,9 @@ function settingsRenderAiPanel() {
       ? '这部手机中'
       : window.__MIRU_DESKTOP_PLATFORM__ === 'windows'
         ? '这台 Windows 电脑中'
-        : '这台 Mac 中')
+        : window.__MIRU_DESKTOP_PLATFORM__ === 'linux'
+          ? '这台 Linux 电脑中'
+          : '这台 Mac 中')
     : '当前 Miru 私有服务器中';
   html += '<div style="max-width:860px;">';
   html += '<div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">';
@@ -6837,7 +6839,7 @@ async function settingsSaveSoul() {
 function settingsRenderSystemPanel() {
   const cfg = appConfigState || {};
   const isWindowsDesktop = window.__MIRU_DESKTOP_PLATFORM__ === 'windows';
-  const hotkeyExample = isWindowsDesktop ? 'Ctrl+Alt+M' : '⌘⌥M';
+  const hotkeyExample = (isWindowsDesktop || window.__MIRU_DESKTOP_PLATFORM__ === 'linux') ? 'Ctrl+Alt+M' : '⌘⌥M';
   let html = '';
   html += '<div class="sync-settings-grid">';
 
@@ -6959,6 +6961,8 @@ function settingsRenderSystemPanel() {
       ? '当前是本地单设备模式。切换账号只会退出当前界面，不会删除这部手机上的本地 Miru 数据。'
       : isWindowsDesktop
       ? '当前是本地单设备模式。切换账号只会退出当前界面，不会删除这台 Windows 电脑上的本地 Miru 数据。'
+      : window.__MIRU_DESKTOP_PLATFORM__ === 'linux'
+      ? '当前是本地单设备模式。切换账号只会退出当前界面，不会删除这台 Linux 电脑上的本地 Miru 数据。'
       : '当前是本地单设备模式。切换账号只会退出当前界面，不会删除这台 Mac 上的本地 Miru 数据。')
     : '当前是多设备模式。切换账号只会清掉这台设备的登录状态，服务器里的 Miru 数据不会被删除。';
   html += '<div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:10px;">' + accountScopeText + '</div>';
@@ -7026,7 +7030,9 @@ function _loadSettingsInvitationCode() {
           ? '当前 Miru 只在这部手机上使用，其他设备不会同步。需要多设备时，请回到首启页选择私有服务器。'
           : window.__MIRU_DESKTOP_PLATFORM__ === 'windows'
             ? '当前 Miru 只在这台 Windows 电脑上使用，手机和其他电脑不会同步。需要多设备时，请回到首启页选择私有服务器。'
-            : '当前 Miru 只在这台 Mac 上使用，手机和其他电脑不会同步。需要多设备时，请回到首启页选择私有服务器。';
+            : window.__MIRU_DESKTOP_PLATFORM__ === 'linux'
+              ? '当前 Miru 只在这台 Linux 电脑上使用，手机和其他电脑不会同步。需要多设备时，请回到首启页选择私有服务器。'
+              : '当前 Miru 只在这台 Mac 上使用，手机和其他电脑不会同步。需要多设备时，请回到首启页选择私有服务器。';
       }
       return;
     }
@@ -7097,6 +7103,8 @@ async function settingsSwitchAccount() {
       ? '要回到 Miru 初始界面吗？\n\n本地单设备数据会继续留在这部手机上。之后再次选择“只在这部手机使用”，会回到同一个本地 Miru。'
       : isWindowsDesktop
       ? '要回到 Miru 初始界面吗？\n\n本地单设备数据会继续留在这台 Windows 电脑上。之后再次选择“只在这台电脑使用”，会回到同一个本地 Miru。'
+      : window.__MIRU_DESKTOP_PLATFORM__ === 'linux'
+      ? '要回到 Miru 初始界面吗？\n\n本地单设备数据会继续留在这台 Linux 电脑上。之后再次选择“只在这台电脑使用”，会回到同一个本地 Miru。'
       : '要回到 Miru 初始界面吗？\n\n本地单设备数据会继续留在这台 Mac 上。之后再次选择“只在这台 Mac 使用”，会回到同一个本地 Miru。')
     : '要回到 Miru 初始界面吗？\n\n这只会退出这台设备，不会删除服务器上的聊天、记忆或邀请码。';
   if (!await _confirm(msg, { confirmText: '切换账号' })) return;
@@ -12040,10 +12048,10 @@ function _showDesktopScreenshotGuide() {
         nativeChecked = true;
         window.MiruDesktop.checkScreenPermission().then(function(res) {
           var nativePlatform = (res && res.platform) || window.__MIRU_DESKTOP_PLATFORM__ || 'macos';
-          if (nativePlatform === 'windows') {
+          if (nativePlatform === 'windows' || nativePlatform === 'linux') {
             // Capability is not consent. Do not capture or enable anything
-            // until the user explicitly clicks the Windows modal button.
-            _maybeShowModalFallback('windows');
+            // until the user explicitly clicks the capture-test button.
+            _maybeShowModalFallback(nativePlatform);
             return;
           }
           if (res && res.ok && res.granted === true) {
@@ -12125,18 +12133,21 @@ function _showClientScreenRecordingModal(alreadyEnabled, reason, platformName) {
   // path even if an in-app navigation accidentally loses desktop query tags.
   if (!resolvedPlatform && window.pywebview && window.pywebview.api) resolvedPlatform = 'windows';
   if (resolvedPlatform === 'win32') resolvedPlatform = 'windows';
-  var isWindows = resolvedPlatform === 'windows';
+  var isLinux = resolvedPlatform === 'linux';
+  var usesCaptureProbe = resolvedPlatform === 'windows' || isLinux;
   var overlay = document.createElement('div');
   overlay.id = 'permModalOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.25s ease;';
   var charName = (window.CHARACTER && CHARACTER.name) || 'Miru';
-  var heading = isWindows && isDisabled
+  var heading = usesCaptureProbe && isDisabled
     ? '屏幕观察暂时中断'
     : (isDisabled
       ? (escapeHtml(charName) + ' 一直没能看到屏幕')
       : ('让 ' + escapeHtml(charName) + ' 能陪在你身边'));
   var body;
-  if (isWindows) {
+  if (isLinux) {
+    body = 'Linux 预览版支持 X11 桌面。开启后会定时读取屏幕，并将内容发给你配置的视觉模型；点击测试成功后才会开启。Wayland 暂不支持。';
+  } else if (resolvedPlatform === 'windows') {
     body = isDisabled
       ? ('Windows 不需要单独授予屏幕录制权限。请回到正常桌面，离开锁屏、UAC 确认或远程桌面切换界面后重新测试。')
       : (escapeHtml(charName) + ' 会定时看一眼鼠标所在的显示器，用来理解你正在做什么。Windows 不需要单独授予屏幕录制权限，测试成功后才会开启。');
@@ -12151,7 +12162,7 @@ function _showClientScreenRecordingModal(alreadyEnabled, reason, platformName) {
           '这需要 macOS 的 <b>屏幕录制</b> 权限。点下面的按钮会直接打开系统设置页面，勾选 <b>Miru</b> 即可。'
         );
   }
-  var lifecycleText = isWindows
+  var lifecycleText = usesCaptureProbe
     ? '• 关闭主窗口会完全退出并停止截屏；最小化会继续运行'
     : '• 完全退出 Miru 后会停止截屏';
   overlay.innerHTML = (
@@ -12166,18 +12177,18 @@ function _showClientScreenRecordingModal(alreadyEnabled, reason, platformName) {
       '</div>' +
       '<div id="permModalError" style="display:none;color:var(--fn-danger);font-size:12px;line-height:1.5;margin:-6px 0 12px;"></div>' +
       '<div style="display:flex;gap:10px;flex-direction:column;">' +
-        (isWindows
+        (usesCaptureProbe
           ? '<button id="permModalEnableBtn" onclick="_permModalEnableWindows()" style="border:none;background:var(--airi-pink);color:#fff;border-radius:10px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;">' + (isDisabled ? '重新测试截屏' : '测试并开启屏幕观察') + '</button>'
           : '<button onclick="_permModalOpenSettings()" style="border:none;background:var(--airi-pink);color:#fff;border-radius:10px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;">打开系统设置 → 屏幕录制</button>') +
         // "立即重试" only makes sense when sensor has backed off — otherwise
         // there's nothing to retry. Hide on the first-launch modal.
-        (isDisabled && !isWindows
+        (isDisabled && !usesCaptureProbe
           ? '<button onclick="_permModalRetryNow()" style="border:none;background:rgba(192,104,120,0.12);color:var(--airi-pink-deep,#C06878);border-radius:10px;padding:10px;font-size:13px;cursor:pointer;">我已授权，立即重试</button>'
           : '') +
         // "我已经设置好了" — latches the sticky flag so this modal
         // never appears again. Styled as a proper outline button (not a
         // muted link) so users actually see it as a real confirm action.
-        (isWindows
+        (usesCaptureProbe
           ? '<button onclick="_permModalDismissWithoutEnable()" style="border:1px solid var(--airi-pink);background:transparent;color:var(--airi-pink-deep,#C06878);border-radius:10px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;">暂不开启</button>'
           : '<button onclick="_permModalDismiss()" style="border:1px solid var(--airi-pink);background:transparent;color:var(--airi-pink-deep,#C06878);border-radius:10px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;">我已经设置好了</button>') +
       '</div>' +
@@ -12196,7 +12207,7 @@ async function _permModalEnableWindows() {
   if (error) error.style.display = 'none';
   try {
     if (!window.MiruDesktop || typeof window.MiruDesktop.probeScreenCapture !== 'function') {
-      throw new Error('Windows 本机桥接尚未准备好，请稍后重试。');
+      throw new Error('本机桥接尚未准备好，请稍后重试。');
     }
     var result = await window.MiruDesktop.probeScreenCapture();
     if (!result || !result.ok) throw new Error((result && result.error) || '截屏测试失败。');
